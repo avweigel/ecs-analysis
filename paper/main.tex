@@ -3,6 +3,7 @@
 \usepackage{multirow}
 \usepackage{siunitx}
 \usepackage{enumitem}
+\usepackage{longtable}
 \sisetup{detect-all}
 
 % Lead author for running footer
@@ -25,7 +26,7 @@
 
 This report documents a series of analyses comparing extracellular space (ECS) morphology between chemical fixation and rapid high-pressure freezing (HPF) preparations in the CellMap open-access volume EM dataset. The goal is to provide a thorough, reproducible account of what was measured, how it was measured, what the results were, and what biases and artifacts affect each measurement. This is intended as a companion reference for a larger manuscript effort, not as a standalone publication.
 
-The analysis covers 42 ground-truth annotated crops from 8 datasets spanning 4 mouse tissues (kidney, heart, liver, cortex) and 2 preparation methods. Nine metrics were computed; one was discarded as uninformative and one was superseded by an improved method. All analysis scripts, output CSVs, and plots are available in the project repository.
+The analysis covers 42 ground-truth annotated crops from 8 datasets spanning 4 mouse tissues (kidney, heart, liver, cortex) and 2 preparation methods. Nine metrics were computed; one was discarded as uninformative and one was superseded by an improved method. Anatomical annotations for each crop (provided by KP) enable region-matched comparisons for a subset of crops in kidney and liver, partially controlling for the dominant crop-placement confound. All analysis scripts, output CSVs, and plots are available in the project repository.
 
 %% ============================================================
 \section*{Data}
@@ -57,6 +58,34 @@ Fraction convex & $-0.071$ & $2.8 \times 10^{-2}$ \\
 
 Crop-level metrics (ECS volume fraction, ECS width) are less directly affected since they are ratios or distances in physical units, but voxel quantization still creates artifacts at fine scales (detailed per-metric below).
 
+\subsection*{Anatomical annotations and region-matched comparisons}
+Anatomical annotations describing the tissue structures present in each crop were provided by KP (Table~\ref{tab:annotations}). These annotations allow crops to be grouped by anatomical region so that matched comparisons can be made between preparations at equivalent tissue locations, partially controlling for the crop-placement confound.
+
+Based on these annotations, we identified four anatomical regions where both Chemical and HPF crops were available in our dataset (Table~\ref{tab:matched_pairs}):
+
+\begin{itemize}[nosep]
+\item \textbf{Kidney --- Glomerular interstitium:} interstitial space among fenestrated endothelium, podocytes, and basal membrane. Chemical crops 1026, 1027 (4\,nm); HPF crop 1134 (8\,nm).
+\item \textbf{Kidney --- DCT base:} base of the epithelium (striping) in distal convoluted tubule, with basement lamina and basal space. Chemical crops 1030, 1032 (4\,nm); HPF crops 1136, 1137, 1144 (8\,nm).
+\item \textbf{Liver --- Bile canaliculus:} bile canaliculus between 2--3 hepatocytes. Chemical crops 1039, 1040, 1042 (4\,nm); HPF crops 1072, 1073, 1074, 1075 (8\,nm).
+\item \textbf{Liver --- Hepatocyte lateral:} intercellular space between hepatocyte lateral membranes, including Kupffer cell contacts. Chemical crop 1044 (4\,nm); HPF crops 1071, 1124, 1125, 1127 (8\,nm).
+\end{itemize}
+
+\subsection*{Gaps in matching}
+Several annotated crops were not present in our dataset, preventing additional matched comparisons:
+
+\begin{itemize}[nosep]
+\item \textbf{Heart:} HPF crops 1149--1152 are annotated but were not available in the data we analyzed. Heart Chemical crops 1145--1147 are in our data, but crop 1148 is not. No matched Heart comparisons are possible.
+\item \textbf{Kidney:} HPF crops 1135 (glomerular) and 1138 (PCT lateral) are annotated but not in our dataset. This reduces the HPF glomerular sample to $n{=}1$ and leaves PCT lateral/brush border with no HPF match.
+\item \textbf{Cortex:} No anatomical annotations were provided. All cortex crops (Chemical: 1033--1037, 1045--1046; HPF: 1116, 1117, 1139, 1141) remain unmatched.
+\item \textbf{Liver --- Space of Disse:} Chemical crops 1038, 1041, 1043 are at the sinusoidal endothelium (Space of Disse). No HPF crops were annotated at this location.
+\end{itemize}
+
+Several Chemical kidney crops have no HPF equivalent in the data:
+\begin{itemize}[nosep]
+\item PCT brush border (microvilli): crops 1028, 1029 --- no HPF match.
+\item PCT lateral (apical epithelium): crop 1031 --- HPF crop 1138 is annotated but not in data.
+\end{itemize}
+
 %% ============================================================
 \section*{Metric 1: ECS Volume Fraction}
 %% ============================================================
@@ -83,7 +112,7 @@ No spatial analysis was needed; this is a simple label count.
 \subsection*{Weaknesses}
 \begin{itemize}[nosep]
 \item One value per crop; small sample sizes (3--10 per tissue-prep group).
-\item No paired anatomical regions between preps.
+\item No paired anatomical regions between preps (partially addressed by matched comparisons below).
 \item Cannot distinguish ``preparation inflated the ECS'' from ``this crop happened to land on open space.''
 \end{itemize}
 
@@ -95,9 +124,9 @@ No spatial analysis was needed; this is a simple label count.
 \item \textbf{Tissue type confound:} Each tissue has fundamentally different ECS architecture (kidney tubules vs liver sinusoids vs cortical neuropil). Cross-tissue pooling is done for statistical power but within-tissue comparisons are more meaningful.
 \end{itemize}
 
-\subsection*{Results}
+\subsection*{Results --- overall}
 
-Overall (all tissues pooled):
+All tissues pooled:
 
 \begin{table}[h]
 \centering
@@ -128,6 +157,26 @@ Cortex & 13.3 $\pm$ 3.5\% ($n{=}7$)  & 32.9 $\pm$ 15.0\% ($n{=}3$) \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection*{Results --- region-matched comparisons}
+
+\begin{table}[h]
+\centering
+\caption{ECS volume fraction for anatomically matched crop groups.}
+\label{tab:ecs_matched}
+\begin{tabular}{lrrrr}
+\toprule
+Anatomical region & Chem mean & HPF mean & Chem $n$ & HPF $n$ \\
+\midrule
+Kidney: Glomerular & 35.7\% & 64.8\% & 2 & 1 \\
+Kidney: DCT base & 16.8\% & 11.5\% & 2 & 3 \\
+Liver: Bile canaliculus & 19.8\% & 8.2\% & 3 & 4 \\
+Liver: Hepatocyte lateral & 21.9\% & 9.3\% & 1 & 4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The direction of the Chemical-vs-HPF difference is not consistent across regions. In the kidney glomerulus, HPF has substantially more ECS (64.8\% vs 35.7\%), opposite to the overall trend. In the kidney DCT base, liver bile canaliculus, and liver hepatocyte lateral regions, Chemical has more ECS than HPF. The glomerular result is based on a single HPF crop (crop1134), so the comparison is tentative. The liver bile canaliculus pairing (3 Chemical vs 4 HPF crops) is the best-powered matched comparison; Chemical ECS fraction (19.8\%) is $\sim$2.4$\times$ that of HPF (8.2\%).
 
 \begin{figure*}[t]
 \centering
@@ -194,9 +243,9 @@ The monotonic dependence on voxel size within Chemical fixation demonstrates tha
 \item \textbf{Crop boundary contamination:} ECS voxels at the edge of a crop see artificially large distances because there are no cell voxels beyond the boundary. The $<$200\,nm filter mitigates this for most cases.
 \end{itemize}
 
-\subsection*{Results}
+\subsection*{Results --- overall}
 
-Overall (mean across crops):
+Mean across crops:
 
 \begin{table}[h]
 \centering
@@ -225,6 +274,28 @@ Cortex & 13.6 $\pm$ 8.4 ($n{=}7$) & 30.2 $\pm$ 16.8 ($n{=}3$) \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection*{Results --- region-matched comparisons}
+
+\begin{table}[h]
+\centering
+\caption{ECS narrow half-width and fraction below 20\,nm for anatomically matched crop groups.}
+\label{tab:width_matched}
+\begin{tabular}{lrrrr}
+\toprule
+Region & Chem median & HPF median & Chem frac$_{<20}$ & HPF frac$_{<20}$ \\
+\midrule
+Kidney: Glomerular & 29.2\,nm & 51.2\,nm & 0.364 & 0.193 \\
+Kidney: DCT base & 11.7\,nm & 12.2\,nm & 0.726 & 0.797 \\
+Liver: Bile canalic. & 28.9\,nm & 28.3\,nm & 0.422 & 0.444 \\
+Liver: Hepat. lateral & 35.3\,nm & 13.2\,nm & 0.298 & 0.743 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The kidney DCT base and liver bile canaliculus pairs show nearly identical ECS half-widths between preparations ($\sim$12\,nm and $\sim$29\,nm respectively), despite the 4\,nm vs 8\,nm voxel-size difference. These are the two best-powered comparisons and suggest that at these anatomical locations, the ECS channel geometry is similar across preparations.
+
+The kidney glomerular region shows wider ECS in HPF (51 vs 29\,nm), consistent with its higher ECS volume fraction. The hepatocyte lateral region shows the opposite: HPF is narrower (13 vs 35\,nm). However, the hepatocyte lateral Chemical sample is a single crop (crop1044), and the HPF crops include tight-junction-adjacent regions (crop1123, 1126) that may represent a distinct anatomical subregion with inherently narrower ECS. Note also that the frac$_{<20\text{nm}}$ values remain confounded by voxel size: the Chemical crops are at 4\,nm voxels and the HPF crops at 8\,nm.
 
 \begin{figure*}[t]
 \centering
@@ -272,7 +343,7 @@ The native-resolution analysis used a physical volume filter of $>$2.56$\times10
 \item \textbf{Normalization introduces smoothing:} Resampling to 8\,nm blurs features that exist at 2--4\,nm, changing absolute values. Chemical sphericity jumps from 0.518 (native) to 0.650 (normalized) purely from resampling.
 \end{itemize}
 
-\subsection*{Results}
+\subsection*{Results --- overall}
 
 Normalized to 8\,nm isotropic (median SA:V across cells, Mann--Whitney $p$-values):
 
@@ -305,6 +376,26 @@ Cortex & 0.032 $\pm$ 0.002 ($n{=}101$) & 0.033 $\pm$ 0.001 ($n{=}326$) \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection*{Results --- region-matched comparisons}
+
+\begin{table}[h]
+\centering
+\caption{Per-cell SA:V for anatomically matched regions (native resolution, cells $\geq$0.01\,$\mu$m$^3$).}
+\label{tab:sav_matched}
+\begin{tabular}{lrrrrr}
+\toprule
+Region & Chem med. & HPF med. & Chem $n$ & HPF $n$ & $p$ \\
+\midrule
+Kidney: Glomerular & 0.0237 & 0.0247 & 26 & 15 & 0.507 \\
+Kidney: DCT base & 0.0209 & 0.0223 & 35 & 49 & 0.772 \\
+Liver: Bile canalic. & 0.0186 & 0.0056 & 12 & 12 & 0.026 \\
+Liver: Hepat. lateral & 0.0067 & 0.0292 & 2 & 50 & 0.136 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The two kidney regions show no SA:V difference between preparations (both $p > 0.5$), consistent with the overall kidney within-tissue result. The liver bile canaliculus region shows significantly higher SA:V in Chemical cells (0.0186 vs 0.0056, $p = 0.026$). The hepatocyte lateral comparison is hampered by the very small Chemical cell count ($n{=}2$).
 
 \begin{figure*}[t]
 \centering
@@ -346,7 +437,7 @@ where $V$ is cell volume and $A$ is \textit{total} surface area (all 6-connected
 \item Same boundary-truncation issues as SA:V.
 \end{itemize}
 
-\subsection*{Results}
+\subsection*{Results --- overall}
 
 Normalized to 8\,nm (median sphericity, Mann--Whitney $p$):
 
@@ -364,7 +455,7 @@ $\geq$0.05\,$\mu$m$^3$  & 0.492 (90)  & 0.454 (230) & 0.046 \\
 \end{tabular}
 \end{table}
 
-Chemical cells consistently show higher sphericity than HPF across all size filters.
+Chemical cells consistently show higher sphericity than HPF across all size filters. Region-matched comparisons were not separately computed for sphericity as it is closely correlated with SA:V and shows the same patterns.
 
 %% ============================================================
 \section*{Metric 5: Inter-Cell Gap Width (Voronoi Tessellation)}
@@ -418,9 +509,9 @@ Chemical 8\,nm crops show the same 0\% contact at 20\,nm as HPF 8\,nm crops. The
 \item \textbf{Open-space contamination:} Vessel lumens and large intercellular pools create wide Voronoi boundaries that inflate gap measurements.
 \end{itemize}
 
-\subsection*{Results}
+\subsection*{Results --- overall}
 
-Overall (mean across crops):
+Mean across crops:
 
 \begin{table}[h]
 \centering
@@ -467,6 +558,26 @@ Liver  & 80\,nm & 56.8\% & 78.6\% \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection*{Results --- region-matched comparisons}
+
+\begin{table}[h]
+\centering
+\caption{Voronoi gap median and contact fraction at 80\,nm for anatomically matched regions.}
+\label{tab:gap_matched}
+\begin{tabular}{lrrrr}
+\toprule
+Region & Chem gap (nm) & HPF gap (nm) & Chem frac$_{80}$ & HPF frac$_{80}$ \\
+\midrule
+Kidney: Glomerular & 82.6 & 159.4 & 0.485 & 0.190 \\
+Kidney: DCT base & 15.3 & 39.2 & 0.985 & 0.936 \\
+Liver: Bile canalic. & 42.6 & 58.8 & 0.649 & 0.652 \\
+Liver: Hepat. lateral & 110.9 & 40.9 & 0.368 & 0.864 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At the kidney DCT base, both preparations show $>$93\% of cell pairs within 80\,nm of each other, with Chemical showing a smaller median gap (15 vs 39\,nm). The difference at small gap values is partly confounded by the resolution floor (Chemical is at 4\,nm voxels, HPF at 8\,nm). At the liver bile canaliculus, the 80\,nm contact fractions are nearly identical (0.649 vs 0.652), suggesting similar cell-cell packing at this scale. The glomerular result (Chemical 83\,nm vs HPF 159\,nm) is consistent with the ECS volume fraction data: the single HPF glomerular crop has unusually wide ECS. The hepatocyte lateral comparison shows the reverse pattern (Chemical 111\,nm vs HPF 41\,nm), though the Chemical side is a single crop.
 
 \begin{figure*}[t]
 \centering
@@ -528,7 +639,7 @@ Sign convention: positive $H$ = convex (cell surface bulging outward into ECS); 
 \item \textbf{Superseded:} The mesh-based curvature (Metric 8) eliminates the worst voxel staircase artifacts and is preferred.
 \end{itemize}
 
-\subsection*{Results}
+\subsection*{Results --- overall}
 
 By prep (all tissues pooled, cells $>$2.56$\times10^6$\,nm$^3$):
 
@@ -562,6 +673,8 @@ Cortex & 0.0051 & 0.0053 & 221\,nm & 242\,nm \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+Region-matched curvature comparisons are reported for the mesh-based method only (Metric 8), which is preferred.
 
 %% ============================================================
 \section*{Metric 8: Surface Curvature --- Mesh-Based}
@@ -601,7 +714,7 @@ Per-cell statistics were computed identically to the voxel-based method. Additio
 \item \textbf{Method disagreement:} Mesh median $|H|$ is $\sim$2$\times$ the voxel-based value (0.0107 vs 0.0065 for Chemical). Mesh radius of curvature is $\sim$60\% smaller (94\,nm vs 153\,nm). This could mean the mesh resolves real high-curvature features that voxel smoothing missed, or that mesh triangulation artifacts inflate curvature at sharp edges.
 \end{itemize}
 
-\subsection*{Results}
+\subsection*{Results --- overall}
 
 No size filter (all cells $>$2.56$\times10^6$\,nm$^3$):
 
@@ -670,6 +783,44 @@ Cortex & 0.0062 (101) & 0.0096 (326) & 161.8\,nm & 104.3\,nm \\
 \end{tabular}
 \end{table}
 
+\subsection*{Results --- region-matched comparisons}
+
+\begin{table}[h]
+\centering
+\caption{Mesh-based curvature for anatomically matched regions (all cells $>$2.56$\times10^6$\,nm$^3$).}
+\label{tab:curv_matched}
+\begin{tabular}{lrrrrrr}
+\toprule
+Region & Chem $|H|$ & HPF $|H|$ & Chem $r$ & HPF $r$ & Chem $n$ & HPF $n$ \\
+\midrule
+Kidney: Glom. & 0.0095 & 0.0119 & 105\,nm & 84\,nm & 49 & 23 \\
+Kidney: DCT & 0.0065 & 0.0084 & 155\,nm & 119\,nm & 45 & 58 \\
+Liver: Bile can. & 0.0137 & 0.0193 & 73\,nm & 52\,nm & 35 & 41 \\
+Liver: Hep. lat. & 0.0120 & 0.0143 & 84\,nm & 70\,nm & 4 & 97 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Mesh-based fraction convex and Mann--Whitney $p$-values for matched regions.}
+\label{tab:curv_matched_convex}
+\begin{tabular}{lrrrr}
+\toprule
+Region & Chem frac convex & HPF frac convex & $p$ ($|H|$) \\
+\midrule
+Kidney: Glomerular & 0.232 & 0.197 & 0.060 \\
+Kidney: DCT base & 0.331 & 0.367 & 0.005 \\
+Liver: Bile canaliculus & 0.143 & 0.046 & $<$0.0001 \\
+Liver: Hepatocyte lateral & 0.322 & 0.115 & 0.167 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In all four matched regions, HPF cells show higher curvature magnitudes (smaller radii of curvature) than Chemical cells. This pattern is consistent across regions and reaches statistical significance in kidney DCT ($p = 0.005$) and liver bile canaliculus ($p < 0.0001$). Chemical cells tend to have a higher fraction of convex surface, particularly at the liver bile canaliculus (14.3\% vs 4.6\%).
+
+This is the opposite direction from what might be expected if Chemical fixation caused cell compression (which would increase curvature). The result may reflect the voxel-size confound (coarser HPF voxels producing meshes that differ in curvature properties) or may indicate a genuine preparation effect on membrane geometry.
+
 %% ============================================================
 \section*{Comparison of Curvature Methods}
 %% ============================================================
@@ -695,7 +846,81 @@ Frac.\ concave (\%) & 87.3 & 85.3 & 81.9 & 82.9 \\
 The mesh-based method produces $\sim$2$\times$ higher curvature magnitudes and $\sim$40\% smaller radii of curvature. It also shows closer agreement between Chemical and HPF preparations (especially without size filtering), suggesting it is less sensitive to voxel-size artifacts. The mesh-based method is preferred for further analysis.
 
 %% ============================================================
-\section*{Summary}
+\section*{Summary of Region-Matched Comparisons}
+%% ============================================================
+
+Table~\ref{tab:matched_summary} consolidates the region-matched results across all metrics for the four anatomically paired regions.
+
+\begin{table*}[t]
+\centering
+\caption{Summary of region-matched comparisons across all metrics. Values are means or medians as specified per-metric above. Arrows indicate direction of Chemical relative to HPF ($\uparrow$ = Chemical higher, $\downarrow$ = Chemical lower, $\approx$ = similar).}
+\label{tab:matched_summary}
+\small
+\begin{tabular}{lrrrrl}
+\toprule
+& \multicolumn{2}{c}{Kidney: Glomerular} & & & \\
+Metric & Chemical & HPF & Dir. & Chem $n$ & HPF $n$ \\
+\midrule
+ECS volume (\%) & 35.7 & 64.8 & $\downarrow$ & 2 crops & 1 crop \\
+ECS half-width (nm) & 29.2 & 51.2 & $\downarrow$ & 2 & 1 \\
+Voronoi gap (nm) & 82.6 & 159.4 & $\downarrow$ & 2 & 1 \\
+SA:V (1/nm) & 0.024 & 0.025 & $\approx$ & 26 cells & 15 cells \\
+Mesh $|H|$ (1/nm) & 0.0095 & 0.0119 & $\downarrow$ & 49 cells & 23 cells \\
+Mesh frac convex & 0.232 & 0.197 & $\uparrow$ & 49 & 23 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1em}
+
+\begin{tabular}{lrrrrl}
+\toprule
+& \multicolumn{2}{c}{Kidney: DCT base} & & & \\
+Metric & Chemical & HPF & Dir. & Chem $n$ & HPF $n$ \\
+\midrule
+ECS volume (\%) & 16.8 & 11.5 & $\uparrow$ & 2 crops & 3 crops \\
+ECS half-width (nm) & 11.7 & 12.2 & $\approx$ & 2 & 3 \\
+Voronoi gap (nm) & 15.3 & 39.2 & $\downarrow$ & 2 & 3 \\
+SA:V (1/nm) & 0.021 & 0.022 & $\approx$ & 35 cells & 49 cells \\
+Mesh $|H|$ (1/nm) & 0.0065 & 0.0084 & $\downarrow$ & 45 cells & 58 cells \\
+Mesh frac convex & 0.331 & 0.367 & $\approx$ & 45 & 58 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1em}
+
+\begin{tabular}{lrrrrl}
+\toprule
+& \multicolumn{2}{c}{Liver: Bile canaliculus} & & & \\
+Metric & Chemical & HPF & Dir. & Chem $n$ & HPF $n$ \\
+\midrule
+ECS volume (\%) & 19.8 & 8.2 & $\uparrow$ & 3 crops & 4 crops \\
+ECS half-width (nm) & 28.9 & 28.3 & $\approx$ & 3 & 4 \\
+Voronoi gap (nm) & 42.6 & 58.8 & $\downarrow$ & 3 & 4 \\
+SA:V (1/nm) & 0.019 & 0.006 & $\uparrow$ & 12 cells & 12 cells \\
+Mesh $|H|$ (1/nm) & 0.0137 & 0.0193 & $\downarrow$ & 35 cells & 41 cells \\
+Mesh frac convex & 0.143 & 0.046 & $\uparrow$ & 35 & 41 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1em}
+
+\begin{tabular}{lrrrrl}
+\toprule
+& \multicolumn{2}{c}{Liver: Hepatocyte lateral} & & & \\
+Metric & Chemical & HPF & Dir. & Chem $n$ & HPF $n$ \\
+\midrule
+ECS volume (\%) & 21.9 & 9.3 & $\uparrow$ & 1 crop & 4 crops \\
+ECS half-width (nm) & 35.3 & 13.2 & $\uparrow$ & 1 & 4 \\
+Voronoi gap (nm) & 110.9 & 40.9 & $\uparrow$ & 1 & 4 \\
+SA:V (1/nm) & 0.007 & 0.029 & $\downarrow$ & 2 cells & 50 cells \\
+Mesh $|H|$ (1/nm) & 0.0120 & 0.0143 & $\downarrow$ & 4 cells & 97 cells \\
+Mesh frac convex & 0.322 & 0.115 & $\uparrow$ & 4 & 97 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+%% ============================================================
+\section*{Metrics Summary}
 %% ============================================================
 
 \begin{table*}[t]
@@ -719,6 +944,8 @@ The mesh-based method produces $\sim$2$\times$ higher curvature magnitudes and $
 \end{table*}
 
 %% ============================================================
+%% REFERENCE TABLES
+%% ============================================================
 
 \begin{table*}[t]
 \centering
@@ -736,6 +963,80 @@ jrc\_mus-liver-8    & Liver  & Rapid HPF & 8 & 10 \\
 jrc\_mus-cortex-2   & Cortex & Rapid HPF & 8 & 2 \\
 jrc\_mus-cortex-3   & Cortex & Chemical  & 2 & 7 \\
 jrc\_mus-cortex-4   & Cortex & Rapid HPF & 8 & 2 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\caption{Anatomical annotations for each crop (annotations by KP). Only crops present in the analyzed dataset are listed.}
+\label{tab:annotations}
+\small
+\begin{tabular}{llll}
+\toprule
+Crop & Tissue / Prep & Region Group & Anatomical Description \\
+\midrule
+\multicolumn{4}{l}{\textit{Kidney --- Chemical (4\,nm)}} \\
+crop1026 & Kidney / Chem & Glomerular & Fenestrated endothelium, podocyte, basal membrane \\
+crop1027 & Kidney / Chem & Glomerular & Fenestrated endothelium, podocyte, basal membrane \\
+crop1028 & Kidney / Chem & PCT brush border & Microvilli at PCT brush border \\
+crop1029 & Kidney / Chem & PCT brush border & Microvilli at PCT brush border \\
+crop1030 & Kidney / Chem & DCT base & Epithelium striping in DCT, basement lamina, basal space \\
+crop1031 & Kidney / Chem & PCT lateral & Lateral space, apical epitheliums of PCT \\
+crop1032 & Kidney / Chem & DCT base & Epithelium striping in PCT, basement lamina, basal space \\
+\midrule
+\multicolumn{4}{l}{\textit{Kidney --- Rapid HPF (8\,nm)}} \\
+crop1134 & Kidney / HPF & Glomerular & Fenestrated endothelium, podocyte, basal membrane \\
+crop1136 & Kidney / HPF & DCT base & Epithelium striping in DCT, connecting tubule, ECS \\
+crop1137 & Kidney / HPF & DCT base & Epithelium striping in DCT, basal lamina, blood vessel \\
+crop1144 & Kidney / HPF & DCT base & Epithelium striping in DCT \\
+\midrule
+\multicolumn{4}{l}{\textit{Heart --- Chemical (8\,nm)}} \\
+crop1145 & Heart / Chem & Cardiac interstitial & Blood vessel and two cardiac cells \\
+crop1146 & Heart / Chem & Cardiac interstitial & Blood vessel, fibrocyte, two cardiac cells \\
+crop1147 & Heart / Chem & Intercalated disc & Intercalated disc + interstitial space \\
+\midrule
+\multicolumn{4}{l}{\textit{Liver --- Chemical (4\,nm)}} \\
+crop1038 & Liver / Chem & Space of Disse & Hepatocyte and sinusoid endothelium \\
+crop1039 & Liver / Chem & Bile canaliculus & Bile canaliculus among three hepatocytes \\
+crop1040 & Liver / Chem & Bile canaliculus & Bile canaliculus between two hepatocytes \\
+crop1041 & Liver / Chem & Space of Disse & Hepatocyte and sinusoid endothelium \\
+crop1042 & Liver / Chem & Bile canaliculus & Bile canaliculus between two hepatocytes \\
+crop1043 & Liver / Chem & Space of Disse & Hepatocyte tight junction area \\
+crop1044 & Liver / Chem & Hepatocyte lateral & Hepatocyte and Kupffer cell \\
+\midrule
+\multicolumn{4}{l}{\textit{Liver --- Rapid HPF (8\,nm)}} \\
+crop1071 & Liver / HPF & Hepatocyte lateral & Two hepatocytes and Kupffer cell \\
+crop1072 & Liver / HPF & Bile canaliculus & Bile canaliculus between two hepatocytes \\
+crop1073 & Liver / HPF & Bile canaliculus & Bile canaliculus among three hepatocytes \\
+crop1074 & Liver / HPF & Bile canaliculus & Bile canaliculus among three hepatocytes \\
+crop1075 & Liver / HPF & Bile canaliculus & Bile canaliculus and lateral space, two hepatocytes \\
+crop1123 & Liver / HPF & Hepatocyte lateral & Tight junction near bile canaliculus \\
+crop1124 & Liver / HPF & Hepatocyte lateral & Two hepatocytes lateral membranes \\
+crop1125 & Liver / HPF & Hepatocyte lateral & Three hepatocytes lateral membranes \\
+crop1126 & Liver / HPF & Hepatocyte lateral & Tight junction + lateral, two hepatocytes \\
+crop1127 & Liver / HPF & Hepatocyte lateral & Three hepatocytes lateral membranes \\
+\midrule
+\multicolumn{4}{l}{\textit{Cortex --- no anatomical annotations available}} \\
+\multicolumn{4}{l}{Chemical (2\,nm): crop1033--1037, crop1045--1046} \\
+\multicolumn{4}{l}{Rapid HPF (8\,nm): crop1116, 1117, 1139, 1141} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\caption{Anatomically matched crop groups used for region-matched comparisons.}
+\label{tab:matched_pairs}
+\small
+\begin{tabular}{llll}
+\toprule
+Anatomical Region & Chemical Crops & HPF Crops & Notes \\
+\midrule
+Kidney: Glomerular & crop1026, 1027 & crop1134 & HPF $n{=}1$; crop1135 not in data \\
+Kidney: DCT base & crop1030, 1032 & crop1136, 1137, 1144 & Best kidney pairing \\
+Liver: Bile canaliculus & crop1039, 1040, 1042 & crop1072, 1073, 1074, 1075 & Best overall pairing \\
+Liver: Hepatocyte lateral & crop1044 & crop1071, 1124, 1125, 1127 & Chem $n{=}1$ crop \\
 \bottomrule
 \end{tabular}
 \end{table*}
