@@ -623,9 +623,17 @@ $\rightarrow$ \texttt{cell\_curvature.csv}}
 For each cell passing the volume filter ($>$2.56$\times10^6$\,nm$^3$), a bounding box was extracted from the binary cell mask. The mask was converted to a float array and smoothed with a 3D Gaussian kernel with $\sigma = 16$\,nm in physical units ($\sigma = 8$ voxels at 2\,nm, 4 voxels at 4\,nm, 2 voxels at 8\,nm).
 
 Mean curvature $H$ was computed at each surface voxel using the level-set formula:
-\[
-H = \frac{(\phi_{xx}(\phi_y^2 + \phi_z^2) + \phi_{yy}(\phi_x^2 + \phi_z^2) + \phi_{zz}(\phi_x^2 + \phi_y^2)) - 2(\phi_x\phi_y\phi_{xy} + \phi_x\phi_z\phi_{xz} + \phi_y\phi_z\phi_{yz})}{2(\phi_x^2 + \phi_y^2 + \phi_z^2)^{3/2}}
-\]
+\begin{multline*}
+H = \Big(
+\phi_{xx}(\phi_y^2 {+} \phi_z^2)
++ \phi_{yy}(\phi_x^2 {+} \phi_z^2)
++ \phi_{zz}(\phi_x^2 {+} \phi_y^2) \\
+- 2(\phi_x\phi_y\phi_{xy}
+{+} \phi_x\phi_z\phi_{xz}
+{+} \phi_y\phi_z\phi_{yz})
+\Big) \\
+\Big/ \; 2(\phi_x^2 + \phi_y^2 + \phi_z^2)^{3/2}
+\end{multline*}
 where $\phi$ is the smoothed mask and subscripts denote partial derivatives computed via finite differences.
 
 Surface voxels were identified as cell voxels with at least one non-cell neighbor. Only ECS-facing surface voxels (those neighboring an ECS-labeled voxel) were retained. Per-cell statistics: median $|H|$, mean $|H|$, standard deviation, 25th/75th percentiles, fraction convex ($H > 0$), fraction concave ($H < 0$), and median radius of curvature ($1/|H|$).
