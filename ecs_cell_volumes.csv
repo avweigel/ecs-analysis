@@ -1,0 +1,43 @@
+tissue,dataset,crop,prep,status,shape,voxel_size_nm,total_voxels,total_volume_um3,ecs_voxels,ecs_pct,ecs_volume_um3,cell_voxels,cell_pct,cell_volume_um3,ecs_method,cell_method
+Kidney,jrc_mus-kidney,crop1026,Chemical,OK,"(300, 600, 600)","[4.0, 4.0, 4.0]",108000000,6.912,35552324,32.92,2.2753,69576368,64.42,4.4529,metadata,metadata
+Kidney,jrc_mus-kidney,crop1027,Chemical,OK,"(300, 600, 600)","[4.0, 4.0, 4.0]",108000000,6.912,41539024,38.46,2.6585,60046222,55.6,3.843,metadata,metadata
+Kidney,jrc_mus-kidney,crop1028,Chemical,OK,"(200, 300, 400)","[4.0, 4.0, 4.0]",24000000,1.536,14332063,59.72,0.9173,9667937,40.28,0.6187,metadata,metadata
+Kidney,jrc_mus-kidney,crop1029,Chemical,OK,"(400, 300, 300)","[4.0, 4.0, 4.0]",36000000,2.304,26840290,74.56,1.7178,9159710,25.44,0.5862,metadata,metadata
+Kidney,jrc_mus-kidney,crop1030,Chemical,OK,"(400, 400, 500)","[4.0, 4.0, 4.0]",80000000,5.12,10957994,13.7,0.7013,64403495,80.5,4.1218,metadata,metadata
+Kidney,jrc_mus-kidney,crop1031,Chemical,OK,"(600, 380, 1100)","[4.0, 4.0, 4.0]",250800000,16.0512,3612809,1.44,0.2312,247187191,98.56,15.82,metadata,metadata
+Kidney,jrc_mus-kidney,crop1032,Chemical,OK,"(400, 400, 400)","[4.0, 4.0, 4.0]",64000000,4.096,12761063,19.94,0.8167,44591307,69.67,2.8538,metadata,metadata
+Kidney,jrc_mus-kidney-4,crop1134,Rapid HPF,OK,"(350, 350, 200)","[8.0, 8.0, 8.0]",24500000,12.544,15864004,64.75,8.1224,8635996,35.25,4.4216,metadata,metadata
+Kidney,jrc_mus-kidney-4,crop1136,Rapid HPF,OK,"(220, 300, 400)","[8.0, 8.0, 8.0]",26400000,13.5168,2373161,8.99,1.2151,24026839,91.01,12.3017,metadata,metadata
+Kidney,jrc_mus-kidney-4,crop1137,Rapid HPF,OK,"(150, 200, 300)","[8.0, 8.0, 8.0]",9000000,4.608,1325656,14.73,0.6787,7674344,85.27,3.9293,metadata,metadata
+Kidney,jrc_mus-kidney-4,crop1144,Rapid HPF,OK,"(300, 900, 200)","[8.0, 8.0, 8.0]",54000000,27.648,5863208,10.86,3.002,48136792,89.14,24.646,metadata,metadata
+Heart,jrc_mus-heart-6,crop1145,Chemical,OK,"(200, 200, 200)","[8.0, 8.0, 8.0]",8000000,4.096,2515797,31.45,1.2881,5484203,68.55,2.8079,metadata,metadata
+Heart,jrc_mus-heart-6,crop1146,Chemical,OK,"(200, 250, 200)","[8.0, 8.0, 8.0]",10000000,5.12,2024249,20.24,1.0364,7975751,79.76,4.0836,metadata,metadata
+Heart,jrc_mus-heart-6,crop1147,Chemical,OK,"(200, 200, 200)","[8.0, 8.0, 8.0]",8000000,4.096,902719,11.28,0.4622,7097281,88.72,3.6338,metadata,metadata
+Liver,jrc_mus-liver,crop1038,Chemical,OK,"(400, 400, 400)","[4.0, 4.0, 4.0]",64000000,4.096,35129706,54.89,2.2483,28870294,45.11,1.8477,metadata,metadata
+Liver,jrc_mus-liver,crop1039,Chemical,OK,"(400, 400, 400)","[4.0, 4.0, 4.0]",64000000,4.096,12295008,19.21,0.7869,51704992,80.79,3.3091,metadata,metadata
+Liver,jrc_mus-liver,crop1040,Chemical,OK,"(400, 400, 400)","[4.0, 4.0, 4.0]",64000000,4.096,14468289,22.61,0.926,49531711,77.39,3.17,metadata,metadata
+Liver,jrc_mus-liver,crop1041,Chemical,OK,"(400, 400, 400)","[4.0, 4.0, 4.0]",64000000,4.096,17191268,26.86,1.1002,46808732,73.14,2.9958,metadata,metadata
+Liver,jrc_mus-liver,crop1042,Chemical,OK,"(400, 400, 400)","[4.0, 4.0, 4.0]",64000000,4.096,11267857,17.61,0.7211,52732143,82.39,3.3749,metadata,metadata
+Liver,jrc_mus-liver,crop1043,Chemical,OK,"(400, 400, 400)","[4.0, 4.0, 4.0]",64000000,4.096,17013177,26.58,1.0888,46986823,73.42,3.0072,metadata,metadata
+Liver,jrc_mus-liver,crop1044,Chemical,OK,"(400, 400, 400)","[4.0, 4.0, 4.0]",64000000,4.096,14025534,21.91,0.8976,49974466,78.09,3.1984,metadata,metadata
+Liver,jrc_mus-liver-8,crop1123,Rapid HPF,OK,"(200, 200, 200)","[8.0, 8.0, 8.0]",8000000,4.096,202623,2.53,0.1037,7797377,97.47,3.9923,metadata,metadata
+Liver,jrc_mus-liver-8,crop1124,Rapid HPF,OK,"(250, 200, 560)","[8.0, 8.0, 8.0]",28000000,14.336,542839,1.94,0.2779,27457161,98.06,14.0581,metadata,metadata
+Liver,jrc_mus-liver-8,crop1125,Rapid HPF,OK,"(250, 200, 200)","[8.0, 8.0, 8.0]",10000000,5.12,316251,3.16,0.1619,9683749,96.84,4.9581,metadata,metadata
+Liver,jrc_mus-liver-8,crop1126,Rapid HPF,OK,"(400, 200, 500)","[8.0, 8.0, 8.0]",40000000,20.48,843338,2.11,0.4318,39156662,97.89,20.0482,metadata,metadata
+Liver,jrc_mus-liver-8,crop1127,Rapid HPF,OK,"(200, 150, 450)","[8.0, 8.0, 8.0]",13500000,6.912,541640,4.01,0.2773,12958360,95.99,6.6347,metadata,metadata
+Liver,jrc_mus-liver-8,crop1071,Rapid HPF,OK,"(300, 300, 300)","[8.0, 8.0, 8.0]",27000000,13.824,7583400,28.09,3.8827,19416600,71.91,9.9413,metadata,metadata
+Liver,jrc_mus-liver-8,crop1072,Rapid HPF,OK,"(300, 300, 300)","[8.0, 8.0, 8.0]",27000000,13.824,1054491,3.91,0.5399,25945509,96.09,13.2841,metadata,metadata
+Liver,jrc_mus-liver-8,crop1073,Rapid HPF,OK,"(300, 300, 300)","[8.0, 8.0, 8.0]",27000000,13.824,3855452,14.28,1.974,23144548,85.72,11.85,metadata,metadata
+Liver,jrc_mus-liver-8,crop1074,Rapid HPF,OK,"(300, 300, 300)","[8.0, 8.0, 8.0]",27000000,13.824,2742593,10.16,1.4042,24257407,89.84,12.4198,metadata,metadata
+Liver,jrc_mus-liver-8,crop1075,Rapid HPF,OK,"(300, 300, 300)","[8.0, 8.0, 8.0]",27000000,13.824,1217817,4.51,0.6235,25782183,95.49,13.2005,metadata,metadata
+Cortex,jrc_mus-cortex-2,crop1116,Rapid HPF,OK,"(400, 400, 400)","[8.0, 8.0, 8.0]",64000000,32.768,12784323,19.98,6.5456,51215677,80.02,26.2224,metadata,metadata
+Cortex,jrc_mus-cortex-2,crop1117,Rapid HPF,OK,"(400, 400, 400)",,64000000,,,,,,,,no_label,no_label
+Cortex,jrc_mus-cortex-3,crop1033,Chemical,OK,"(500, 500, 500)","[2.0, 2.0, 2.0]",125000000,1.0,5986777,4.79,0.0479,119013223,95.21,0.9521,metadata,metadata
+Cortex,jrc_mus-cortex-3,crop1034,Chemical,OK,"(400, 400, 400)","[2.0, 2.0, 2.0]",64000000,0.512,5578838,8.72,0.0446,58421162,91.28,0.4674,metadata,metadata
+Cortex,jrc_mus-cortex-3,crop1035,Chemical,OK,"(500, 500, 500)","[2.0, 2.0, 2.0]",125000000,1.0,5316575,4.25,0.0425,119683425,95.75,0.9575,metadata,metadata
+Cortex,jrc_mus-cortex-3,crop1036,Chemical,OK,"(400, 400, 400)","[2.0, 2.0, 2.0]",64000000,0.512,6830094,10.67,0.0546,57169906,89.33,0.4574,metadata,metadata
+Cortex,jrc_mus-cortex-3,crop1037,Chemical,OK,"(600, 800, 400)","[2.0, 2.0, 2.0]",192000000,1.536,64698755,33.7,0.5176,127301245,66.3,1.0184,metadata,metadata
+Cortex,jrc_mus-cortex-3,crop1045,Chemical,OK,"(400, 400, 600)","[2.0, 2.0, 2.0]",96000000,0.768,13863020,14.44,0.1109,82136980,85.56,0.6571,metadata,metadata
+Cortex,jrc_mus-cortex-3,crop1046,Chemical,OK,"(500, 400, 400)","[2.0, 2.0, 2.0]",80000000,0.64,13283138,16.6,0.1063,66716862,83.4,0.5337,metadata,metadata
+Cortex,jrc_mus-cortex-4,crop1139,Rapid HPF,OK,"(300, 300, 300)","[8.0, 8.0, 8.0]",27000000,13.824,18642220,69.05,9.5448,8357780,30.95,4.2792,metadata,metadata
+Cortex,jrc_mus-cortex-4,crop1141,Rapid HPF,OK,"(200, 350, 350)","[8.0, 8.0, 8.0]",24500000,12.544,2348394,9.59,1.2024,22151606,90.41,11.3416,metadata,metadata

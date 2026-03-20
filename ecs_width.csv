@@ -1,0 +1,43 @@
+tissue,dataset,crop,prep,status,voxel_size_nm,ecs_voxels,median_half_width_nm,mean_half_width_nm,std_half_width_nm,p25_half_width_nm,p75_half_width_nm,max_half_width_nm
+Kidney,jrc_mus-kidney,crop1026,Chemical,OK,"[4.0, 4.0, 4.0]",35552324,26.83,36.87,31.88,12.65,51.22,246.74
+Kidney,jrc_mus-kidney,crop1027,Chemical,OK,"[4.0, 4.0, 4.0]",41539024,32.5,51.28,51.21,13.86,72.55,368.43
+Kidney,jrc_mus-kidney,crop1028,Chemical,OK,"[4.0, 4.0, 4.0]",14332063,80.1,106.51,99.96,18.33,166.18,538.44
+Kidney,jrc_mus-kidney,crop1029,Chemical,OK,"[4.0, 4.0, 4.0]",26840290,208.31,251.05,213.51,62.1,388.1,1049.03
+Kidney,jrc_mus-kidney,crop1030,Chemical,OK,"[4.0, 4.0, 4.0]",10957994,6.93,9.64,6.98,4.0,12.0,64.62
+Kidney,jrc_mus-kidney,crop1031,Chemical,OK,"[4.0, 4.0, 4.0]",3612809,8.0,10.69,7.0,4.0,14.97,41.76
+Kidney,jrc_mus-kidney,crop1032,Chemical,OK,"[4.0, 4.0, 4.0]",12761063,16.49,23.41,21.26,5.66,33.94,161.1
+Kidney,jrc_mus-kidney-4,crop1134,Rapid HPF,OK,"[8.0, 8.0, 8.0]",15864004,89.44,236.77,293.11,39.19,343.72,1435.3
+Kidney,jrc_mus-kidney-4,crop1136,Rapid HPF,OK,"[8.0, 8.0, 8.0]",2373161,11.31,15.51,9.51,8.0,17.89,80.4
+Kidney,jrc_mus-kidney-4,crop1137,Rapid HPF,OK,"[8.0, 8.0, 8.0]",1325656,11.31,15.31,10.47,8.0,17.89,90.51
+Kidney,jrc_mus-kidney-4,crop1144,Rapid HPF,OK,"[8.0, 8.0, 8.0]",5863208,13.86,16.27,10.81,8.0,19.6,161.79
+Heart,jrc_mus-heart-6,crop1145,Chemical,OK,"[8.0, 8.0, 8.0]",2515797,110.27,176.2,179.3,27.71,281.25,845.24
+Heart,jrc_mus-heart-6,crop1146,Chemical,OK,"[8.0, 8.0, 8.0]",2024249,29.93,44.17,38.78,16.0,61.45,288.56
+Heart,jrc_mus-heart-6,crop1147,Chemical,OK,"[8.0, 8.0, 8.0]",902719,29.93,34.63,23.55,13.86,50.6,147.08
+Liver,jrc_mus-liver,crop1038,Chemical,OK,"[4.0, 4.0, 4.0]",35129706,48.83,84.39,96.44,20.4,107.7,591.61
+Liver,jrc_mus-liver,crop1039,Chemical,OK,"[4.0, 4.0, 4.0]",12295008,51.22,87.52,92.51,12.65,137.35,428.8
+Liver,jrc_mus-liver,crop1040,Chemical,OK,"[4.0, 4.0, 4.0]",14468289,32.74,46.77,42.78,12.0,71.89,252.13
+Liver,jrc_mus-liver,crop1041,Chemical,OK,"[4.0, 4.0, 4.0]",17191268,30.2,49.28,57.6,14.42,59.19,472.27
+Liver,jrc_mus-liver,crop1042,Chemical,OK,"[4.0, 4.0, 4.0]",11267857,18.33,29.93,28.2,8.94,42.71,172.05
+Liver,jrc_mus-liver,crop1043,Chemical,OK,"[4.0, 4.0, 4.0]",17013177,21.91,29.73,25.74,9.8,41.38,247.13
+Liver,jrc_mus-liver,crop1044,Chemical,OK,"[4.0, 4.0, 4.0]",14025534,35.78,45.67,37.1,16.49,66.09,243.64
+Liver,jrc_mus-liver-8,crop1123,Rapid HPF,OK,"[8.0, 8.0, 8.0]",202623,11.31,17.23,11.95,8.0,24.0,73.76
+Liver,jrc_mus-liver-8,crop1124,Rapid HPF,OK,"[8.0, 8.0, 8.0]",542839,8.0,11.5,5.6,8.0,11.31,56.57
+Liver,jrc_mus-liver-8,crop1125,Rapid HPF,OK,"[8.0, 8.0, 8.0]",316251,8.0,14.39,11.7,8.0,16.0,86.16
+Liver,jrc_mus-liver-8,crop1126,Rapid HPF,OK,"[8.0, 8.0, 8.0]",843338,11.31,17.03,14.07,8.0,16.0,81.98
+Liver,jrc_mus-liver-8,crop1127,Rapid HPF,OK,"[8.0, 8.0, 8.0]",541640,11.31,16.21,11.74,8.0,17.89,93.64
+Liver,jrc_mus-liver-8,crop1071,Rapid HPF,OK,"[8.0, 8.0, 8.0]",7583400,25.3,41.83,42.6,13.86,51.85,307.77
+Liver,jrc_mus-liver-8,crop1072,Rapid HPF,OK,"[8.0, 8.0, 8.0]",1054491,24.0,28.74,20.54,11.31,40.0,141.53
+Liver,jrc_mus-liver-8,crop1073,Rapid HPF,OK,"[8.0, 8.0, 8.0]",3855452,40.0,63.53,58.41,16.0,100.24,289.99
+Liver,jrc_mus-liver-8,crop1074,Rapid HPF,OK,"[8.0, 8.0, 8.0]",2742593,33.94,47.9,41.23,16.0,68.82,250.31
+Liver,jrc_mus-liver-8,crop1075,Rapid HPF,OK,"[8.0, 8.0, 8.0]",1217817,16.0,19.91,12.95,8.0,25.3,109.98
+Cortex,jrc_mus-cortex-2,crop1116,Rapid HPF,OK,"[8.0, 8.0, 8.0]",12784323,11.31,19.87,17.45,8.0,25.3,176.18
+Cortex,jrc_mus-cortex-2,crop1117,Rapid HPF,NO ECS LABEL,,,,,,,,
+Cortex,jrc_mus-cortex-3,crop1033,Chemical,OK,"[2.0, 2.0, 2.0]",5986777,2.83,4.55,3.42,2.0,6.0,30.27
+Cortex,jrc_mus-cortex-3,crop1034,Chemical,OK,"[2.0, 2.0, 2.0]",5578838,4.47,5.76,4.57,2.0,7.48,40.79
+Cortex,jrc_mus-cortex-3,crop1035,Chemical,OK,"[2.0, 2.0, 2.0]",5316575,4.0,5.75,4.86,2.83,6.63,42.47
+Cortex,jrc_mus-cortex-3,crop1036,Chemical,OK,"[2.0, 2.0, 2.0]",6830094,6.0,7.37,5.02,2.83,10.2,36.77
+Cortex,jrc_mus-cortex-3,crop1037,Chemical,OK,"[2.0, 2.0, 2.0]",64698755,92.0,117.36,105.99,24.74,176.02,496.12
+Cortex,jrc_mus-cortex-3,crop1045,Chemical,OK,"[2.0, 2.0, 2.0]",13863020,9.17,30.51,43.65,4.0,37.58,209.82
+Cortex,jrc_mus-cortex-3,crop1046,Chemical,OK,"[2.0, 2.0, 2.0]",13283138,8.25,14.46,22.63,4.0,14.56,224.4
+Cortex,jrc_mus-cortex-4,crop1139,Rapid HPF,OK,"[8.0, 8.0, 8.0]",18642220,240.0,254.58,181.18,87.64,396.95,793.61
+Cortex,jrc_mus-cortex-4,crop1141,Rapid HPF,OK,"[8.0, 8.0, 8.0]",2348394,11.31,13.99,8.49,8.0,17.89,83.9

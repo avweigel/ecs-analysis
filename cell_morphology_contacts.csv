@@ -1,0 +1,206 @@
+tissue,dataset,crop,prep,threshold_nm,contact_voxels,total_boundary_voxels,contact_fraction
+Kidney,jrc_mus-kidney,crop1026,Chemical,10,2181672,2181672,1.0
+Kidney,jrc_mus-kidney,crop1026,Chemical,20,2181672,2181672,1.0
+Kidney,jrc_mus-kidney,crop1026,Chemical,40,2181672,2181672,1.0
+Kidney,jrc_mus-kidney,crop1026,Chemical,80,2181672,2181672,1.0
+Kidney,jrc_mus-kidney,crop1026,Chemical,160,2181672,2181672,1.0
+Kidney,jrc_mus-kidney,crop1027,Chemical,10,2306900,2306900,1.0
+Kidney,jrc_mus-kidney,crop1027,Chemical,20,2306900,2306900,1.0
+Kidney,jrc_mus-kidney,crop1027,Chemical,40,2306900,2306900,1.0
+Kidney,jrc_mus-kidney,crop1027,Chemical,80,2306900,2306900,1.0
+Kidney,jrc_mus-kidney,crop1027,Chemical,160,2306900,2306900,1.0
+Kidney,jrc_mus-kidney,crop1028,Chemical,10,869763,869763,1.0
+Kidney,jrc_mus-kidney,crop1028,Chemical,20,869763,869763,1.0
+Kidney,jrc_mus-kidney,crop1028,Chemical,40,869763,869763,1.0
+Kidney,jrc_mus-kidney,crop1028,Chemical,80,869763,869763,1.0
+Kidney,jrc_mus-kidney,crop1028,Chemical,160,869763,869763,1.0
+Kidney,jrc_mus-kidney,crop1029,Chemical,10,815203,815203,1.0
+Kidney,jrc_mus-kidney,crop1029,Chemical,20,815203,815203,1.0
+Kidney,jrc_mus-kidney,crop1029,Chemical,40,815203,815203,1.0
+Kidney,jrc_mus-kidney,crop1029,Chemical,80,815203,815203,1.0
+Kidney,jrc_mus-kidney,crop1029,Chemical,160,815203,815203,1.0
+Kidney,jrc_mus-kidney,crop1030,Chemical,10,2223443,2223443,1.0
+Kidney,jrc_mus-kidney,crop1030,Chemical,20,2223443,2223443,1.0
+Kidney,jrc_mus-kidney,crop1030,Chemical,40,2223443,2223443,1.0
+Kidney,jrc_mus-kidney,crop1030,Chemical,80,2223443,2223443,1.0
+Kidney,jrc_mus-kidney,crop1030,Chemical,160,2223443,2223443,1.0
+Kidney,jrc_mus-kidney,crop1031,Chemical,10,1060831,1060831,1.0
+Kidney,jrc_mus-kidney,crop1031,Chemical,20,1060831,1060831,1.0
+Kidney,jrc_mus-kidney,crop1031,Chemical,40,1060831,1060831,1.0
+Kidney,jrc_mus-kidney,crop1031,Chemical,80,1060831,1060831,1.0
+Kidney,jrc_mus-kidney,crop1031,Chemical,160,1060831,1060831,1.0
+Kidney,jrc_mus-kidney,crop1032,Chemical,10,1745032,1745032,1.0
+Kidney,jrc_mus-kidney,crop1032,Chemical,20,1745032,1745032,1.0
+Kidney,jrc_mus-kidney,crop1032,Chemical,40,1745032,1745032,1.0
+Kidney,jrc_mus-kidney,crop1032,Chemical,80,1745032,1745032,1.0
+Kidney,jrc_mus-kidney,crop1032,Chemical,160,1745032,1745032,1.0
+Kidney,jrc_mus-kidney-4,crop1134,Rapid HPF,10,0,660919,0.0
+Kidney,jrc_mus-kidney-4,crop1134,Rapid HPF,20,660919,660919,1.0
+Kidney,jrc_mus-kidney-4,crop1134,Rapid HPF,40,660919,660919,1.0
+Kidney,jrc_mus-kidney-4,crop1134,Rapid HPF,80,660919,660919,1.0
+Kidney,jrc_mus-kidney-4,crop1134,Rapid HPF,160,660919,660919,1.0
+Kidney,jrc_mus-kidney-4,crop1136,Rapid HPF,10,0,868366,0.0
+Kidney,jrc_mus-kidney-4,crop1136,Rapid HPF,20,868366,868366,1.0
+Kidney,jrc_mus-kidney-4,crop1136,Rapid HPF,40,868366,868366,1.0
+Kidney,jrc_mus-kidney-4,crop1136,Rapid HPF,80,868366,868366,1.0
+Kidney,jrc_mus-kidney-4,crop1136,Rapid HPF,160,868366,868366,1.0
+Kidney,jrc_mus-kidney-4,crop1137,Rapid HPF,10,0,548113,0.0
+Kidney,jrc_mus-kidney-4,crop1137,Rapid HPF,20,548113,548113,1.0
+Kidney,jrc_mus-kidney-4,crop1137,Rapid HPF,40,548113,548113,1.0
+Kidney,jrc_mus-kidney-4,crop1137,Rapid HPF,80,548113,548113,1.0
+Kidney,jrc_mus-kidney-4,crop1137,Rapid HPF,160,548113,548113,1.0
+Kidney,jrc_mus-kidney-4,crop1144,Rapid HPF,10,0,1757018,0.0
+Kidney,jrc_mus-kidney-4,crop1144,Rapid HPF,20,1757018,1757018,1.0
+Kidney,jrc_mus-kidney-4,crop1144,Rapid HPF,40,1757018,1757018,1.0
+Kidney,jrc_mus-kidney-4,crop1144,Rapid HPF,80,1757018,1757018,1.0
+Kidney,jrc_mus-kidney-4,crop1144,Rapid HPF,160,1757018,1757018,1.0
+Heart,jrc_mus-heart-6,crop1145,Chemical,10,0,175868,0.0
+Heart,jrc_mus-heart-6,crop1145,Chemical,20,175868,175868,1.0
+Heart,jrc_mus-heart-6,crop1145,Chemical,40,175868,175868,1.0
+Heart,jrc_mus-heart-6,crop1145,Chemical,80,175868,175868,1.0
+Heart,jrc_mus-heart-6,crop1145,Chemical,160,175868,175868,1.0
+Heart,jrc_mus-heart-6,crop1146,Chemical,10,0,271304,0.0
+Heart,jrc_mus-heart-6,crop1146,Chemical,20,271304,271304,1.0
+Heart,jrc_mus-heart-6,crop1146,Chemical,40,271304,271304,1.0
+Heart,jrc_mus-heart-6,crop1146,Chemical,80,271304,271304,1.0
+Heart,jrc_mus-heart-6,crop1146,Chemical,160,271304,271304,1.0
+Heart,jrc_mus-heart-6,crop1147,Chemical,10,0,168084,0.0
+Heart,jrc_mus-heart-6,crop1147,Chemical,20,168084,168084,1.0
+Heart,jrc_mus-heart-6,crop1147,Chemical,40,168084,168084,1.0
+Heart,jrc_mus-heart-6,crop1147,Chemical,80,168084,168084,1.0
+Heart,jrc_mus-heart-6,crop1147,Chemical,160,168084,168084,1.0
+Liver,jrc_mus-liver,crop1038,Chemical,10,1500350,1500350,1.0
+Liver,jrc_mus-liver,crop1038,Chemical,20,1500350,1500350,1.0
+Liver,jrc_mus-liver,crop1038,Chemical,40,1500350,1500350,1.0
+Liver,jrc_mus-liver,crop1038,Chemical,80,1500350,1500350,1.0
+Liver,jrc_mus-liver,crop1038,Chemical,160,1500350,1500350,1.0
+Liver,jrc_mus-liver,crop1039,Chemical,10,1183257,1183257,1.0
+Liver,jrc_mus-liver,crop1039,Chemical,20,1183257,1183257,1.0
+Liver,jrc_mus-liver,crop1039,Chemical,40,1183257,1183257,1.0
+Liver,jrc_mus-liver,crop1039,Chemical,80,1183257,1183257,1.0
+Liver,jrc_mus-liver,crop1039,Chemical,160,1183257,1183257,1.0
+Liver,jrc_mus-liver,crop1040,Chemical,10,1403402,1403402,1.0
+Liver,jrc_mus-liver,crop1040,Chemical,20,1403402,1403402,1.0
+Liver,jrc_mus-liver,crop1040,Chemical,40,1403402,1403402,1.0
+Liver,jrc_mus-liver,crop1040,Chemical,80,1403402,1403402,1.0
+Liver,jrc_mus-liver,crop1040,Chemical,160,1403402,1403402,1.0
+Liver,jrc_mus-liver,crop1041,Chemical,10,1048117,1048117,1.0
+Liver,jrc_mus-liver,crop1041,Chemical,20,1048117,1048117,1.0
+Liver,jrc_mus-liver,crop1041,Chemical,40,1048117,1048117,1.0
+Liver,jrc_mus-liver,crop1041,Chemical,80,1048117,1048117,1.0
+Liver,jrc_mus-liver,crop1041,Chemical,160,1048117,1048117,1.0
+Liver,jrc_mus-liver,crop1042,Chemical,10,1073785,1073785,1.0
+Liver,jrc_mus-liver,crop1042,Chemical,20,1073785,1073785,1.0
+Liver,jrc_mus-liver,crop1042,Chemical,40,1073785,1073785,1.0
+Liver,jrc_mus-liver,crop1042,Chemical,80,1073785,1073785,1.0
+Liver,jrc_mus-liver,crop1042,Chemical,160,1073785,1073785,1.0
+Liver,jrc_mus-liver,crop1043,Chemical,10,1568062,1568062,1.0
+Liver,jrc_mus-liver,crop1043,Chemical,20,1568062,1568062,1.0
+Liver,jrc_mus-liver,crop1043,Chemical,40,1568062,1568062,1.0
+Liver,jrc_mus-liver,crop1043,Chemical,80,1568062,1568062,1.0
+Liver,jrc_mus-liver,crop1043,Chemical,160,1568062,1568062,1.0
+Liver,jrc_mus-liver,crop1044,Chemical,10,740738,740738,1.0
+Liver,jrc_mus-liver,crop1044,Chemical,20,740738,740738,1.0
+Liver,jrc_mus-liver,crop1044,Chemical,40,740738,740738,1.0
+Liver,jrc_mus-liver,crop1044,Chemical,80,740738,740738,1.0
+Liver,jrc_mus-liver,crop1044,Chemical,160,740738,740738,1.0
+Liver,jrc_mus-liver-8,crop1123,Rapid HPF,10,0,81675,0.0
+Liver,jrc_mus-liver-8,crop1123,Rapid HPF,20,81675,81675,1.0
+Liver,jrc_mus-liver-8,crop1123,Rapid HPF,40,81675,81675,1.0
+Liver,jrc_mus-liver-8,crop1123,Rapid HPF,80,81675,81675,1.0
+Liver,jrc_mus-liver-8,crop1123,Rapid HPF,160,81675,81675,1.0
+Liver,jrc_mus-liver-8,crop1124,Rapid HPF,10,0,291939,0.0
+Liver,jrc_mus-liver-8,crop1124,Rapid HPF,20,291939,291939,1.0
+Liver,jrc_mus-liver-8,crop1124,Rapid HPF,40,291939,291939,1.0
+Liver,jrc_mus-liver-8,crop1124,Rapid HPF,80,291939,291939,1.0
+Liver,jrc_mus-liver-8,crop1124,Rapid HPF,160,291939,291939,1.0
+Liver,jrc_mus-liver-8,crop1125,Rapid HPF,10,0,176700,0.0
+Liver,jrc_mus-liver-8,crop1125,Rapid HPF,20,176700,176700,1.0
+Liver,jrc_mus-liver-8,crop1125,Rapid HPF,40,176700,176700,1.0
+Liver,jrc_mus-liver-8,crop1125,Rapid HPF,80,176700,176700,1.0
+Liver,jrc_mus-liver-8,crop1125,Rapid HPF,160,176700,176700,1.0
+Liver,jrc_mus-liver-8,crop1126,Rapid HPF,10,0,401848,0.0
+Liver,jrc_mus-liver-8,crop1126,Rapid HPF,20,401848,401848,1.0
+Liver,jrc_mus-liver-8,crop1126,Rapid HPF,40,401848,401848,1.0
+Liver,jrc_mus-liver-8,crop1126,Rapid HPF,80,401848,401848,1.0
+Liver,jrc_mus-liver-8,crop1126,Rapid HPF,160,401848,401848,1.0
+Liver,jrc_mus-liver-8,crop1127,Rapid HPF,10,0,216742,0.0
+Liver,jrc_mus-liver-8,crop1127,Rapid HPF,20,216742,216742,1.0
+Liver,jrc_mus-liver-8,crop1127,Rapid HPF,40,216742,216742,1.0
+Liver,jrc_mus-liver-8,crop1127,Rapid HPF,80,216742,216742,1.0
+Liver,jrc_mus-liver-8,crop1127,Rapid HPF,160,216742,216742,1.0
+Liver,jrc_mus-liver-8,crop1071,Rapid HPF,10,0,1222539,0.0
+Liver,jrc_mus-liver-8,crop1071,Rapid HPF,20,1222539,1222539,1.0
+Liver,jrc_mus-liver-8,crop1071,Rapid HPF,40,1222539,1222539,1.0
+Liver,jrc_mus-liver-8,crop1071,Rapid HPF,80,1222539,1222539,1.0
+Liver,jrc_mus-liver-8,crop1071,Rapid HPF,160,1222539,1222539,1.0
+Liver,jrc_mus-liver-8,crop1072,Rapid HPF,10,0,209023,0.0
+Liver,jrc_mus-liver-8,crop1072,Rapid HPF,20,209023,209023,1.0
+Liver,jrc_mus-liver-8,crop1072,Rapid HPF,40,209023,209023,1.0
+Liver,jrc_mus-liver-8,crop1072,Rapid HPF,80,209023,209023,1.0
+Liver,jrc_mus-liver-8,crop1072,Rapid HPF,160,209023,209023,1.0
+Liver,jrc_mus-liver-8,crop1073,Rapid HPF,10,0,527391,0.0
+Liver,jrc_mus-liver-8,crop1073,Rapid HPF,20,527391,527391,1.0
+Liver,jrc_mus-liver-8,crop1073,Rapid HPF,40,527391,527391,1.0
+Liver,jrc_mus-liver-8,crop1073,Rapid HPF,80,527391,527391,1.0
+Liver,jrc_mus-liver-8,crop1073,Rapid HPF,160,527391,527391,1.0
+Liver,jrc_mus-liver-8,crop1074,Rapid HPF,10,0,374664,0.0
+Liver,jrc_mus-liver-8,crop1074,Rapid HPF,20,374664,374664,1.0
+Liver,jrc_mus-liver-8,crop1074,Rapid HPF,40,374664,374664,1.0
+Liver,jrc_mus-liver-8,crop1074,Rapid HPF,80,374664,374664,1.0
+Liver,jrc_mus-liver-8,crop1074,Rapid HPF,160,374664,374664,1.0
+Liver,jrc_mus-liver-8,crop1075,Rapid HPF,10,0,304348,0.0
+Liver,jrc_mus-liver-8,crop1075,Rapid HPF,20,304348,304348,1.0
+Liver,jrc_mus-liver-8,crop1075,Rapid HPF,40,304348,304348,1.0
+Liver,jrc_mus-liver-8,crop1075,Rapid HPF,80,304348,304348,1.0
+Liver,jrc_mus-liver-8,crop1075,Rapid HPF,160,304348,304348,1.0
+Cortex,jrc_mus-cortex-2,crop1116,Rapid HPF,10,0,5180731,0.0
+Cortex,jrc_mus-cortex-2,crop1116,Rapid HPF,20,5180731,5180731,1.0
+Cortex,jrc_mus-cortex-2,crop1116,Rapid HPF,40,5180731,5180731,1.0
+Cortex,jrc_mus-cortex-2,crop1116,Rapid HPF,80,5180731,5180731,1.0
+Cortex,jrc_mus-cortex-2,crop1116,Rapid HPF,160,5180731,5180731,1.0
+Cortex,jrc_mus-cortex-3,crop1033,Chemical,10,2365779,2365779,1.0
+Cortex,jrc_mus-cortex-3,crop1033,Chemical,20,2365779,2365779,1.0
+Cortex,jrc_mus-cortex-3,crop1033,Chemical,40,2365779,2365779,1.0
+Cortex,jrc_mus-cortex-3,crop1033,Chemical,80,2365779,2365779,1.0
+Cortex,jrc_mus-cortex-3,crop1033,Chemical,160,2365779,2365779,1.0
+Cortex,jrc_mus-cortex-3,crop1034,Chemical,10,1645877,1645877,1.0
+Cortex,jrc_mus-cortex-3,crop1034,Chemical,20,1645877,1645877,1.0
+Cortex,jrc_mus-cortex-3,crop1034,Chemical,40,1645877,1645877,1.0
+Cortex,jrc_mus-cortex-3,crop1034,Chemical,80,1645877,1645877,1.0
+Cortex,jrc_mus-cortex-3,crop1034,Chemical,160,1645877,1645877,1.0
+Cortex,jrc_mus-cortex-3,crop1035,Chemical,10,1286780,1286780,1.0
+Cortex,jrc_mus-cortex-3,crop1035,Chemical,20,1286780,1286780,1.0
+Cortex,jrc_mus-cortex-3,crop1035,Chemical,40,1286780,1286780,1.0
+Cortex,jrc_mus-cortex-3,crop1035,Chemical,80,1286780,1286780,1.0
+Cortex,jrc_mus-cortex-3,crop1035,Chemical,160,1286780,1286780,1.0
+Cortex,jrc_mus-cortex-3,crop1036,Chemical,10,1118153,1118153,1.0
+Cortex,jrc_mus-cortex-3,crop1036,Chemical,20,1118153,1118153,1.0
+Cortex,jrc_mus-cortex-3,crop1036,Chemical,40,1118153,1118153,1.0
+Cortex,jrc_mus-cortex-3,crop1036,Chemical,80,1118153,1118153,1.0
+Cortex,jrc_mus-cortex-3,crop1036,Chemical,160,1118153,1118153,1.0
+Cortex,jrc_mus-cortex-3,crop1037,Chemical,10,1471820,1471820,1.0
+Cortex,jrc_mus-cortex-3,crop1037,Chemical,20,1471820,1471820,1.0
+Cortex,jrc_mus-cortex-3,crop1037,Chemical,40,1471820,1471820,1.0
+Cortex,jrc_mus-cortex-3,crop1037,Chemical,80,1471820,1471820,1.0
+Cortex,jrc_mus-cortex-3,crop1037,Chemical,160,1471820,1471820,1.0
+Cortex,jrc_mus-cortex-3,crop1045,Chemical,10,2069980,2069980,1.0
+Cortex,jrc_mus-cortex-3,crop1045,Chemical,20,2069980,2069980,1.0
+Cortex,jrc_mus-cortex-3,crop1045,Chemical,40,2069980,2069980,1.0
+Cortex,jrc_mus-cortex-3,crop1045,Chemical,80,2069980,2069980,1.0
+Cortex,jrc_mus-cortex-3,crop1045,Chemical,160,2069980,2069980,1.0
+Cortex,jrc_mus-cortex-3,crop1046,Chemical,10,1568308,1568308,1.0
+Cortex,jrc_mus-cortex-3,crop1046,Chemical,20,1568308,1568308,1.0
+Cortex,jrc_mus-cortex-3,crop1046,Chemical,40,1568308,1568308,1.0
+Cortex,jrc_mus-cortex-3,crop1046,Chemical,80,1568308,1568308,1.0
+Cortex,jrc_mus-cortex-3,crop1046,Chemical,160,1568308,1568308,1.0
+Cortex,jrc_mus-cortex-4,crop1139,Rapid HPF,10,0,767733,0.0
+Cortex,jrc_mus-cortex-4,crop1139,Rapid HPF,20,767733,767733,1.0
+Cortex,jrc_mus-cortex-4,crop1139,Rapid HPF,40,767733,767733,1.0
+Cortex,jrc_mus-cortex-4,crop1139,Rapid HPF,80,767733,767733,1.0
+Cortex,jrc_mus-cortex-4,crop1139,Rapid HPF,160,767733,767733,1.0
+Cortex,jrc_mus-cortex-4,crop1141,Rapid HPF,10,0,1011554,0.0
+Cortex,jrc_mus-cortex-4,crop1141,Rapid HPF,20,1011554,1011554,1.0
+Cortex,jrc_mus-cortex-4,crop1141,Rapid HPF,40,1011554,1011554,1.0
+Cortex,jrc_mus-cortex-4,crop1141,Rapid HPF,80,1011554,1011554,1.0
+Cortex,jrc_mus-cortex-4,crop1141,Rapid HPF,160,1011554,1011554,1.0
