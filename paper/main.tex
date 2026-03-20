@@ -2,6 +2,7 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{siunitx}
+\usepackage{enumitem}
 \sisetup{detect-all}
 
 % Lead author for running footer
@@ -9,129 +10,714 @@
 
 \begin{document}
 
-\title{Quantitative analysis of extracellular space across tissue preparation methods in volume electron microscopy}
-\shorttitle{ECS analysis across EM preparation methods}
+\title{ECS Morphometry Report: Comparing Chemical Fixation and Rapid HPF in CellMap Volume EM Data}
+\shorttitle{ECS Morphometry Report}
 
-% Authors - update as needed
 \author[1,\Letter]{Aubrey V. Weigel}
-% \author[1]{Second Author}
 
 \affil[1]{HHMI Janelia Research Campus, Ashburn, VA 20147, USA}
 
 \maketitle
 
-\begin{abstract}
-The extracellular space (ECS) is a critical compartment for intercellular signaling, molecular transport, and tissue homeostasis, yet its ultrastructural dimensions remain debated due to sensitivity to tissue preparation. Here we present a systematic, multi-metric comparison of ECS morphology between chemical fixation and rapid high-pressure freezing (HPF) across 42 volume electron microscopy crops spanning four mouse tissues (kidney, heart, liver, cortex) from the CellMap open-access dataset. We quantify ECS volume fraction, channel half-width, per-cell surface-area-to-volume ratio, sphericity, inter-cell gap distance via Voronoi tessellation, and local surface curvature from both voxel-based and mesh-based methods. We document each metric's known biases and artifacts, including a pervasive confound between voxel resolution (2--8\,nm) and preparation type that limits the interpretability of direct comparisons. This work provides a reproducible analytical framework and baseline measurements for future studies of ECS ultrastructure.
-\end{abstract}
-
-\begin{keywords}
-extracellular space | electron microscopy | high-pressure freezing | chemical fixation | tissue ultrastructure | image analysis
-\end{keywords}
-
-\begin{corrauthor}
-weigela\at janelia.hhmi.org
-\end{corrauthor}
-
 %% ============================================================
-\section*{Introduction}
+\section*{Overview}
 %% ============================================================
 
-The extracellular space (ECS) occupies a significant fraction of tissue volume and plays essential roles in molecular diffusion, cell-cell communication, and ion homeostasis \cite{Sykova2008, Nicholson2001}. In the brain, the ECS is estimated to comprise approximately 20\% of tissue volume in vivo, yet early electron microscopy (EM) studies using conventional chemical fixation reported much smaller values (3--5\%), leading to a longstanding debate about the extent to which tissue preparation artifacts distort ECS measurements \cite{VanHarreveld1972}.
+This report documents a series of analyses comparing extracellular space (ECS) morphology between chemical fixation and rapid high-pressure freezing (HPF) preparations in the CellMap open-access volume EM dataset. The goal is to provide a thorough, reproducible account of what was measured, how it was measured, what the results were, and what biases and artifacts affect each measurement. This is intended as a companion reference for a larger manuscript effort, not as a standalone publication.
 
-Rapid high-pressure freezing (HPF) followed by freeze substitution has been proposed as a more faithful preservation method, avoiding the osmotic perturbations and dehydration artifacts inherent in aldehyde-based chemical fixation \cite{Studer2008}. Several studies have directly compared the two methods and reported larger ECS in HPF-prepared tissue, particularly in brain \cite{Korogod2015}. However, these comparisons have generally been limited to a single tissue type and a small number of metrics.
-
-The CellMap project \cite{Heinrich2021, Xu2021} provides an open-access collection of volume EM datasets with dense ground-truth segmentation of cellular organelles and extracellular space across multiple mouse tissues, prepared by both chemical fixation and rapid HPF. This resource enables a systematic, multi-metric comparison of ECS morphology across preparation methods and tissue types.
-
-Here we analyze 42 annotated crops from four tissues (kidney, heart, liver, cortex) using nine complementary metrics that characterize ECS volume, geometry, cell morphology, intercellular contacts, and membrane curvature. For each metric, we report the methods, results, known biases, and artifacts. We emphasize a critical confound in this dataset: voxel resolution is perfectly correlated with preparation type (chemical = 2--4\,nm, HPF = 8\,nm), making it impossible to cleanly attribute observed differences to biology versus resolution.
+The analysis covers 42 ground-truth annotated crops from 8 datasets spanning 4 mouse tissues (kidney, heart, liver, cortex) and 2 preparation methods. Nine metrics were computed; one was discarded as uninformative and one was superseded by an improved method. All analysis scripts, output CSVs, and plots are available in the project repository.
 
 %% ============================================================
-\section*{Methods}
+\section*{Data}
 %% ============================================================
 
-\subsection*{Data source}
-All data were obtained from the CellMap open-access volume EM collection \cite{Heinrich2021, Xu2021}. We analyzed 42 ground-truth annotated crops from 8 datasets spanning 4 mouse tissues and 2 preparation methods (Table~\ref{tab:datasets}). Segmentation labels included semantic ECS masks (binary: 0/1) and instance cell segmentation masks (0 = absent, nonzero = cell ID). Voxel sizes ranged from 2\,nm to 8\,nm isotropic.
+\subsection*{Source}
+All data were obtained from the CellMap open-access volume EM collection \cite{Heinrich2021, Xu2021}, accessed via SMB mount. Segmentation masks were read directly from zarr arrays at path \texttt{\{dataset\}/\{dataset\}.zarr/recon-1/labels/groundtruth/\{crop\}}. Two label types were used: (1) a semantic binary ECS mask (0 = not ECS, 1 = ECS) and (2) an instance cell segmentation mask (0 = no cell, nonzero integer = cell ID).
 
-\subsection*{ECS volume fraction}
-For each crop, the number of voxels labeled as ECS and as cell were counted directly from the segmentation arrays. ECS volume fraction was computed as ECS voxels / total crop voxels $\times$ 100\%.
+Voxel sizes were read from zarr array metadata and ranged from 2\,nm to 8\,nm isotropic. Table~\ref{tab:datasets} lists all datasets, tissues, preparation types, voxel sizes, and crop counts.
 
-\subsection*{ECS channel half-width}
-A Euclidean distance transform was applied to the binary ECS mask, with cell voxels as the reference surface. Each ECS voxel received a value equal to its distance (in nm) to the nearest cell boundary. To exclude vessel lumens and other large open spaces, values were filtered to $<$200\,nm. Summary statistics (median, mean, percentiles, standard deviation) and cumulative fractions below thresholds (10, 20, 30, 50, 75, 100\,nm) were computed per crop.
+\subsection*{Critical limitation: voxel size is confounded with preparation type}
+All Chemical fixation crops were imaged at 2\,nm (7 crops, cortex) or 4\,nm (14 crops, kidney/liver) isotropic voxels, with the exception of 3 heart crops at 8\,nm. All HPF crops were imaged at 8\,nm isotropic. There is effectively zero overlap in resolution between the two preparation types. This means every Chemical-vs-HPF comparison is simultaneously a high-resolution-vs-low-resolution comparison, and the two effects cannot be separated with the available data.
 
-\subsection*{Per-cell morphology}
-For each segmented cell, volume was computed as voxel count $\times$ voxel volume. Surface area was computed by face-counting on the cubic voxel grid: each voxel face abutting ECS was counted as one unit of ECS-facing surface area. The surface-area-to-volume ratio (SA:V) was computed in units of 1/nm. Sphericity was computed as $\psi = \pi^{1/3} (6V)^{2/3} / A$, where $V$ is volume and $A$ is total surface area (all faces, not just ECS-facing).
+To quantify this, we computed Spearman correlations between voxel size and each per-cell metric across all cells at native resolution:
 
-To control for voxel-size effects on face-counting, a resolution-normalized version was computed by resampling all segmentation masks to 8\,nm isotropic voxels before analysis.
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Metric & Spearman $r$ & $p$-value \\
+\midrule
+SA:V ratio & $-0.299$ & $8.0 \times 10^{-26}$ \\
+Sphericity & $-0.166$ & $1.1 \times 10^{-8}$ \\
+Curvature $|H|$ & $+0.129$ & $5.4 \times 10^{-5}$ \\
+Fraction convex & $-0.071$ & $2.8 \times 10^{-2}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\subsection*{Inter-cell gap distance (Voronoi)}
-ECS voxels were assigned to their nearest cell via the distance transform, creating a Voronoi tessellation of the extracellular space. At boundaries where two cells' Voronoi territories met, the gap width was computed as the sum of both cells' distance contributions. Per-crop summary statistics and contact fractions at thresholds (10, 20, 40, 80, 160, 320\,nm) were reported.
-
-\subsection*{Surface curvature --- voxel-based}
-The binary cell mask was smoothed with a Gaussian kernel ($\sigma$ = 16\,nm physical) and mean curvature $H$ was computed at each surface voxel using the level-set formula on the gradient and Hessian of the smoothed field. Positive $H$ = convex (bulging into ECS), negative $H$ = concave (invagination). Only ECS-facing surface voxels were analyzed. Per-cell statistics included median $|H|$, fraction convex, and median radius of curvature ($1/|H|$). Cells below 2.56$\times 10^6$\,nm$^3$ volume were excluded.
-
-\subsection*{Surface curvature --- mesh-based}
-A triangulated isosurface was extracted from each cell's binary mask using the marching cubes algorithm, with 1-voxel Gaussian pre-smoothing. Mean curvature $H$ was computed at each mesh vertex from the discrete Laplace--Beltrami operator. Only ECS-facing vertices were retained, defined as vertices whose nearest non-self segmentation label was ECS rather than another cell. Per-cell statistics were computed as for the voxel-based method. Mesh quality metadata (vertex count, face count, ECS vertex count) were recorded.
-
-\subsection*{Statistical analysis}
-Group comparisons between Chemical and HPF preparations used the Mann--Whitney $U$ test (two-sided). Correlations between metrics and voxel size were assessed using Spearman's rank correlation. No multiple-comparison corrections were applied; $p$-values are reported as descriptive statistics.
-
-%% ============================================================
-\section*{Results}
-%% ============================================================
-
-\subsection*{Global confound: voxel size and preparation type are perfectly correlated}
-All Chemical fixation crops were imaged at 2\,nm (7 crops) or 4\,nm (14 crops) isotropic voxels, with 3 crops at 8\,nm. All HPF crops were imaged at 8\,nm (17 crops). There is effectively no overlap in resolution between the two preparation types (Table~\ref{tab:datasets}). Per-cell metrics showed significant correlations with voxel size: SA:V ($r = -0.30$, $p < 10^{-25}$), sphericity ($r = -0.17$, $p < 10^{-8}$), and curvature ($r = +0.13$, $p < 10^{-4}$; Spearman). Any comparison between Chemical and HPF is simultaneously a comparison between high and low resolution.
-
-\subsection*{ECS volume fraction}
-Across all tissues, Chemical crops had a higher median ECS fraction (20.1\%, IQR 13.1--31.8\%, $n = 24$) than HPF (9.6\%, IQR 3.9--14.7\%, $n = 17$; Mann--Whitney $p = 0.019$). Within-group variance was large: Chemical ranged from 1.4\% to 74.6\%. By tissue, liver showed the largest separation (Chemical 27.1 $\pm$ 4.5\% vs HPF 7.5 $\pm$ 2.5\%), while cortex showed the reverse (Chemical 13.3 $\pm$ 3.5\% vs HPF 32.9 $\pm$ 15.0\%; Table~\ref{tab:ecs_volume}).
-
-\subsection*{ECS channel half-width}
-The overall mean narrow-ECS median half-width was 25.4\,nm for Chemical ($n = 24$) and 21.6\,nm for HPF ($n = 17$). However, within Chemical crops alone, 2\,nm-voxel crops reported a mean narrow median of 13.9\,nm with 82.0\% of ECS below 20\,nm, while 4\,nm-voxel crops reported 29.7\,nm with 44.8\% below 20\,nm, and 8\,nm-voxel crops reported 32.5\,nm with 33.8\% below 20\,nm (Table~\ref{tab:ecs_width}). This monotonic dependence on voxel size within a single preparation type demonstrates that resolution dominates the signal at fine thresholds.
-
-\subsection*{Per-cell morphology}
-Using resolution-normalized data (8\,nm isotropic), Chemical cells had higher SA:V than HPF at no filter (0.050 vs 0.043), but the direction depended on the minimum cell-size threshold: at $\geq$0.05\,$\mu$m$^3$, Chemical SA:V was lower (0.015 vs 0.019, $p = 0.002$). Sphericity was consistently higher in Chemical cells across all size filters (0.57 vs 0.48 at $\geq$0.01\,$\mu$m$^3$, $p < 0.0001$). Of 1,179 native-resolution cells, 601 (51\%) were below 0.01\,$\mu$m$^3$ and 158 had 100\% ECS-facing surface, indicating boundary-truncated fragments.
-
-By tissue at native resolution (volume filter $>$2.56$\times 10^6$\,nm$^3$): liver and cortex showed no SA:V difference between preparations (both 0.039 and 0.032--0.033, respectively), while kidney showed Chemical $>$ HPF (0.038 vs 0.027; Table~\ref{tab:morphology}).
-
-\subsection*{Inter-cell gap distance}
-Chemical crops had a mean Voronoi gap median of 48.5\,nm ($n = 24$) and HPF 52.5\,nm ($n = 17$). The contact fraction at 20\,nm was 0.308 for Chemical and 0.000 for HPF. However, all three Chemical crops at 8\,nm voxels also showed contact\_frac\_20nm $= 0.000$, identical to HPF. At 80\,nm, contact fractions were similar (Chemical 0.720, HPF 0.773), consistent with comparable cell packing at scales above the resolution floor.
-
-\subsection*{Surface curvature}
-Voxel-based curvature showed Chemical cells with higher median $|H|$ (0.00654 vs 0.00523\,/nm) and smaller radius of curvature (153 vs 191\,nm), with 87\% vs 85\% concave surface.
-
-Mesh-based curvature showed much closer agreement between preparations when unfiltered: median $|H|$ was 0.01066 (Chemical) vs 0.01046\,/nm (HPF), with 82\% vs 83\% concave. After size filtering ($\geq$0.01\,$\mu$m$^3$), a difference emerged: Chemical $|H| = 0.00659$ (radius 152\,nm) vs HPF $|H| = 0.00862$ (radius 116\,nm, $p < 0.0001$). Chemical cells showed more convex surface at all size filters (18--42\% vs 17--32\%).
-
-The two curvature methods disagreed in magnitude: mesh-based $|H|$ was approximately 2$\times$ the voxel-based value, and mesh radius was approximately 60\% smaller (Table~\ref{tab:curvature}).
+Crop-level metrics (ECS volume fraction, ECS width) are less directly affected since they are ratios or distances in physical units, but voxel quantization still creates artifacts at fine scales (detailed per-metric below).
 
 %% ============================================================
-\section*{Discussion}
+\section*{Metric 1: ECS Volume Fraction}
 %% ============================================================
 
-% TODO: Discussion to be written
+\textbf{Script:} \texttt{analyze\_ecs\_cell\_volumes.py} $\rightarrow$ \texttt{ecs\_cell\_volumes.csv}
+
+\textbf{Plot:} \texttt{plot\_ecs\_by\_prep.py} $\rightarrow$ \texttt{ecs\_by\_prep\_type.png}
+
+\subsection*{What was done}
+For each crop, the total number of voxels labeled as ECS and as cell (any nonzero instance ID) were counted directly from the segmentation arrays. ECS volume fraction was computed as:
+\[
+\text{ECS\%} = \frac{\text{ECS voxels}}{\text{total crop voxels}} \times 100
+\]
+No spatial analysis was needed; this is a simple label count.
+
+\subsection*{Strengths}
+\begin{itemize}[nosep]
+\item Simplest possible metric --- counting labeled voxels.
+\item Least sensitive to voxel size since it is a ratio of counts at the same resolution.
+\item Well-established in the EM tissue preservation literature.
+\item Fast to compute (reads metadata, no heavy computation).
+\end{itemize}
+
+\subsection*{Weaknesses}
+\begin{itemize}[nosep]
+\item One value per crop; small sample sizes (3--10 per tissue-prep group).
+\item No paired anatomical regions between preps.
+\item Cannot distinguish ``preparation inflated the ECS'' from ``this crop happened to land on open space.''
+\end{itemize}
+
+\subsection*{Biases and artifacts}
+\begin{itemize}[nosep]
+\item \textbf{Crop placement dominance:} Within Chemical fixation alone, ECS fraction ranges from 1.4\% to 74.6\% across crops. This within-group variance far exceeds any plausible between-group signal. A crop landing on a vessel lumen versus dense parenchyma can differ by 10--50$\times$.
+\item \textbf{Crop size differences:} Crops range from $\sim$9M to $\sim$250M voxels. Larger crops average over more tissue heterogeneity; smaller crops are more sensitive to local features.
+\item \textbf{Annotation completeness:} crop1117 has no ECS or cell labels at all (excluded from analysis). Other crops may have incomplete annotations near edges.
+\item \textbf{Tissue type confound:} Each tissue has fundamentally different ECS architecture (kidney tubules vs liver sinusoids vs cortical neuropil). Cross-tissue pooling is done for statistical power but within-tissue comparisons are more meaningful.
+\end{itemize}
+
+\subsection*{Results}
+
+Overall (all tissues pooled):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Prep & Mean ECS\% & Median ECS\% & IQR & $n$ \\
+\midrule
+Chemical & 24.4 & 20.1 & [13.1, 31.8] & 24 \\
+Rapid HPF & 16.0 & 9.6 & [3.9, 14.7] & 17 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Mann--Whitney $U = 293$, $p = 0.019$.
+
+By tissue (mean $\pm$ SEM):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+Tissue & Chemical & Rapid HPF \\
+\midrule
+Kidney & 34.4 $\pm$ 9.0\% ($n{=}7$)  & 24.8 $\pm$ 11.6\% ($n{=}4$) \\
+Heart  & 21.0 $\pm$ 4.8\% ($n{=}3$)  & N/A \\
+Liver  & 27.1 $\pm$ 4.5\% ($n{=}7$)  & 7.5 $\pm$ 2.5\% ($n{=}10$) \\
+Cortex & 13.3 $\pm$ 3.5\% ($n{=}7$)  & 32.9 $\pm$ 15.0\% ($n{=}3$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{Figures/ecs_by_prep_type.png}
+\caption{ECS volume fraction by tissue and preparation type. Each point represents one crop. Note the enormous within-group variance, particularly in kidney and cortex.}
+\label{fig:ecs_volume}
+\end{figure*}
 
 %% ============================================================
-\section*{Known Biases and Artifacts}
+\section*{Metric 2: ECS Channel Half-Width}
 %% ============================================================
 
-\subsection*{Voxel resolution confound}
-The most significant limitation of this analysis is the perfect confounding of voxel size with preparation type. Chemical crops are 2--4$\times$ higher resolution than HPF crops. This affects every metric: surface area is overestimated at finer voxels (staircase effect), distance transforms have different quantization floors, and curvature computation depends on the effective smoothing scale relative to voxel size. Normalization to 8\,nm isotropic controls for voxel-size effects on face-counting but introduces smoothing artifacts that change absolute values (sphericity increases from 0.52 to 0.65 after normalization).
+\textbf{Script:} \texttt{analyze\_ecs\_width\_filtered.py} $\rightarrow$ \texttt{ecs\_width\_filtered.csv}
 
-\subsection*{Crop placement}
-Crops were not placed at matched anatomical locations between preparations. A crop on a vessel lumen versus dense parenchyma can differ in ECS fraction by 10--50$\times$. The within-Chemical ECS range of 1.4--74.6\% demonstrates that crop placement variance far exceeds any plausible preparation effect.
+\textbf{Unfiltered version:} \texttt{analyze\_ecs\_width.py} $\rightarrow$ \texttt{ecs\_width.csv}
 
-\subsection*{Boundary-truncated cells}
-Cells intersecting crop boundaries are sliced, creating artificial flat faces that inflate SA:V and reduce sphericity. The 601 cells below 0.01\,$\mu$m$^3$ and 158 cells with 100\% ECS-facing surface are likely fragments. Results depend on the minimum size filter applied, and SA:V direction reverses between Chemical and HPF depending on threshold.
+\textbf{Plot:} \texttt{plot\_ecs\_width.py} $\rightarrow$ \texttt{ecs\_width\_by\_prep.png}
 
-\subsection*{Distance quantization}
-At 8\,nm voxels, the minimum resolvable distance is approximately one voxel (8\,nm) for the distance transform and approximately 14\,nm for Voronoi gap measurements ($2 \times$ half-diagonal). This creates a hard floor below which no measurements exist. The observation that Chemical 8\,nm crops show identical contact\_frac\_20nm (0.000) to HPF 8\,nm crops confirms that the Chemical-vs-HPF difference at 20\,nm is a resolution artifact.
+\subsection*{What was done}
+A Euclidean distance transform was applied to the binary ECS mask for each crop, using cell voxels (any nonzero instance label) as the reference surface. Each ECS voxel received a value equal to its distance in nm to the nearest cell boundary. This gives the ``half-width'' of the ECS channel at that point --- the distance from that ECS location to the nearest cell membrane.
 
-\subsection*{Curvature method disagreement}
-Voxel-based and mesh-based curvature differ by approximately 2$\times$ in magnitude. Voxel-based curvature suffers from staircase noise on the binary grid; mesh-based curvature introduces implicit smoothing from marching cubes. Both methods show strong concavity bias (82--87\% concave), which may partly reflect real cell-cell wrapping geometry but is also influenced by the preferential sampling of ECS-facing vertices at membrane invaginations.
+To remove contamination from vessel lumens, large intercellular pools, and other non-channel open spaces, values were filtered to $<$200\,nm half-width. This threshold was chosen because channels between cells are typically $<$100\,nm full width (i.e., $<$50\,nm half-width), and 200\,nm provides a generous margin.
 
-\subsection*{Discarded metric}
-Boundary-based contact fraction (the fraction of crops where any two cell boundary voxels come within $X$\,nm) returned 1.000 at all thresholds $\geq$20\,nm for all crops and was discarded as uninformative.
+For each crop, the following statistics were computed on the filtered ECS voxels: median, mean, standard deviation, 10th/25th/75th/90th percentiles, and cumulative fractions below 10, 20, 30, 50, 75, and 100\,nm thresholds.
+
+\subsection*{Strengths}
+\begin{itemize}[nosep]
+\item Measures the \textit{geometry} of the ECS, not just its total amount. A thin sheet of ECS and a large lumen have very different half-widths despite potentially similar volume fractions.
+\item Physical units (nm) that are directly interpretable.
+\item Filtering to $<$200\,nm successfully removes vessel/lumen contamination.
+\item Cumulative fraction statistics give a richer distributional view than a single summary statistic.
+\end{itemize}
+
+\subsection*{Weaknesses}
+\begin{itemize}[nosep]
+\item Reports half-width, not full width. Values must be doubled for comparison with literature ``ECS width'' values.
+\item The 200\,nm cutoff is somewhat arbitrary, though defensible.
+\item This is a local measure --- it does not capture the connectivity or tortuosity of ECS paths.
+\item The distance transform gives distance to the nearest cell surface in any direction, not specifically the gap between two opposing membranes. In complex geometries (branching ECS, pools), this overestimates the channel width.
+\end{itemize}
+
+\subsection*{Biases and artifacts}
+\begin{itemize}[nosep]
+\item \textbf{Voxel quantization (major):} At 8\,nm voxels, the minimum possible half-width is $\sim$4\,nm (half a voxel edge) and values are quantized to $\sim$4\,nm steps. At 2\,nm voxels, resolution is 4$\times$ better. This directly affects fine-threshold statistics like frac$_{<20\text{nm}}$. This is not a theoretical concern --- it is demonstrated by the data. Within Chemical fixation alone, the same preparation type gives different results at different voxel sizes:
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llrrr}
+\toprule
+Voxel & Prep & $n$ & Narrow median (nm) & frac $<$20\,nm \\
+\midrule
+2\,nm & Chemical  &  7 & 13.9 & 0.820 \\
+4\,nm & Chemical  & 14 & 29.7 & 0.448 \\
+8\,nm & Chemical  &  3 & 32.5 & 0.338 \\
+8\,nm & Rapid HPF & 17 & 21.6 & 0.621 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The monotonic dependence on voxel size within Chemical fixation demonstrates that resolution dominates the signal at fine thresholds.
+
+\begin{itemize}[nosep]
+\item \textbf{Crop boundary contamination:} ECS voxels at the edge of a crop see artificially large distances because there are no cell voxels beyond the boundary. The $<$200\,nm filter mitigates this for most cases.
+\end{itemize}
+
+\subsection*{Results}
+
+Overall (mean across crops):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Prep & Narrow median (nm) & frac $<$20\,nm & frac $<$50\,nm & $n$ \\
+\midrule
+Chemical & 25.4 & 0.543 & 0.755 & 24 \\
+Rapid HPF & 21.6 & 0.621 & 0.848 & 17 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+By tissue (mean $\pm$ SEM of narrow median half-width in nm):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+Tissue & Chemical & Rapid HPF \\
+\midrule
+Kidney & 24.7 $\pm$ 7.3 ($n{=}7$) & 32.9 $\pm$ 9.8 ($n{=}4$) \\
+Heart  & 32.5 $\pm$ 2.3 ($n{=}3$) & N/A \\
+Liver  & 31.9 $\pm$ 3.0 ($n{=}7$) & 21.8 $\pm$ 4.4 ($n{=}10$) \\
+Cortex & 13.6 $\pm$ 8.4 ($n{=}7$) & 30.2 $\pm$ 16.8 ($n{=}3$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{Figures/ecs_width_by_prep.png}
+\caption{ECS channel half-width distributions by preparation type, filtered to narrow ECS ($<$200\,nm half-width).}
+\label{fig:ecs_width}
+\end{figure*}
 
 %% ============================================================
-%% TABLES
+\section*{Metric 3: Per-Cell Surface-Area-to-Volume Ratio}
+%% ============================================================
+
+\textbf{Script:} \texttt{analyze\_cell\_morphology.py} $\rightarrow$ \texttt{cell\_morphology\_per\_cell.csv}
+
+\textbf{Normalized:} \texttt{analyze\_cell\_morphology\_normalized.py} $\rightarrow$ \texttt{cell\_morphology\_normalized.csv}
+
+\textbf{Plot:} \texttt{plot\_cell\_morphology.py} $\rightarrow$ \texttt{cell\_morphology\_by\_prep.png}
+
+\subsection*{What was done}
+For each segmented cell (each unique nonzero ID in the instance segmentation), volume was computed as voxel count $\times$ voxel volume (in nm$^3$ and $\mu$m$^3$). Surface area was computed by face-counting on the cubic voxel grid: for each cell voxel, each of its 6 faces was checked. If the neighboring voxel was labeled as ECS, that face was counted as ECS-facing surface area. Faces abutting the crop boundary or other cells were counted separately. The SA:V ratio uses only ECS-facing surface area, in units of 1/nm.
+
+Because face-counting on a cubic grid is sensitive to voxel size (the ``staircase effect'' --- finer voxels resolve more surface detail and produce higher surface area estimates), a resolution-normalized version was also computed. For this, all segmentation masks were resampled to 8\,nm isotropic voxels using nearest-neighbor interpolation before the same face-counting analysis. This puts all crops on equal footing with respect to voxel geometry, at the cost of smoothing fine features in the higher-resolution crops.
+
+The native-resolution analysis used a physical volume filter of $>$2.56$\times10^6$\,nm$^3$ to exclude very small cell fragments. The normalized analysis was run with no filter and with filters at $\geq$0.005, 0.01, and 0.05\,$\mu$m$^3$.
+
+\subsection*{Strengths}
+\begin{itemize}[nosep]
+\item Per-cell metric, giving large sample sizes (1,179 cells native; 1,574 cells normalized).
+\item Only counts ECS-facing faces, excluding crop boundary and cell-cell contact faces.
+\item The normalized version controls for voxel-size effects.
+\end{itemize}
+
+\subsection*{Weaknesses}
+\begin{itemize}[nosep]
+\item Cells truncated at crop boundaries have distorted volumes and surface areas.
+\item High within-group variance from cell-type diversity.
+\item Does not directly measure ECS geometry.
+\end{itemize}
+
+\subsection*{Biases and artifacts}
+\begin{itemize}[nosep]
+\item \textbf{Voxel staircase effect:} Face-counting on a cubic grid systematically overestimates true surface area compared to a smooth surface. The bias is larger at finer voxels (more staircase steps per unit length). This is partially controlled by normalization to 8\,nm.
+\item \textbf{Boundary-truncated cells (major):} 601 of 1,179 native-resolution cells (51\%) are below 0.01\,$\mu$m$^3$. Many of these are fragments of cells that extend beyond the crop boundary, not complete cells. 158 cells have 100\% ECS-facing surface (no contact with any other cell), indicating they are isolated fragments entirely surrounded by ECS.
+\item \textbf{SA:V direction reverses with size filter:} Without filtering, Chemical SA:V $>$ HPF. At $\geq$0.05\,$\mu$m$^3$ filter, Chemical SA:V $<$ HPF. The metric is unstable with respect to the minimum cell-size threshold, because small fragments (which inflate SA:V) are more common at higher resolution.
+\item \textbf{Normalization introduces smoothing:} Resampling to 8\,nm blurs features that exist at 2--4\,nm, changing absolute values. Chemical sphericity jumps from 0.518 (native) to 0.650 (normalized) purely from resampling.
+\end{itemize}
+
+\subsection*{Results}
+
+Normalized to 8\,nm isotropic (median SA:V across cells, Mann--Whitney $p$-values):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Filter & Chem SA:V ($n$) & HPF SA:V ($n$) & $p$ \\
+\midrule
+None        & 0.050 (761) & 0.043 (813) & --- \\
+$\geq$0.005\,$\mu$m$^3$ & 0.033 (341) & 0.028 (472) & 0.007 \\
+$\geq$0.01\,$\mu$m$^3$  & 0.023 (194) & 0.025 (385) & 0.033 \\
+$\geq$0.05\,$\mu$m$^3$  & 0.015 (90)  & 0.019 (230) & 0.002 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+By tissue at native resolution (volume filter $>$2.56$\times10^6$\,nm$^3$, mean $\pm$ SEM, units 1/nm):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+Tissue & Chemical & Rapid HPF \\
+\midrule
+Kidney & 0.038 $\pm$ 0.001 ($n{=}230$) & 0.027 $\pm$ 0.002 ($n{=}81$) \\
+Heart  & 0.010 $\pm$ 0.002 ($n{=}11$)  & N/A \\
+Liver  & 0.039 $\pm$ 0.002 ($n{=}83$)  & 0.039 $\pm$ 0.002 ($n{=}142$) \\
+Cortex & 0.032 $\pm$ 0.002 ($n{=}101$) & 0.033 $\pm$ 0.001 ($n{=}326$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{Figures/cell_morphology_by_prep.png}
+\caption{Per-cell morphology metrics (SA:V ratio and sphericity) by tissue and preparation type.}
+\label{fig:morphology}
+\end{figure*}
+
+%% ============================================================
+\section*{Metric 4: Per-Cell Sphericity}
+%% ============================================================
+
+\textbf{Script:} Same as Metric 3.
+
+\subsection*{What was done}
+Sphericity was computed for each cell as:
+\[
+\psi = \frac{\pi^{1/3} (6V)^{2/3}}{A}
+\]
+where $V$ is cell volume and $A$ is \textit{total} surface area (all 6-connected faces, including cell-cell contacts and crop boundary faces). This ranges from 0 (highly non-spherical) to 1 (perfect sphere). Unlike SA:V, sphericity uses total surface area rather than ECS-facing surface area only.
+
+\subsection*{Strengths}
+\begin{itemize}[nosep]
+\item Bounded [0,1] scale.
+\item Per-cell metric with large sample sizes.
+\end{itemize}
+
+\subsection*{Weaknesses}
+\begin{itemize}[nosep]
+\item Closely correlated with SA:V; partially redundant.
+\item Voxel-based surface area systematically overestimates true area, so sphericity is systematically underestimated.
+\item ``Sphericity'' is poorly named for cells that are never remotely spherical (neurons, hepatocytes, epithelial cells).
+\end{itemize}
+
+\subsection*{Biases and artifacts}
+\begin{itemize}[nosep]
+\item \textbf{Voxel staircase underestimates sphericity} by inflating surface area. Coarser voxels produce a coarser staircase, but the relationship is non-trivial.
+\item \textbf{Normalization dramatically changes values:} Chemical sphericity jumps from 0.518 (native, mixed 2--4\,nm) to 0.650 (normalized 8\,nm). This is pure resampling smoothing, not biology.
+\item Same boundary-truncation issues as SA:V.
+\end{itemize}
+
+\subsection*{Results}
+
+Normalized to 8\,nm (median sphericity, Mann--Whitney $p$):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Filter & Chem ($n$) & HPF ($n$) & $p$ \\
+\midrule
+None        & 0.650 (761) & 0.601 (813) & --- \\
+$\geq$0.005\,$\mu$m$^3$ & 0.570 (341) & 0.510 (472) & $<$0.0001 \\
+$\geq$0.01\,$\mu$m$^3$  & 0.569 (194) & 0.482 (385) & $<$0.0001 \\
+$\geq$0.05\,$\mu$m$^3$  & 0.492 (90)  & 0.454 (230) & 0.046 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Chemical cells consistently show higher sphericity than HPF across all size filters.
+
+%% ============================================================
+\section*{Metric 5: Inter-Cell Gap Width (Voronoi Tessellation)}
+%% ============================================================
+
+\textbf{Script:} \texttt{analyze\_cell\_contacts.py} $\rightarrow$ \texttt{cell\_contacts.csv}
+
+\textbf{Plot:} \texttt{plot\_cell\_contacts.py} $\rightarrow$ \texttt{cell\_contacts\_by\_prep.png}
+
+\subsection*{What was done}
+A Voronoi tessellation of the ECS was constructed by assigning each ECS voxel to its nearest cell (using the distance transform on the cell instance mask). At Voronoi boundaries --- where two cells' territories meet --- the gap width was computed as the sum of both cells' distance contributions (i.e., twice the distance transform value at the boundary, since each side contributes half the gap).
+
+For each crop, the median gap width was computed across all Voronoi boundary voxels. Contact fractions were also computed: at each threshold (10, 20, 40, 80, 160, 320\,nm), the fraction of Voronoi boundary voxels with gap width below that threshold.
+
+\subsection*{Strengths}
+\begin{itemize}[nosep]
+\item Directly measures the actual separation between neighboring cells through the ECS.
+\item The Voronoi approach naturally identifies cell neighbors without requiring explicit adjacency computation.
+\item Contact fractions at multiple thresholds provide a cumulative view of the gap distribution.
+\end{itemize}
+
+\subsection*{Weaknesses}
+\begin{itemize}[nosep]
+\item One value per crop; small sample sizes.
+\item High within-group variance.
+\item No per-cell-pair information --- these are crop-level aggregates.
+\end{itemize}
+
+\subsection*{Biases and artifacts}
+\begin{itemize}[nosep]
+\item \textbf{Resolution floor (critical):} At 8\,nm voxels, the minimum measurable gap is approximately $2 \times$ one voxel diagonal $= 2 \times 6.9\,\text{nm} \approx 13.8\,\text{nm}$. HPF crops (all 8\,nm) physically cannot detect gaps below $\sim$14\,nm via Voronoi. This is proven by the data:
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llrr}
+\toprule
+Voxel & Prep & $n$ & contact\_frac$_{20\text{nm}}$ \\
+\midrule
+2\,nm & Chemical  &  7 & 0.611 \\
+4\,nm & Chemical  & 14 & 0.223 \\
+8\,nm & Chemical  &  3 & 0.000 \\
+8\,nm & Rapid HPF & 17 & 0.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Chemical 8\,nm crops show the same 0\% contact at 20\,nm as HPF 8\,nm crops. The Chemical-vs-HPF difference at 20\,nm is entirely a voxel resolution artifact.
+
+\begin{itemize}[nosep]
+\item \textbf{Open-space contamination:} Vessel lumens and large intercellular pools create wide Voronoi boundaries that inflate gap measurements.
+\end{itemize}
+
+\subsection*{Results}
+
+Overall (mean across crops):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Prep & Gap median (nm) & frac$_{20\text{nm}}$ & frac$_{80\text{nm}}$ & $n$ \\
+\midrule
+Chemical & 48.5 & 0.308 & 0.720 & 24 \\
+Rapid HPF & 52.5 & 0.000 & 0.773 & 17 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+By tissue (mean $\pm$ SEM of median gap in nm):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+Tissue & Chemical & Rapid HPF \\
+\midrule
+Kidney & 49.0 $\pm$ 12.2 ($n{=}7$) & 69.2 $\pm$ 30.2 ($n{=}4$) \\
+Heart  & 74.5 $\pm$ 5.2 ($n{=}3$)  & N/A \\
+Liver  & 65.1 $\pm$ 10.3 ($n{=}7$) & 45.8 $\pm$ 5.5 ($n{=}10$) \\
+Cortex & 20.3 $\pm$ 6.5 ($n{=}7$)  & 52.6 $\pm$ 23.6 ($n{=}3$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Contact fractions at selected thresholds by tissue:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llrr}
+\toprule
+Tissue & Threshold & Chemical & HPF \\
+\midrule
+Cortex & 40\,nm & 85.6\% & 53.8\% \\
+Cortex & 80\,nm & 95.2\% & 76.4\% \\
+Kidney & 40\,nm & 55.3\% & 34.0\% \\
+Kidney & 80\,nm & 72.3\% & 75.0\% \\
+Liver  & 40\,nm & 31.0\% & 53.5\% \\
+Liver  & 80\,nm & 56.8\% & 78.6\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{Figures/cell_contacts_by_prep.png}
+\caption{Inter-cell gap distance distributions and contact fractions from Voronoi tessellation of the ECS.}
+\label{fig:contacts}
+\end{figure*}
+
+%% ============================================================
+\section*{Metric 6: Boundary-Based Contact Fraction (Discarded)}
+%% ============================================================
+
+\textbf{Script:} \texttt{analyze\_cell\_morphology.py} $\rightarrow$ \texttt{cell\_morphology\_contacts.csv}
+
+\subsection*{What was done}
+For each crop, at each distance threshold (10, 20, 40, 80, 160\,nm), we asked: does any pair of cell boundary voxels come within that distance of each other? The fraction of crops where this is true was reported.
+
+\subsection*{Why it was discarded}
+This metric returned 1.000 (100\%) for every crop at every threshold $\geq$20\,nm. At 10\,nm, it returned 0.000 for all HPF crops and 1.000 for all Chemical crops (a pure resolution artifact --- 10\,nm is slightly more than one voxel at 8\,nm). The metric has zero discriminating power. It effectively asks ``do any cells exist near each other in this crop?'' which is trivially true for any crop containing multiple cells.
+
+%% ============================================================
+\section*{Metric 7: Surface Curvature --- Voxel-Based}
+%% ============================================================
+
+\textbf{Script:} \texttt{analyze\_curvature.py} $\rightarrow$ \texttt{cell\_curvature.csv}
+
+\subsection*{What was done}
+For each cell passing the volume filter ($>$2.56$\times10^6$\,nm$^3$), a bounding box was extracted from the binary cell mask. The mask was converted to a float array and smoothed with a 3D Gaussian kernel with $\sigma = 16$\,nm in physical units ($\sigma = 8$ voxels at 2\,nm, 4 voxels at 4\,nm, 2 voxels at 8\,nm).
+
+Mean curvature $H$ was computed at each surface voxel using the level-set formula:
+\[
+H = \frac{(\phi_{xx}(\phi_y^2 + \phi_z^2) + \phi_{yy}(\phi_x^2 + \phi_z^2) + \phi_{zz}(\phi_x^2 + \phi_y^2)) - 2(\phi_x\phi_y\phi_{xy} + \phi_x\phi_z\phi_{xz} + \phi_y\phi_z\phi_{yz})}{2(\phi_x^2 + \phi_y^2 + \phi_z^2)^{3/2}}
+\]
+where $\phi$ is the smoothed mask and subscripts denote partial derivatives computed via finite differences.
+
+Surface voxels were identified as cell voxels with at least one non-cell neighbor. Only ECS-facing surface voxels (those neighboring an ECS-labeled voxel) were retained. Per-cell statistics: median $|H|$, mean $|H|$, standard deviation, 25th/75th percentiles, fraction convex ($H > 0$), fraction concave ($H < 0$), and median radius of curvature ($1/|H|$).
+
+Sign convention: positive $H$ = convex (cell surface bulging outward into ECS); negative $H$ = concave (invagination or wrapping around a neighbor).
+
+\subsection*{Strengths}
+\begin{itemize}[nosep]
+\item Characterizes membrane shape at a local level.
+\item Fixed physical smoothing scale (16\,nm) in principle makes curvature comparable across resolutions.
+\item Per-cell metric with large sample sizes (425 Chemical, 549 HPF cells).
+\end{itemize}
+
+\subsection*{Weaknesses}
+\begin{itemize}[nosep]
+\item Computing curvature from finite differences on a binary voxel grid is fundamentally noisy.
+\item The smoothing scale choice (16\,nm) directly controls results.
+\item Mean curvature alone does not distinguish all surface shape types (would need Gaussian curvature for a full classification).
+\end{itemize}
+
+\subsection*{Biases and artifacts}
+\begin{itemize}[nosep]
+\item \textbf{Voxel staircase noise:} Surface normals computed from finite differences on a cubic grid produce quantization artifacts.
+\item \textbf{Smoothing scale vs resolution:} 16\,nm $= 8$ voxels at 2\,nm but only 2 voxels at 8\,nm. HPF data receives much less effective smoothing, potentially retaining more voxel staircase noise.
+\item \textbf{Overwhelmingly concave (85--87\%):} This likely reflects overrepresentation of concave junctions in the voxel-based surface normal computation, and aliasing of flat surfaces as concave.
+\item \textbf{Superseded:} The mesh-based curvature (Metric 8) eliminates the worst voxel staircase artifacts and is preferred.
+\end{itemize}
+
+\subsection*{Results}
+
+By prep (all tissues pooled, cells $>$2.56$\times10^6$\,nm$^3$):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Metric & Chemical ($n{=}425$) & HPF ($n{=}549$) \\
+\midrule
+Median $|H|$ (1/nm) & 0.00654 & 0.00523 \\
+Mean $|H|$ (1/nm) & 0.00731 & 0.00638 \\
+Median radius (nm) & 153 & 191 \\
+Frac.\ convex & 12.7\% & 14.7\% \\
+Frac.\ concave & 87.3\% & 85.3\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+By tissue:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Tissue & Chem $|H|$ & HPF $|H|$ & Chem radius & HPF radius \\
+\midrule
+Kidney & 0.0067 & 0.0047 & 178\,nm & 254\,nm \\
+Heart  & 0.0030 & --- & 459\,nm & --- \\
+Liver  & 0.0077 & 0.0075 & 140\,nm & 175\,nm \\
+Cortex & 0.0051 & 0.0053 & 221\,nm & 242\,nm \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ============================================================
+\section*{Metric 8: Surface Curvature --- Mesh-Based}
+%% ============================================================
+
+\textbf{Script:} \texttt{analyze\_curvature\_mesh.py} $\rightarrow$ \texttt{cell\_curvature\_mesh.csv}
+
+\subsection*{What was done}
+For each cell passing the same volume filter, a triangulated isosurface was extracted from the binary cell mask using the marching cubes algorithm (\texttt{skimage.measure.marching\_cubes}), with 1-voxel Gaussian pre-smoothing applied to the binary mask to regularize the surface. The resulting mesh was a set of vertices and triangular faces in physical coordinates (nm).
+
+Mean curvature $H$ was computed at each mesh vertex using the discrete Laplace--Beltrami operator (\texttt{trimesh.curvature.discrete\_mean\_curvature\_measure}). This computes curvature from the local geometry of the triangle mesh, which is geometrically more meaningful than finite differences on a binary grid.
+
+To restrict analysis to ECS-facing surfaces, each mesh vertex was tested against the full segmentation volume: the nearest non-self voxel label was looked up, and only vertices where this label was ECS (rather than another cell ID) were retained. This was done using a KD-tree lookup in the segmentation volume.
+
+Per-cell statistics were computed identically to the voxel-based method. Additionally, mesh quality metadata was recorded: total vertex count, total face count, and number of ECS-facing vertices.
+
+\subsection*{Strengths}
+\begin{itemize}[nosep]
+\item Marching cubes produces a smooth triangulated surface, eliminating the worst voxel staircase artifacts.
+\item Curvature from vertex normals on a proper triangle mesh is geometrically more meaningful.
+\item Mesh quality metadata (vertex/face counts) allows quality filtering.
+\item Without size filtering, Chemical and HPF curvature are nearly identical (median $|H|$ = 0.0107 vs 0.0105), suggesting this method is more stable across resolutions than the voxel-based method.
+\end{itemize}
+
+\subsection*{Weaknesses}
+\begin{itemize}[nosep]
+\item Marching cubes plus Gaussian smoothing acts as a low-pass filter. The amount of smoothing determines which features survive.
+\item Curvature magnitudes are $\sim$2$\times$ higher than the voxel-based method. It is unclear whether this reflects real high-curvature features or mesh triangulation noise.
+\item Computationally expensive (mesh extraction + per-vertex curvature + KD-tree lookup for ECS classification).
+\end{itemize}
+
+\subsection*{Biases and artifacts}
+\begin{itemize}[nosep]
+\item \textbf{Implicit smoothing:} Marching cubes inherently smooths the voxel surface. Additional 1-voxel Gaussian smoothing further regularizes. The net smoothing is resolution-dependent (1 voxel = 2\,nm or 8\,nm depending on dataset).
+\item \textbf{Still concave-biased (82\%):} Less extreme than voxel-based (87\%) but still dominated by concavity. Some concavity is real biology (cells wrap around each other at contact points). But the magnitude is likely inflated by ECS-vertex selection bias --- ECS-facing vertices preferentially sample membrane at invaginations and concavities where cells separate, rather than flat contact surfaces which are classified as non-ECS.
+\item \textbf{Mesh resolution varies:} Chemical cells have median 26,198 mesh vertices vs 14,009 for HPF, because finer voxels produce denser meshes. It is unknown whether this affects curvature convergence.
+\item \textbf{Method disagreement:} Mesh median $|H|$ is $\sim$2$\times$ the voxel-based value (0.0107 vs 0.0065 for Chemical). Mesh radius of curvature is $\sim$60\% smaller (94\,nm vs 153\,nm). This could mean the mesh resolves real high-curvature features that voxel smoothing missed, or that mesh triangulation artifacts inflate curvature at sharp edges.
+\end{itemize}
+
+\subsection*{Results}
+
+No size filter (all cells $>$2.56$\times10^6$\,nm$^3$):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Metric & Chemical ($n{=}425$) & HPF ($n{=}549$) \\
+\midrule
+Median $|H|$ (1/nm) & 0.01066 & 0.01046 \\
+Mean $|H|$ (1/nm) & 0.02003 & 0.02003 \\
+Median radius (nm) & 93.8 & 95.6 \\
+Frac.\ convex & 18.1\% & 17.1\% \\
+Frac.\ concave & 81.9\% & 82.9\% \\
+Median mesh vertices & 26,198 & 14,009 \\
+Median ECS vertices & 20,190 & 13,481 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Effect of cell-size filtering on curvature (median $|H|$, Mann--Whitney $p$):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+Filter & Chem $|H|$ ($n$) & HPF $|H|$ ($n$) & Chem $r$ & HPF $r$ & $p$ \\
+\midrule
+None & 0.0107 (425) & 0.0105 (549) & 94\,nm & 96\,nm & --- \\
+$\geq$0.005 & 0.0089 (340) & 0.0096 (471) & 112\,nm & 104\,nm & 0.086 \\
+$\geq$0.01  & 0.0066 (193) & 0.0086 (383) & 152\,nm & 116\,nm & $<$0.0001 \\
+$\geq$0.05  & 0.0061 (92)  & 0.0075 (230) & 164\,nm & 133\,nm & 0.002 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Fraction convex by size filter:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Filter & Chemical & HPF \\
+\midrule
+None & 18.1\% & 17.1\% \\
+$\geq$0.005\,$\mu$m$^3$ & 24.4\% & 20.6\% \\
+$\geq$0.01\,$\mu$m$^3$  & 34.9\% & 23.7\% \\
+$\geq$0.05\,$\mu$m$^3$  & 41.8\% & 31.9\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+By tissue (no size filter, values are medians across cells):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Tissue & Chem $|H|$ ($n$) & HPF $|H|$ ($n$) & Chem radius & HPF radius \\
+\midrule
+Kidney & 0.0129 (230) & 0.0093 (81) & 77.6\,nm & 107.7\,nm \\
+Heart  & 0.0042 (11)  & --- & 238.8\,nm & --- \\
+Liver  & 0.0130 (83)  & 0.0153 (142) & 77.1\,nm & 65.5\,nm \\
+Cortex & 0.0062 (101) & 0.0096 (326) & 161.8\,nm & 104.3\,nm \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ============================================================
+\section*{Comparison of Curvature Methods}
+%% ============================================================
+
+The two curvature methods (voxel-based and mesh-based) were applied to the same set of cells and disagreed substantially in magnitude:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+ & \multicolumn{2}{c}{Voxel-based} & \multicolumn{2}{c}{Mesh-based} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+Metric & Chemical & HPF & Chemical & HPF \\
+\midrule
+Median $|H|$ (1/nm) & 0.00654 & 0.00523 & 0.01066 & 0.01046 \\
+Median radius (nm) & 153 & 191 & 94 & 96 \\
+Frac.\ convex (\%) & 12.7 & 14.7 & 18.1 & 17.1 \\
+Frac.\ concave (\%) & 87.3 & 85.3 & 81.9 & 82.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The mesh-based method produces $\sim$2$\times$ higher curvature magnitudes and $\sim$40\% smaller radii of curvature. It also shows closer agreement between Chemical and HPF preparations (especially without size filtering), suggesting it is less sensitive to voxel-size artifacts. The mesh-based method is preferred for further analysis.
+
+%% ============================================================
+\section*{Summary}
+%% ============================================================
+
+\begin{table*}[t]
+\centering
+\caption{Summary of all metrics analyzed.}
+\label{tab:summary}
+\begin{tabular}{rlllll}
+\toprule
+\# & Metric & Level & $n$ (Chem / HPF) & Resolution confound & Status \\
+\midrule
+1 & ECS Volume Fraction & Crop & 24 / 17 & Low & Keep \\
+2 & ECS Half-Width (filtered) & Crop & 24 / 17 & High at fine thresholds & Keep (caveats) \\
+3 & SA:V Ratio & Cell & 761 / 813 (norm) & High ($r{=}-0.30$) & Keep (caveats) \\
+4 & Sphericity & Cell & 761 / 813 (norm) & High ($r{=}-0.17$) & Keep (caveats) \\
+5 & Voronoi Gap Width & Crop & 24 / 17 & High at $<$40\,nm & Keep (caveats) \\
+6 & Boundary Contact Frac. & Crop & 24 / 17 & --- & Discarded \\
+7 & Curvature (voxel) & Cell & 425 / 549 & Moderate ($r{=}+0.13$) & Superseded by \#8 \\
+8 & Curvature (mesh) & Cell & 425 / 549 & Moderate & Keep \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
 %% ============================================================
 
 \begin{table*}[t]
@@ -154,109 +740,42 @@ jrc\_mus-cortex-4   & Cortex & Rapid HPF & 8 & 2 \\
 \end{tabular}
 \end{table*}
 
-\begin{table*}[t]
+\begin{figure*}[t]
 \centering
-\caption{ECS volume fraction by tissue and preparation. Values are mean $\pm$ SEM.}
-\label{tab:ecs_volume}
+\includegraphics[width=0.95\linewidth]{Figures/distributions_per_crop.png}
+\caption{Per-crop distributions of key metrics across all 42 crops.}
+\label{fig:distributions}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{Figures/ecs_analysis_summary.png}
+\caption{Summary of ECS analysis across tissues and preparation types.}
+\label{fig:summary}
+\end{figure*}
+
+\section*{Scripts and Outputs}
+
+All analysis was performed in Python. Scripts and their outputs:
+
+\begin{table*}[h]
+\centering
+\small
 \begin{tabular}{lll}
 \toprule
-Tissue & Chemical & Rapid HPF \\
+Script & Output & Description \\
 \midrule
-Kidney & 34.4 $\pm$ 9.0\% ($n=7$)  & 24.8 $\pm$ 11.6\% ($n=4$) \\
-Heart  & 21.0 $\pm$ 4.8\% ($n=3$)  & N/A \\
-Liver  & 27.1 $\pm$ 4.5\% ($n=7$)  & 7.5 $\pm$ 2.5\% ($n=10$) \\
-Cortex & 13.3 $\pm$ 3.5\% ($n=7$)  & 32.9 $\pm$ 15.0\% ($n=3$) \\
+\texttt{analyze\_ecs\_cell\_volumes.py} & \texttt{ecs\_cell\_volumes.csv} & ECS/cell volume fractions per crop \\
+\texttt{analyze\_ecs\_width.py} & \texttt{ecs\_width.csv} & ECS half-width (unfiltered) \\
+\texttt{analyze\_ecs\_width\_filtered.py} & \texttt{ecs\_width\_filtered.csv} & ECS half-width ($<$200\,nm) \\
+\texttt{analyze\_cell\_morphology.py} & \texttt{cell\_morphology\_*.csv} & Per-cell SA:V, sphericity, contacts \\
+\texttt{analyze\_cell\_morphology\_normalized.py} & \texttt{cell\_morphology\_normalized.csv} & Morphology at 8\,nm isotropic \\
+\texttt{analyze\_cell\_contacts.py} & \texttt{cell\_contacts.csv} & Voronoi gap widths, contact fracs \\
+\texttt{analyze\_curvature.py} & \texttt{cell\_curvature.csv} & Voxel-based curvature \\
+\texttt{analyze\_curvature\_mesh.py} & \texttt{cell\_curvature\_mesh.csv} & Mesh-based curvature \\
 \bottomrule
 \end{tabular}
 \end{table*}
-
-\begin{table*}[t]
-\centering
-\caption{ECS narrow half-width by voxel size, demonstrating resolution dependence within Chemical fixation. Narrow = filtered to $<$200\,nm.}
-\label{tab:ecs_width}
-\begin{tabular}{llrrr}
-\toprule
-Voxel (nm) & Prep & $n$ & Mean narrow median (nm) & Mean frac $<$20\,nm \\
-\midrule
-2 & Chemical  &  7 & 13.9 & 0.820 \\
-4 & Chemical  & 14 & 29.7 & 0.448 \\
-8 & Chemical  &  3 & 32.5 & 0.338 \\
-8 & Rapid HPF & 17 & 21.6 & 0.621 \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-\begin{table*}[t]
-\centering
-\caption{Per-cell SA:V ratio by tissue at native resolution (volume filter $>$2.56$\times 10^6$\,nm$^3$). Values are mean $\pm$ SEM in units of 1/nm.}
-\label{tab:morphology}
-\begin{tabular}{lll}
-\toprule
-Tissue & Chemical & Rapid HPF \\
-\midrule
-Kidney & 0.038 $\pm$ 0.001 ($n=230$) & 0.027 $\pm$ 0.002 ($n=81$) \\
-Heart  & 0.010 $\pm$ 0.002 ($n=11$)  & N/A \\
-Liver  & 0.039 $\pm$ 0.002 ($n=83$)  & 0.039 $\pm$ 0.002 ($n=142$) \\
-Cortex & 0.032 $\pm$ 0.002 ($n=101$) & 0.033 $\pm$ 0.001 ($n=326$) \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-\begin{table*}[t]
-\centering
-\caption{Surface curvature comparison: voxel-based vs mesh-based methods. Values are medians across cells (all tissues pooled, cells $>$2.56$\times 10^6$\,nm$^3$).}
-\label{tab:curvature}
-\begin{tabular}{lrrrr}
-\toprule
- & \multicolumn{2}{c}{Voxel-based} & \multicolumn{2}{c}{Mesh-based} \\
-\cmidrule(lr){2-3} \cmidrule(lr){4-5}
-Metric & Chemical & HPF & Chemical & HPF \\
-\midrule
-Median $|H|$ (1/nm) & 0.00654 & 0.00523 & 0.01066 & 0.01046 \\
-Median radius (nm) & 153 & 191 & 94 & 96 \\
-Fraction convex (\%) & 12.7 & 14.7 & 18.1 & 17.1 \\
-Fraction concave (\%) & 87.3 & 85.3 & 81.9 & 82.9 \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-%% ============================================================
-%% FIGURES
-%% ============================================================
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.95\linewidth]{Figures/ecs_by_prep_type.png}
-\caption{ECS volume fraction by tissue and preparation type. Each point represents one crop.}
-\label{fig:ecs_volume}
-\end{figure*}
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.95\linewidth]{Figures/ecs_width_by_prep.png}
-\caption{ECS channel half-width distributions by preparation type. Filtered to narrow ECS ($<$200\,nm half-width).}
-\label{fig:ecs_width}
-\end{figure*}
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.95\linewidth]{Figures/cell_morphology_by_prep.png}
-\caption{Per-cell morphology metrics (SA:V ratio and sphericity) by tissue and preparation type.}
-\label{fig:morphology}
-\end{figure*}
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.95\linewidth]{Figures/cell_contacts_by_prep.png}
-\caption{Inter-cell gap distance distributions and contact fractions from Voronoi tessellation of the ECS.}
-\label{fig:contacts}
-\end{figure*}
-
-%% ============================================================
-
-\begin{acknowledgements}
-Data were obtained from the CellMap open-access volume EM collection (cellmap.org). % TODO: expand
-\end{acknowledgements}
 
 \section*{Bibliography}
 \bibliography{references}
