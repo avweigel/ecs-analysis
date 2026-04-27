@@ -1,0 +1,3 @@
+crop,tissue,prep,region_group,voxel_nm,n_cells_total,n_cells_passing,total_cell_volume_nm3,total_ecs_facing_sa_nm2,total_cell_cell_sa_nm2,total_outer_sa_nm2,cell_density_per_um3,sa_v_ecs_per_nm,native_voxel_nm,analysis_voxel_nm
+crop1026,Kidney,Chemical,Glomerular,16.0,48,30,4444794880.0,61253376.0,727808.0,14962176.0,4.340277777777778,0.013780923001783156,4.0,16.0
+crop1027,Kidney,Chemical,Glomerular,4.0,27,19,3833761280.0,65070096.0,0.0,11442192.0,2.7488425925925926,0.01697291282570416,4.0,4.0
