@@ -26,8 +26,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # `export ECS_DATA_BASE=/nrs/cellmap/data` on Janelia.
 NRS_BASE = Path(os.environ.get("ECS_DATA_BASE", "/Volumes/cellmap/data"))
 
-RESULTS_DIR = REPO_ROOT / "results"
-FIGURES_DIR = REPO_ROOT / "figures"
+# Output destination. Default is `results/` in the repo, but on the cluster
+# you may want to write to a shared scratch / lab-space location:
+#   export ECS_RESULTS_DIR=/nrs/cellmap/people/<you>/ecs-results
+# Same for figures via ECS_FIGURES_DIR.
+RESULTS_DIR = Path(os.environ.get("ECS_RESULTS_DIR", str(REPO_ROOT / "results")))
+FIGURES_DIR = Path(os.environ.get("ECS_FIGURES_DIR", str(REPO_ROOT / "figures")))
 ANNOTATIONS_CSV = REPO_ROOT / "crop_annotations.csv"
 
 

@@ -132,18 +132,45 @@ subset of metrics with `--metrics ecs_width,voronoi_gap`.
 ### Cluster (LSF, Janelia)
 
 ```bash
+# Required: where the zarr data lives
 export ECS_DATA_BASE=/nrs/cellmap/data
-export ECS_PYTHON=/path/to/python-with-deps
-export ECS_QUEUE=local                # or whatever your normal queue is
-bash scripts/cluster_submit.sh native
-bash scripts/cluster_submit.sh matched
-bash scripts/cluster_submit.sh degradation
+
+# Required: a python with the requirements.txt deps installed
+export ECS_PYTHON=/path/to/python
+
+# Optional: where to write results. Default is `results/` in the repo,
+# which means after the run you can `git add results/ && git commit && git push`
+# to send everything back. If you'd rather write to shared lab space:
+export ECS_RESULTS_DIR=/nrs/cellmap/people/<you>/ecs-results
+export ECS_FIGURES_DIR=/nrs/cellmap/people/<you>/ecs-figures
+
+# Optional: LSF queue + resources
+export ECS_QUEUE=local
+
+bash scripts/cluster_submit.sh native        # phase 2 (all metrics)
+bash scripts/cluster_submit.sh matched       # phase 4 (downsampled to 8nm)
+bash scripts/cluster_submit.sh degradation   # phase 5 (Chemical scan)
 ```
 
-Each invocation submits one bsub job per crop. Logs land in
-`cluster_logs/<phase>/<crop>.{out,err}`. After all jobs finish, the
-per-crop incremental writes leave the same `results/<phase>_<metric>.csv`
-files as a local run — no aggregation step is required.
+Each invocation submits one bsub job per crop. LSF logs land in
+`cluster_logs/<phase>/<crop>.{out,err}` in the repo. The per-crop
+incremental-write logic means each finishing job appends its row to
+`<RESULTS_DIR>/<phase>_<metric>.csv` — no separate aggregation step.
+
+Once all jobs are done, run the post-processing locally (these are fast
+and don't need to go through bsub):
+
+```bash
+python -m scripts.summarize --prefix native
+python -m scripts.summarize --prefix matched
+python -m scripts.stats
+python -m scripts.make_figures --prefix native
+python -m scripts.make_figures --prefix matched
+```
+
+To send results back: either `git add results/ && git commit && git push`
+to share via the GitHub repo, or tarball the results directory and send
+the file directly.
 
 Wall-time hints (per crop):
 - Topology at 2nm Cortex Chemical: 15-30 min (largest meshes)
@@ -153,14 +180,24 @@ Wall-time hints (per crop):
 
 ## Status of computational work
 
-| Phase | Coverage | Notes |
+The `results/` and `figures/` directories were cleared on handoff so the
+cluster run is the canonical source. Phases to run on the cluster:
+
+| Phase | Command | Approx cluster wall-time at 40 parallel jobs |
 |---|---|---|
-| Fast metrics (volume_fraction, ecs_width, voronoi_gap, sa_v) native | 41/41 | Done |
-| Topology native | partial; check results/native_topology.csv | A long-running local job is finishing the last few Cortex Chemical 2nm crops at handoff time |
-| Matched 8nm (Phase 4) | 17/41 Chemical (Kidney + Heart + Liver) | Cortex Chemical 7 + all HPF 18 still to do (HPF is fast since matched=native) |
-| Degradation 2/4/8/16 nm (Phase 5) | partial Chemical | resumes from existing degradation_*.csv |
-| Anatomy-matched (Phase 6) | auto-detected from crop_annotations.csv | activates when expert finishes annotating 10 cortex crops |
-| Stats: Mann-Whitney + Cliff's delta + bootstrap | done on native fast metrics | redo after re-runs |
+| 2 - Native metrics | `bash scripts/cluster_submit.sh native` | 30-60 min |
+| 4 - Matched at 8nm | `bash scripts/cluster_submit.sh matched` | 15-30 min |
+| 5 - Degradation (Chemical only) | `bash scripts/cluster_submit.sh degradation` | 30-90 min |
+
+After cluster jobs finish, run locally:
+- `python -m scripts.summarize --prefix native`
+- `python -m scripts.stats`
+- `python -m scripts.make_figures --prefix native`
+
+Phase 6 (anatomy-matched filtering) auto-activates from
+`crop_annotations.csv`. The 10 cortex crops are still pending expert
+annotation. Once they land, re-run the summary and figure scripts to
+pick them up — no recompute of the per-crop CSVs is needed.
 
 ## Headline scientific finding so far
 
