@@ -5,10 +5,16 @@ methods — Chemical fixation vs Rapid High-Pressure Freezing (HPF) — across
 CellMap groundtruth crops in four mouse tissues (Kidney, Heart, Liver,
 Cortex). 41 active crops, ~1,500 cells.
 
-> **Quick handoff:** the file [`handoff.zip`](handoff.zip) at the repo root
-> contains a self-contained snapshot of the code, current results, and
-> figures (excludes `archive/` and `paper/`). Either clone the repo or
-> download just that zip — both produce a runnable copy.
+> **Quick handoff:** two zip snapshots live at the repo root, both
+> self-contained (excludes `archive/` and `paper/`).
+> - [`handoff.zip`](handoff.zip) — original handoff with empty
+>   `results/` and `figures/` directories, intended as the canonical
+>   re-run starting point.
+> - [`handoff_with_results.zip`](handoff_with_results.zip) — post-run
+>   snapshot that ships with the completed CSVs in `results/` and the
+>   rendered PNGs in `figures/`. Use this one if you just want to see
+>   the outputs without re-running anything.
+> Either clone the repo or download a zip — both produce a runnable copy.
 
 ## Status (as of handoff)
 
