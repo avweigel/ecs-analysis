@@ -1,0 +1,25 @@
+[project]
+name = "ecs-analysis"
+version = "0.1.0"
+description = "Comparing ECS geometry between Chemical fixation and HPF across CellMap crops"
+authors = ["David Ackerman <ackermand@janelia.hhmi.org>"]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64"]
+
+[dependencies]
+python = "3.9.*"
+numpy = ">=1.24"
+scipy = ">=1.10"
+zarr = ">=2.14,<3"
+scikit-image = ">=0.21"
+trimesh = ">=4.0"
+matplotlib = ">=3.7"
+pip = "*"
+
+[tasks]
+native      = "python -m scripts.run_native"
+matched     = "python -m scripts.run_matched"
+degradation = "python -m scripts.run_degradation"
+summarize   = "python -m scripts.summarize --prefix native"
+stats       = "python -m scripts.stats"
+figures     = "python -m scripts.make_figures --prefix native"

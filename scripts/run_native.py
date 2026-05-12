@@ -73,18 +73,27 @@ def _read_existing(path: Path) -> tuple[list[str], list[dict]]:
         return list(rdr.fieldnames or []), rows
 
 
-def write_csv(path: Path, rows: list[dict], append: bool = False):
-    """Write rows to CSV. If append=True, merge with existing rows
-    (replacing rows for the same `crop` if already present)."""
+def write_csv(path: Path, rows: list[dict], append: bool = False,
+              key_fields: tuple[str, ...] = ("crop",)):
+    """Write rows to CSV. If append=True, merge with existing rows by
+    replacing any whose `key_fields` tuple matches a new row. Default
+    key is just `crop` (one row per crop, as in native/matched). Pass
+    e.g. `("crop", "analysis_voxel_nm")` for the degradation phase
+    where each crop has multiple rows."""
     if not rows and not append:
         print(f"  (no new rows for {path.name})")
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     if append:
         existing_fields, existing = _read_existing(path)
-        # Replace any rows whose crop matches a new row.
-        new_keys = {r.get("crop") for r in rows}
-        merged = [r for r in existing if r.get("crop") not in new_keys] + rows
+        # Existing rows come from csv.DictReader as strings; new rows
+        # may have Python floats/ints. Coerce both to str for the
+        # dedup comparison so "16.0" matches 16.0.
+        def _k(r):
+            return tuple(str(r.get(f)) if r.get(f) is not None else None
+                         for f in key_fields)
+        new_keys = {_k(r) for r in rows}
+        merged = [r for r in existing if _k(r) not in new_keys] + rows
     else:
         existing_fields = []
         merged = rows

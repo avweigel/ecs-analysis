@@ -5,16 +5,34 @@ methods — Chemical fixation vs Rapid High-Pressure Freezing (HPF) — across
 CellMap groundtruth crops in four mouse tissues (Kidney, Heart, Liver,
 Cortex). 41 active crops, ~1,500 cells.
 
-> **Quick handoff:** the file [`handoff.zip`](handoff.zip) at the repo root
-> contains a self-contained snapshot of the code, current results, and
-> figures (excludes `archive/` and `paper/`). Either clone the repo or
-> download just that zip — both produce a runnable copy.
+> **Quick handoff:** two zip snapshots live at the repo root, both
+> self-contained (excludes `archive/` and `paper/`).
+> - [`handoff.zip`](handoff.zip) — original handoff with empty
+>   `results/` and `figures/` directories, intended as the canonical
+>   re-run starting point.
+> - [`handoff_with_results.zip`](handoff_with_results.zip) — post-run
+>   snapshot that ships with the completed CSVs in `results/` and the
+>   rendered PNGs in `figures/`. Use this one if you just want to see
+>   the outputs without re-running anything.
+> Either clone the repo or download a zip — both produce a runnable copy.
 
 ## Status (as of handoff)
 
-The pipeline is built and validated. A native-resolution pass on all 41
-crops is mostly complete; matched-resolution and degradation experiments
-are partial. See **Status of computational work** below for what remains.
+All three computational phases are complete. `results/` contains the
+per-crop CSVs, tissue×prep summary tables, anatomy-matched summaries,
+and `stats_native.csv` (Mann-Whitney + Cliff's delta + bootstrap CIs).
+`figures/` contains the rendered PNGs. The zip is fully self-contained
+— you can also re-run any phase from scratch (see **Running** below).
+
+Two follow-ups remain for the analysis (not blocking reproducibility):
+1. Anatomy annotations for the 10 cortex crops listed under
+   `crop_annotations.csv` are still pending expert annotation. Once
+   added, re-run `pixi run summarize` / `pixi run figures` to pick them
+   up — no per-crop recompute needed.
+2. `matched_volume_fraction.csv` is intentionally absent because the
+   fast-path reads zarr metadata only valid at native resolution. If
+   you want voxel-count ratios at the 8 nm matched resolution, add a
+   `from_data()` call to `run_matched.METRICS`.
 
 ## Repository layout
 
@@ -94,12 +112,18 @@ crop_annotations.csv    anatomy labels per crop. Currently covers 31 of
 
 ## Environment
 
+This repo uses [pixi](https://pixi.sh) for reproducible environments. The
+spec is in `pixi.toml` (Python 3.9 + numpy/scipy/zarr/scikit-image/
+trimesh/matplotlib). One-time setup:
+
 ```bash
-pip install -r requirements.txt
+pixi install
 ```
 
-Tested with Python 3.9. The dependencies are deliberately stable:
-numpy, scipy, zarr, scikit-image, trimesh, matplotlib.
+That creates `.pixi/envs/default/` with everything pinned. To run a
+command inside the env, prefix with `pixi run`, e.g. `pixi run python -m
+scripts.run_native`. A `requirements.txt` is also kept in sync if you
+prefer plain pip.
 
 ## Running
 
@@ -110,19 +134,22 @@ numpy, scipy, zarr, scikit-image, trimesh, matplotlib.
 export ECS_DATA_BASE=/Volumes/cellmap/data    # or /nrs/cellmap/data on cluster
 
 # Native-resolution metrics on all crops (writes results/native_*.csv)
-python -m scripts.run_native
+pixi run native
 
 # Matched-resolution (downsample everything to 8nm)
-python -m scripts.run_matched
+pixi run matched
 
 # Degradation: Chemical crops at 2/4/8/16 nm
-python -m scripts.run_degradation
+pixi run degradation
 
 # Summaries and figures from whatever CSVs exist
-python -m scripts.summarize --prefix native
-python -m scripts.stats
-python -m scripts.make_figures --prefix native
+pixi run summarize
+pixi run stats
+pixi run figures
 ```
+
+(Each task is just a thin wrapper around the equivalent
+`python -m scripts.<name>` invocation — see `pixi.toml`.)
 
 To resume an interrupted run, just re-run — the incremental-write
 logic will skip rows that are already present (per crop). You can also
@@ -135,17 +162,20 @@ subset of metrics with `--metrics ecs_width,voronoi_gap`.
 # Required: where the zarr data lives
 export ECS_DATA_BASE=/nrs/cellmap/data
 
-# Required: a python with the requirements.txt deps installed
-export ECS_PYTHON=/path/to/python
+# One-time: build the pixi env (cluster_submit.sh auto-uses it)
+pixi install
+# Override only if you don't want the pixi env:
+# export ECS_PYTHON=/path/to/python
 
 # Optional: where to write results. Default is `results/` in the repo,
 # which means after the run you can `git add results/ && git commit && git push`
 # to send everything back. If you'd rather write to shared lab space:
-export ECS_RESULTS_DIR=/nrs/cellmap/people/<you>/ecs-results
-export ECS_FIGURES_DIR=/nrs/cellmap/people/<you>/ecs-figures
+export ECS_RESULTS_DIR=/nrs/cellmap/ackermand/cellmap/ecs-analysis/results
+export ECS_FIGURES_DIR=/nrs/cellmap/ackermand/cellmap/ecs-analysis/figures
 
-# Optional: LSF queue + resources
+# Optional: LSF queue + resources + billing project
 export ECS_QUEUE=local
+export ECS_PROJECT=cellmap   # passed as bsub -P
 
 bash scripts/cluster_submit.sh native        # phase 2 (all metrics)
 bash scripts/cluster_submit.sh matched       # phase 4 (downsampled to 8nm)
@@ -161,11 +191,11 @@ Once all jobs are done, run the post-processing locally (these are fast
 and don't need to go through bsub):
 
 ```bash
-python -m scripts.summarize --prefix native
-python -m scripts.summarize --prefix matched
-python -m scripts.stats
-python -m scripts.make_figures --prefix native
-python -m scripts.make_figures --prefix matched
+pixi run summarize                                          # native
+pixi run python -m scripts.summarize --prefix matched
+pixi run stats
+pixi run figures                                            # native
+pixi run python -m scripts.make_figures --prefix matched
 ```
 
 To send results back: either `git add results/ && git commit && git push`
@@ -180,8 +210,9 @@ Wall-time hints (per crop):
 
 ## Status of computational work
 
-The `results/` and `figures/` directories were cleared on handoff so the
-cluster run is the canonical source. Phases to run on the cluster:
+All phases below have completed successfully and `results/` /
+`figures/` ship with this handoff. The commands are kept here as the
+re-run recipe.
 
 | Phase | Command | Approx cluster wall-time at 40 parallel jobs |
 |---|---|---|
@@ -190,9 +221,9 @@ cluster run is the canonical source. Phases to run on the cluster:
 | 5 - Degradation (Chemical only) | `bash scripts/cluster_submit.sh degradation` | 30-90 min |
 
 After cluster jobs finish, run locally:
-- `python -m scripts.summarize --prefix native`
-- `python -m scripts.stats`
-- `python -m scripts.make_figures --prefix native`
+- `pixi run summarize`
+- `pixi run stats`
+- `pixi run figures`
 
 Phase 6 (anatomy-matched filtering) auto-activates from
 `crop_annotations.csv`. The 10 cortex crops are still pending expert
