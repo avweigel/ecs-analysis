@@ -72,6 +72,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.pixi/
+.claude/
+cluster_logs/
 
 # Sphinx documentation
 docs/_build/

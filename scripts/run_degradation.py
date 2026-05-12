@@ -81,7 +81,8 @@ def run(crops, metric_names, targets_nm, out_dir: Path):
                     row = _flatten(out)
                     row["native_voxel_nm"] = native_vx
                     row["analysis_voxel_nm"] = float(data.voxel_size_nm[0])
-                    write_csv(out_dir / f"degradation_{m}.csv", [row], append=True)
+                    write_csv(out_dir / f"degradation_{m}.csv", [row], append=True,
+                              key_fields=("crop", "analysis_voxel_nm"))
                     print(f"    [{m}] ok ({time.time()-t0:.1f}s)")
                 except Exception as e:
                     print(f"    [{m}] FAILED: {e}")

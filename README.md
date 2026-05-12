@@ -94,12 +94,18 @@ crop_annotations.csv    anatomy labels per crop. Currently covers 31 of
 
 ## Environment
 
+This repo uses [pixi](https://pixi.sh) for reproducible environments. The
+spec is in `pixi.toml` (Python 3.9 + numpy/scipy/zarr/scikit-image/
+trimesh/matplotlib). One-time setup:
+
 ```bash
-pip install -r requirements.txt
+pixi install
 ```
 
-Tested with Python 3.9. The dependencies are deliberately stable:
-numpy, scipy, zarr, scikit-image, trimesh, matplotlib.
+That creates `.pixi/envs/default/` with everything pinned. To run a
+command inside the env, prefix with `pixi run`, e.g. `pixi run python -m
+scripts.run_native`. A `requirements.txt` is also kept in sync if you
+prefer plain pip.
 
 ## Running
 
@@ -110,19 +116,22 @@ numpy, scipy, zarr, scikit-image, trimesh, matplotlib.
 export ECS_DATA_BASE=/Volumes/cellmap/data    # or /nrs/cellmap/data on cluster
 
 # Native-resolution metrics on all crops (writes results/native_*.csv)
-python -m scripts.run_native
+pixi run native
 
 # Matched-resolution (downsample everything to 8nm)
-python -m scripts.run_matched
+pixi run matched
 
 # Degradation: Chemical crops at 2/4/8/16 nm
-python -m scripts.run_degradation
+pixi run degradation
 
 # Summaries and figures from whatever CSVs exist
-python -m scripts.summarize --prefix native
-python -m scripts.stats
-python -m scripts.make_figures --prefix native
+pixi run summarize
+pixi run stats
+pixi run figures
 ```
+
+(Each task is just a thin wrapper around the equivalent
+`python -m scripts.<name>` invocation — see `pixi.toml`.)
 
 To resume an interrupted run, just re-run — the incremental-write
 logic will skip rows that are already present (per crop). You can also
@@ -135,17 +144,20 @@ subset of metrics with `--metrics ecs_width,voronoi_gap`.
 # Required: where the zarr data lives
 export ECS_DATA_BASE=/nrs/cellmap/data
 
-# Required: a python with the requirements.txt deps installed
-export ECS_PYTHON=/path/to/python
+# One-time: build the pixi env (cluster_submit.sh auto-uses it)
+pixi install
+# Override only if you don't want the pixi env:
+# export ECS_PYTHON=/path/to/python
 
 # Optional: where to write results. Default is `results/` in the repo,
 # which means after the run you can `git add results/ && git commit && git push`
 # to send everything back. If you'd rather write to shared lab space:
-export ECS_RESULTS_DIR=/nrs/cellmap/people/<you>/ecs-results
-export ECS_FIGURES_DIR=/nrs/cellmap/people/<you>/ecs-figures
+export ECS_RESULTS_DIR=/nrs/cellmap/ackermand/cellmap/ecs-analysis/results
+export ECS_FIGURES_DIR=/nrs/cellmap/ackermand/cellmap/ecs-analysis/figures
 
-# Optional: LSF queue + resources
+# Optional: LSF queue + resources + billing project
 export ECS_QUEUE=local
+export ECS_PROJECT=cellmap   # passed as bsub -P
 
 bash scripts/cluster_submit.sh native        # phase 2 (all metrics)
 bash scripts/cluster_submit.sh matched       # phase 4 (downsampled to 8nm)
@@ -161,11 +173,11 @@ Once all jobs are done, run the post-processing locally (these are fast
 and don't need to go through bsub):
 
 ```bash
-python -m scripts.summarize --prefix native
-python -m scripts.summarize --prefix matched
-python -m scripts.stats
-python -m scripts.make_figures --prefix native
-python -m scripts.make_figures --prefix matched
+pixi run summarize                                          # native
+pixi run python -m scripts.summarize --prefix matched
+pixi run stats
+pixi run figures                                            # native
+pixi run python -m scripts.make_figures --prefix matched
 ```
 
 To send results back: either `git add results/ && git commit && git push`
@@ -190,9 +202,9 @@ cluster run is the canonical source. Phases to run on the cluster:
 | 5 - Degradation (Chemical only) | `bash scripts/cluster_submit.sh degradation` | 30-90 min |
 
 After cluster jobs finish, run locally:
-- `python -m scripts.summarize --prefix native`
-- `python -m scripts.stats`
-- `python -m scripts.make_figures --prefix native`
+- `pixi run summarize`
+- `pixi run stats`
+- `pixi run figures`
 
 Phase 6 (anatomy-matched filtering) auto-activates from
 `crop_annotations.csv`. The 10 cortex crops are still pending expert
