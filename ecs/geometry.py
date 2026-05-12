@@ -167,16 +167,28 @@ class CellMesh:
         if not cell_mask.any():
             return None
 
+        # Crop to the cell's bounding box before allocating float32 / Gaussian
+        # buffers — operating on the full volume costs O(volume) memory per
+        # cell even when the cell occupies <0.1% of voxels.
+        coords = np.argwhere(cell_mask)
+        lo = coords.min(axis=0)
+        hi = coords.max(axis=0) + 1
+        cropped = cell_mask[lo[0]:hi[0], lo[1]:hi[1], lo[2]:hi[2]]
+        crop_origin_nm = np.asarray([lo[d] * voxel_size_nm[d] for d in range(3)],
+                                    dtype=float)
+
         # Pad so the smoothing kernel has room.
         pad_vox = max(padding_voxels, int(np.ceil(3 * sigma_nm / min(voxel_size_nm))))
-        padded = np.pad(cell_mask.astype(np.float32),
+        padded = np.pad(cropped.astype(np.float32),
                         pad_vox, mode="constant", constant_values=0.0)
         sigma_vox = tuple(sigma_nm / v for v in voxel_size_nm)
-        phi = gaussian_filter(padded, sigma=sigma_vox)
+        # Smooth in-place — avoids holding a second float32 copy of the
+        # padded volume alongside the input.
+        gaussian_filter(padded, sigma=sigma_vox, output=padded)
 
         try:
             verts, faces, _, _ = marching_cubes(
-                phi, level=0.5, spacing=tuple(voxel_size_nm)
+                padded, level=0.5, spacing=tuple(voxel_size_nm)
             )
         except (ValueError, RuntimeError):
             return None
@@ -186,7 +198,7 @@ class CellMesh:
         # Undo the padding offset (in nm) and add any sub-volume origin.
         pad_offset_nm = np.array([pad_vox * v for v in voxel_size_nm])
         sub_origin_arr = np.asarray(sub_origin_nm, dtype=float)
-        verts_nm = verts - pad_offset_nm + sub_origin_arr
+        verts_nm = verts - pad_offset_nm + crop_origin_nm + sub_origin_arr
 
         mesh = trimesh.Trimesh(vertices=verts_nm, faces=faces, process=False)
         return cls(verts_nm=verts_nm, faces=faces, trimesh=mesh)

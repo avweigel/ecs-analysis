@@ -131,7 +131,9 @@ def load_crop(crop: Crop) -> CropData:
 
     # Pool ECS sub-parts (currently only `bm`). Skip if label is missing or
     # has no present voxels to avoid wasted I/O.
-    ecs_effective = ecs_primary.copy()
+    # If no sub-part labels are present, ecs_effective aliases ecs_primary
+    # (saves an 8 GB bool copy on full-volume crops).
+    ecs_effective = ecs_primary
     bm_mask = None
     for lbl in _ECS_SUBPART_LABELS:
         if lbl not in z or "s0" not in z[lbl]:
@@ -140,10 +142,12 @@ def load_crop(crop: Crop) -> CropData:
         if cc.get("present", 0) == 0:
             continue
         sub = (z[lbl]["s0"][:] == 1)
-        if sub.shape != ecs_effective.shape:
+        if sub.shape != ecs_primary.shape:
             raise ValueError(
-                f"{crop.crop}: {lbl} shape {sub.shape} != ecs shape {ecs_effective.shape}"
+                f"{crop.crop}: {lbl} shape {sub.shape} != ecs shape {ecs_primary.shape}"
             )
+        if ecs_effective is ecs_primary:
+            ecs_effective = ecs_primary.copy()
         ecs_effective |= sub
         if lbl == "bm":
             bm_mask = sub
