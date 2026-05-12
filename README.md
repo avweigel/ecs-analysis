@@ -12,9 +12,21 @@ Cortex). 41 active crops, ~1,500 cells.
 
 ## Status (as of handoff)
 
-The pipeline is built and validated. A native-resolution pass on all 41
-crops is mostly complete; matched-resolution and degradation experiments
-are partial. See **Status of computational work** below for what remains.
+All three computational phases are complete. `results/` contains the
+per-crop CSVs, tissue×prep summary tables, anatomy-matched summaries,
+and `stats_native.csv` (Mann-Whitney + Cliff's delta + bootstrap CIs).
+`figures/` contains the rendered PNGs. The zip is fully self-contained
+— you can also re-run any phase from scratch (see **Running** below).
+
+Two follow-ups remain for the analysis (not blocking reproducibility):
+1. Anatomy annotations for the 10 cortex crops listed under
+   `crop_annotations.csv` are still pending expert annotation. Once
+   added, re-run `pixi run summarize` / `pixi run figures` to pick them
+   up — no per-crop recompute needed.
+2. `matched_volume_fraction.csv` is intentionally absent because the
+   fast-path reads zarr metadata only valid at native resolution. If
+   you want voxel-count ratios at the 8 nm matched resolution, add a
+   `from_data()` call to `run_matched.METRICS`.
 
 ## Repository layout
 
@@ -192,8 +204,9 @@ Wall-time hints (per crop):
 
 ## Status of computational work
 
-The `results/` and `figures/` directories were cleared on handoff so the
-cluster run is the canonical source. Phases to run on the cluster:
+All phases below have completed successfully and `results/` /
+`figures/` ship with this handoff. The commands are kept here as the
+re-run recipe.
 
 | Phase | Command | Approx cluster wall-time at 40 parallel jobs |
 |---|---|---|
