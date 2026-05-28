@@ -1,0 +1,10 @@
+crop,tissue,prep,annotation,status
+crop1118,Liver,Chemical,The interstitial space between two hepatocytes lateral membranes and neat to their apical area.,NOT in config.CROPS - data availability unconfirmed; needs dataset+zarr path + cluster re-run
+crop1119,Liver,Chemical,The interstitial space between two hepatocytes lateral membranes and neat to their apical area.,NOT in config.CROPS - data availability unconfirmed; needs dataset+zarr path + cluster re-run
+crop1120,Liver,Chemical,The interstitial space between two hepatocytes lateral membranes.,NOT in config.CROPS - data availability unconfirmed; needs dataset+zarr path + cluster re-run
+crop1121,Liver,Chemical,The interstitial space between two hepatocytes lateral membranes.,NOT in config.CROPS - data availability unconfirmed; needs dataset+zarr path + cluster re-run
+crop1122,Liver,Chemical,The interstitial space between two hepatocytes lateral membranes and neat to their apical area.,NOT in config.CROPS - data availability unconfirmed; needs dataset+zarr path + cluster re-run
+crop1149,Heart,Rapid HPF,The interstitial space between the endothelium of blood vessel and a cardiac muscle cell.,NOT in config.CROPS - data availability unconfirmed; needs dataset+zarr path + cluster re-run
+crop1150,Heart,Rapid HPF,The interstitial network among one blood vessel and two cardiac cells.,NOT in config.CROPS - data availability unconfirmed; needs dataset+zarr path + cluster re-run
+crop1151,Heart,Rapid HPF,The intercalated disc between two cardiac cells.,NOT in config.CROPS - data availability unconfirmed; needs dataset+zarr path + cluster re-run
+crop1152,Heart,Rapid HPF,"The intercalated disc, sarcolemma and interstitial space among three cardiac cells.",NOT in config.CROPS - data availability unconfirmed; needs dataset+zarr path + cluster re-run

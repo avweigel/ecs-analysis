@@ -1,0 +1,49 @@
+{
+  "layers": [
+    {
+      "type": "image",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/em/fibsem-int16",
+      "name": "em",
+      "shaderControls": {
+        "normalized": {
+          "range": [
+            1114,
+            884
+          ],
+          "window": [
+            -281,
+            1395
+          ]
+        }
+      },
+      "tab": "rendering"
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1045/all",
+      "name": "all"
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1045/cell",
+      "name": "cell",
+      "visible": false
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1045/ecs",
+      "name": "ecs",
+      "visible": false
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1045/bm",
+      "name": "bm",
+      "visible": false
+    }
+  ],
+  "selectedLayer": {
+    "layer": "em"
+  },
+  "layout": "4panel"
+}

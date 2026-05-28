@@ -1,0 +1,36 @@
+{
+  "layers": [
+    {
+      "type": "image",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-cortex-2/jrc_mus-cortex-2.zarr/recon-1/em/fibsem-uint16",
+      "name": "em"
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-cortex-2/jrc_mus-cortex-2.zarr/recon-1/labels/groundtruth/crop1116/all",
+      "name": "all"
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-cortex-2/jrc_mus-cortex-2.zarr/recon-1/labels/groundtruth/crop1116/cell",
+      "name": "cell",
+      "visible": false
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-cortex-2/jrc_mus-cortex-2.zarr/recon-1/labels/groundtruth/crop1116/ecs",
+      "name": "ecs",
+      "visible": false
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-cortex-2/jrc_mus-cortex-2.zarr/recon-1/labels/groundtruth/crop1116/bm",
+      "name": "bm",
+      "visible": false
+    }
+  ],
+  "selectedLayer": {
+    "layer": "em"
+  },
+  "layout": "4panel"
+}

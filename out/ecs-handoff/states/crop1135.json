@@ -1,0 +1,36 @@
+{
+  "layers": [
+    {
+      "type": "image",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-kidney-4/jrc_mus-kidney-4.zarr/recon-1/em/fibsem-uint16",
+      "name": "em"
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-kidney-4/jrc_mus-kidney-4.zarr/recon-1/labels/groundtruth/crop1135/all",
+      "name": "all"
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-kidney-4/jrc_mus-kidney-4.zarr/recon-1/labels/groundtruth/crop1135/cell",
+      "name": "cell",
+      "visible": false
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-kidney-4/jrc_mus-kidney-4.zarr/recon-1/labels/groundtruth/crop1135/ecs",
+      "name": "ecs",
+      "visible": false
+    },
+    {
+      "type": "segmentation",
+      "source": "zarr://https://cellmap-vm1.int.janelia.org/nrs/data/jrc_mus-kidney-4/jrc_mus-kidney-4.zarr/recon-1/labels/groundtruth/crop1135/bm",
+      "name": "bm",
+      "visible": false
+    }
+  ],
+  "selectedLayer": {
+    "layer": "em"
+  },
+  "layout": "4panel"
+}

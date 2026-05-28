@@ -127,14 +127,17 @@ _DATASET_TABLE: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
      ("crop1026", "crop1027", "crop1028", "crop1029",
       "crop1030", "crop1031", "crop1032")),
     ("jrc_mus-kidney-4", "Kidney", "Rapid HPF",
-     ("crop1134", "crop1136", "crop1137", "crop1144")),
+     ("crop1134", "crop1135", "crop1136", "crop1137", "crop1138", "crop1144")),
 
     ("jrc_mus-heart-6",  "Heart",  "Chemical",
-     ("crop1145", "crop1146", "crop1147")),
+     ("crop1145", "crop1146", "crop1147", "crop1148")),
+    ("jrc_mus-heart-4",  "Heart",  "Rapid HPF",
+     ("crop1149", "crop1150", "crop1151", "crop1152")),
 
     ("jrc_mus-liver",    "Liver",  "Chemical",
      ("crop1038", "crop1039", "crop1040", "crop1041",
-      "crop1042", "crop1043", "crop1044")),
+      "crop1042", "crop1043", "crop1044",
+      "crop1118", "crop1119", "crop1120", "crop1121", "crop1122")),
     ("jrc_mus-liver-8",  "Liver",  "Rapid HPF",
      ("crop1071", "crop1072", "crop1073", "crop1074", "crop1075",
       "crop1123", "crop1124", "crop1125", "crop1126", "crop1127")),
@@ -147,8 +150,13 @@ _DATASET_TABLE: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
 )
 
 # Known bad crops. crop1117 has no ECS/cell labels (confirmed empty in zarr).
+# crop1139 is dominated by a cortical blood vessel lumen — its ~70% ECS skews
+# the cortex Chemical-vs-HPF tissue comparison even though it's not
+# parenchyma. Annotated as "Cortex vessel" in crop_annotations.csv; excluded
+# here so it doesn't pollute pooled cortex statistics.
 _EXCLUSIONS: dict[str, str] = {
     "crop1117": "zarr contains no ECS or cell labels",
+    "crop1139": "blood vessel lumen — not representative of cortex parenchyma",
 }
 
 
