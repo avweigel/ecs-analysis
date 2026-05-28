@@ -1,0 +1,81 @@
+metric,column,label,tissue,prep,n,mean,median
+ecs_width,narrow_percentiles_nm_p25,width p25 nm,Cortex,Chemical,7,9.656559706037918,8.0
+ecs_width,narrow_percentiles_nm_p25,width p25 nm,Heart,Chemical,3,15.914983426849778,16.0
+ecs_width,narrow_percentiles_nm_p25,width p25 nm,Kidney,Chemical,7,15.240959154463832,16.0
+ecs_width,narrow_percentiles_nm_p25,width p25 nm,Liver,Chemical,12,15.106832809980753,16.0
+ecs_width,narrow_percentiles_nm_p50,width p50 nm,Cortex,Chemical,7,17.017925569193988,8.0
+ecs_width,narrow_percentiles_nm_p50,width p50 nm,Heart,Chemical,3,32.4632814223235,29.93325909419153
+ecs_width,narrow_percentiles_nm_p50,width p50 nm,Kidney,Chemical,7,37.438405377975535,40.0
+ecs_width,narrow_percentiles_nm_p50,width p50 nm,Liver,Chemical,12,25.749012502693937,23.31370849898476
+ecs_width,narrow_percentiles_nm_p75,width p75 nm,Cortex,Chemical,7,31.120038616180718,11.313708498984761
+ecs_width,narrow_percentiles_nm_p75,width p75 nm,Heart,Chemical,3,71.18474295641303,61.44916598294886
+ecs_width,narrow_percentiles_nm_p75,width p75 nm,Kidney,Chemical,7,73.33158226383902,70.19971509913698
+ecs_width,narrow_percentiles_nm_p75,width p75 nm,Liver,Chemical,12,51.66423101173507,45.90890230020665
+ecs_width,narrow_fraction,frac <200nm,Cortex,Chemical,7,0.9699392852508792,1.0
+ecs_width,narrow_fraction,frac <200nm,Heart,Chemical,3,0.8798826006467309,0.9960024680758148
+ecs_width,narrow_fraction,frac <200nm,Kidney,Chemical,7,0.8983091347820669,0.999461066642751
+ecs_width,narrow_fraction,frac <200nm,Liver,Chemical,12,0.9746288953027237,0.9995953082142017
+voronoi_gap,percentiles_nm_p25,gap p25 nm,Cortex,Chemical,7,26.62003284558165,24.0
+voronoi_gap,percentiles_nm_p25,gap p25 nm,Heart,Chemical,3,49.14782720236701,57.16041532081272
+voronoi_gap,percentiles_nm_p25,gap p25 nm,Kidney,Chemical,7,38.86428599456221,33.17011495953578
+voronoi_gap,percentiles_nm_p25,gap p25 nm,Liver,Chemical,12,46.45253439864522,48.0
+voronoi_gap,percentiles_nm_p50,gap p50 nm,Cortex,Chemical,7,32.808061333001916,27.31370849898476
+voronoi_gap,percentiles_nm_p50,gap p50 nm,Heart,Chemical,3,74.48750203351618,76.81231704527967
+voronoi_gap,percentiles_nm_p50,gap p50 nm,Kidney,Chemical,7,67.13538277083248,54.62741699796952
+voronoi_gap,percentiles_nm_p50,gap p50 nm,Liver,Chemical,12,65.60412487166178,57.91560980209512
+voronoi_gap,percentiles_nm_p75,gap p75 nm,Cortex,Chemical,7,69.3122465941722,37.20225231898308
+voronoi_gap,percentiles_nm_p75,gap p75 nm,Heart,Chemical,3,125.00416061575937,131.9311633902021
+voronoi_gap,percentiles_nm_p75,gap p75 nm,Kidney,Chemical,7,189.73473391921593,167.19595949289334
+voronoi_gap,percentiles_nm_p75,gap p75 nm,Liver,Chemical,12,118.74791749885111,114.23578437303172
+voronoi_gap,contact_fractions_p40,contact<40nm,Cortex,Chemical,7,0.762612286724901,0.8193764933439527
+voronoi_gap,contact_fractions_p40,contact<40nm,Heart,Chemical,3,0.18886788964480847,0.08163616827565844
+voronoi_gap,contact_fractions_p40,contact<40nm,Kidney,Chemical,7,0.38061714954208975,0.35041530679624533
+voronoi_gap,contact_fractions_p40,contact<40nm,Liver,Chemical,12,0.13249477520308173,0.10895283234911465
+voronoi_gap,contact_fractions_p80,contact<80nm,Cortex,Chemical,7,0.9480421115563912,0.9986204346342018
+voronoi_gap,contact_fractions_p80,contact<80nm,Heart,Chemical,3,0.52412767585713,0.5263598434119707
+voronoi_gap,contact_fractions_p80,contact<80nm,Kidney,Chemical,7,0.5693743198386343,0.5941525308597119
+voronoi_gap,contact_fractions_p80,contact<80nm,Liver,Chemical,12,0.6519041050393967,0.6226014786362735
+sa_v,sa_v_ecs_per_nm,SA:V /nm,Cortex,Chemical,7,0.016395967398115274,0.017234882358036066
+sa_v,sa_v_ecs_per_nm,SA:V /nm,Heart,Chemical,3,0.006881419635902203,0.007384208790228954
+sa_v,sa_v_ecs_per_nm,SA:V /nm,Kidney,Chemical,7,0.020890173933117925,0.01696863742743577
+sa_v,sa_v_ecs_per_nm,SA:V /nm,Liver,Chemical,12,0.008289148945727846,0.0075324196986984665
+sa_v,cell_density_per_um3,cells/um3,Cortex,Chemical,7,20.121279761904763,18.75
+sa_v,cell_density_per_um3,cells/um3,Heart,Chemical,3,0.8138020833333334,0.732421875
+sa_v,cell_density_per_um3,cells/um3,Kidney,Chemical,7,12.832211971295031,4.340277777777778
+sa_v,cell_density_per_um3,cells/um3,Liver,Chemical,12,2.0380575190145502,1.708984375
+topology,fraction_convex,frac convex,Cortex,Chemical,7,0.5681910683764498,0.5492541717872266
+topology,fraction_convex,frac convex,Heart,Chemical,3,0.35095657449718154,0.3520388939313675
+topology,fraction_convex,frac convex,Kidney,Chemical,7,0.574429547859905,0.5382540912496426
+topology,fraction_convex,frac convex,Liver,Chemical,12,0.5002454143364972,0.5395054784755255
+topology,fraction_concave,frac concave,Cortex,Chemical,7,0.15532849916123131,0.15903784712601737
+topology,fraction_concave,frac concave,Heart,Chemical,3,0.23371447283638636,0.23393714986700606
+topology,fraction_concave,frac concave,Kidney,Chemical,7,0.1512420882737074,0.1999555555420762
+topology,fraction_concave,frac concave,Liver,Chemical,12,0.24478153004049727,0.24757390185233
+topology,fraction_flat,frac flat,Cortex,Chemical,7,0.2764804324623188,0.2642026086706095
+topology,fraction_flat,frac flat,Heart,Chemical,3,0.41532895266643205,0.40451553201421736
+topology,fraction_flat,frac flat,Kidney,Chemical,7,0.2743283638663875,0.26337744471199337
+topology,fraction_flat,frac flat,Liver,Chemical,12,0.2549730556230055,0.22696789379153365
+topology,curvature_std_per_nm,|H| std /nm,Cortex,Chemical,7,0.007143275599398714,0.00715041674431557
+topology,curvature_std_per_nm,|H| std /nm,Heart,Chemical,3,0.009917246255200404,0.010243313099306938
+topology,curvature_std_per_nm,|H| std /nm,Kidney,Chemical,7,0.006589033552180585,0.006253655233109925
+topology,curvature_std_per_nm,|H| std /nm,Liver,Chemical,12,0.010542417503816594,0.009629597029862737
+topology,roughness_rms_nm_p30,rough 30nm,Cortex,Chemical,7,1.3707766618745314,1.3529265373592978
+topology,roughness_rms_nm_p30,rough 30nm,Heart,Chemical,3,1.4910514601968445,1.5478098855790583
+topology,roughness_rms_nm_p30,rough 30nm,Kidney,Chemical,7,1.3505185658710777,1.3228531628306692
+topology,roughness_rms_nm_p30,rough 30nm,Liver,Chemical,12,1.5166270326212585,1.590129281887268
+topology,roughness_rms_nm_p60,rough 60nm,Cortex,Chemical,7,4.52341740325385,4.393798062714293
+topology,roughness_rms_nm_p60,rough 60nm,Heart,Chemical,3,4.319421411783688,4.640795307490888
+topology,roughness_rms_nm_p60,rough 60nm,Kidney,Chemical,7,4.528207664281706,4.3198074654613166
+topology,roughness_rms_nm_p60,rough 60nm,Liver,Chemical,12,4.761281915637907,5.162634049909876
+topology,roughness_rms_nm_p120,rough 120nm,Cortex,Chemical,7,13.761401622632624,13.131564953979739
+topology,roughness_rms_nm_p120,rough 120nm,Heart,Chemical,3,10.470964559913831,10.954480598404723
+topology,roughness_rms_nm_p120,rough 120nm,Kidney,Chemical,7,13.889945825712285,12.928075296737033
+topology,roughness_rms_nm_p120,rough 120nm,Liver,Chemical,12,13.58287839338219,14.890829026495966
+topology,protrusion_density_per_um2,prot/um2,Cortex,Chemical,7,20.50147594721902,20.11903590969504
+topology,protrusion_density_per_um2,prot/um2,Heart,Chemical,3,10.969017423921084,10.582858444277052
+topology,protrusion_density_per_um2,prot/um2,Kidney,Chemical,7,14.408907781504308,13.37347927740299
+topology,protrusion_density_per_um2,prot/um2,Liver,Chemical,12,12.48544977365361,12.807149044743657
+topology,indentation_density_per_um2,ind/um2,Cortex,Chemical,7,2.1852865422443877,1.8204815628154083
+topology,indentation_density_per_um2,ind/um2,Heart,Chemical,3,6.719068062089037,5.8686408899084865
+topology,indentation_density_per_um2,ind/um2,Kidney,Chemical,7,3.0280685041495192,3.2325829029709063
+topology,indentation_density_per_um2,ind/um2,Liver,Chemical,12,5.215571933921935,5.2014364245483655

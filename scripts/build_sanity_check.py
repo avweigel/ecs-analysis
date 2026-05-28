@@ -30,6 +30,7 @@ EM_ARRAY = {
     "jrc_mus-kidney":   "fibsem-uint8",
     "jrc_mus-kidney-4": "fibsem-uint16",
     "jrc_mus-heart-6":  "fibsem-uint16",
+    "jrc_mus-heart-4":  "fibsem-uint16",
     "jrc_mus-liver":    "fibsem-uint8",
     "jrc_mus-liver-8":  "fibsem-uint16",
     "jrc_mus-cortex-2": "fibsem-uint16",

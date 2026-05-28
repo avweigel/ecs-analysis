@@ -40,6 +40,7 @@ EM_ARRAY = {
     "jrc_mus-kidney":   "fibsem-uint8",
     "jrc_mus-kidney-4": "fibsem-uint16",
     "jrc_mus-heart-6":  "fibsem-uint16",
+    "jrc_mus-heart-4":  "fibsem-uint16",
     "jrc_mus-liver":    "fibsem-uint8",
     "jrc_mus-liver-8":  "fibsem-uint16",
     "jrc_mus-cortex-2": "fibsem-uint16",
@@ -52,6 +53,7 @@ DATASET_VOXEL_NM = {
     "jrc_mus-kidney":   4,
     "jrc_mus-kidney-4": 8,
     "jrc_mus-heart-6":  8,
+    "jrc_mus-heart-4":  8,
     "jrc_mus-liver":    4,
     "jrc_mus-liver-8":  8,
     "jrc_mus-cortex-2": 8,
@@ -65,6 +67,7 @@ DATASET_ORDER = [
     "jrc_mus-cortex-2",   # Cortex HPF 8nm
     "jrc_mus-cortex-4",   # Cortex HPF 8nm
     "jrc_mus-heart-6",    # Heart Chem 8nm
+    "jrc_mus-heart-4",    # Heart HPF 8nm
     "jrc_mus-kidney",     # Kidney Chem 4nm
     "jrc_mus-kidney-4",   # Kidney HPF 8nm
     "jrc_mus-liver",      # Liver Chem 4nm
