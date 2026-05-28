@@ -3,7 +3,8 @@
 Comparing extracellular space (ECS) geometry between two tissue-preparation
 methods — Chemical fixation vs Rapid High-Pressure Freezing (HPF) — across
 CellMap groundtruth crops in four mouse tissues (Kidney, Heart, Liver,
-Cortex). 41 active crops, ~1,500 cells.
+Cortex). 52 active crops, ~1,500 cells. All four tissues now have both
+Chemical and HPF crops (Heart HPF added 2026-05 via `jrc_mus-heart-4`).
 
 > **Quick handoff:** two zip snapshots live at the repo root, both
 > self-contained (excludes `archive/` and `paper/`).
@@ -25,10 +26,11 @@ and `stats_native.csv` (Mann-Whitney + Cliff's delta + bootstrap CIs).
 — you can also re-run any phase from scratch (see **Running** below).
 
 Two follow-ups remain for the analysis (not blocking reproducibility):
-1. Anatomy annotations for the 10 cortex crops listed under
-   `crop_annotations.csv` are still pending expert annotation. Once
-   added, re-run `pixi run summarize` / `pixi run figures` to pick them
-   up — no per-crop recompute needed.
+1. Anatomy annotations for **2 cortex HPF crops (1116, 1141)** are still
+   pending expert annotation — the expert could not confidently resolve
+   the cortex HPF crops. Once added, re-run `pixi run summarize` /
+   `pixi run figures` to pick them up — no per-crop recompute needed.
+   (All other 50 active crops are annotated.)
 2. `matched_volume_fraction.csv` is intentionally absent because the
    fast-path reads zarr metadata only valid at native resolution. If
    you want voxel-count ratios at the 8 nm matched resolution, add a
@@ -80,11 +82,10 @@ figures/                rendered PNGs from make_figures.py
 archive/                old code and CSVs from a prior pipeline (kept
                         for reference; not part of the new flow)
 
-crop_annotations.csv    anatomy labels per crop. Currently covers 31 of
-                        41 crops; expert is still annotating the 10
-                        cortex crops (1116, 1033-1037, 1045, 1046, 1139,
-                        1141). Once added, anatomy-matched comparisons
-                        auto-update — no code change needed.
+crop_annotations.csv    anatomy labels per crop. Covers 50 of 52 active
+                        crops; only the 2 cortex HPF crops (1116, 1141)
+                        remain unannotated. Once added, anatomy-matched
+                        comparisons auto-update — no code change needed.
 ```
 
 ## Key design decisions worth knowing
@@ -226,34 +227,60 @@ After cluster jobs finish, run locally:
 - `pixi run figures`
 
 Phase 6 (anatomy-matched filtering) auto-activates from
-`crop_annotations.csv`. The 10 cortex crops are still pending expert
-annotation. Once they land, re-run the summary and figure scripts to
-pick them up — no recompute of the per-crop CSVs is needed.
+`crop_annotations.csv`. Only the 2 cortex HPF crops (1116, 1141) are
+still pending expert annotation. Once they land, re-run the summary and
+figure scripts to pick them up — no recompute of the per-crop CSVs is
+needed.
 
 ## Headline scientific finding so far
 
-In **Liver** (n=7 Chemical, n=10 HPF), Chemical fixation shows:
-- ~5x more ECS volume fraction (Cliff's delta = +0.83, p = 0.003)
-- ~3x higher SA:V ratio (Cliff's delta = +0.86, p = 0.002)
-- ~2x larger ECS channel widths
-- 3x higher cell density at the per-crop scale
+The Chem-vs-HPF ECS difference is **tissue-specific, not universal**, and
+is cleanest in anatomy-matched comparisons rather than pooled tissue
+medians.
 
-The Liver Chemical crops are at 4nm and HPF at 8nm. The matched-
-resolution (8nm) re-run shows SA:V essentially unchanged (ratio ~1.00),
-ECS width changes <2nm, and Voronoi gap shifts upward by 5-19nm. So
-**the Liver Chem-vs-HPF difference is not explained by the 4nm-vs-8nm
-resolution gap.**
+**Liver and Kidney** show more ECS under Chemical fixation:
+- Liver tissue (n=12 Chem, n=10 HPF): ECS volume fraction 0.184 vs 0.040
+  (~4.6x; Cliff's delta = +0.47, **p = 0.070** — borderline) and SA:V
+  0.0076 vs 0.0027 (~2.8x; Cliff's delta = +0.55, **p = 0.032**).
+- Kidney tissue: ECS fraction 0.356 vs 0.128 (~2.8x), but the direction
+  splits by anatomy (DCT/PCT brush border go Chem>HPF; glomerular and
+  PCT lateral go HPF>Chem).
 
-The same direction holds in 3 of 4 anatomy-matched groups (bile
-canaliculus, DCT base, hepatocyte lateral). The glomerular group flips
-direction (HPF > Chem) but the HPF n is 1.
+**Heart and Cortex do not** show the Chemical-higher pattern:
+- Heart tissue (n=4 Chem, n=4 HPF, HPF arm new this round): ECS fraction
+  0.158 vs 0.208, **no significant Chem-vs-HPF difference on any metric**.
+- Cortex tissue: ECS fraction 0.107 (Chem) vs 0.148 (HPF), leaning
+  HPF>Chem (HPF n=2).
+
+**Resolution is not the driver for the liver SA:V difference.** Liver
+Chemical crops are mostly 4nm and HPF 8nm; the matched-resolution (8nm)
+SA:V is 0.0075 vs 0.0027 — essentially identical to the native-resolution
+ratio. So the SA:V gap survives downsampling.
+
+**What changed when 5 new Chemical liver hepatocyte-lateral crops
+(1118-1122) and 4 Heart HPF crops (1149-1152) were added (2026-05):**
+- Liver *tissue* ECS dropped from significant to borderline (p 0.003 ->
+  0.070): the new Chemical lateral crops are tight, low-ECS spaces (and
+  8nm vs the 4nm chemical liver crops), diluting the pooled chemical mean.
+- The **hepatocyte-lateral** matched group went from 1-vs-6 to 6-vs-6 and
+  is now **null** across all metrics (p>0.25) — the earlier dramatic
+  lateral result rested on a single Chemical crop.
+- Only two comparisons remain significant at |delta|>0.5, p<0.05: **bile
+  canaliculus cell density** (Chem>HPF, delta +1.0, p=0.0497) and **liver
+  tissue SA:V** (Chem>HPF, delta +0.55, p=0.032).
+
+Takeaway: pooled tissue-level comparisons are confounded by uneven anatomy
+and resolution sampling between preps; the anatomy-matched groups in
+`summary_*_anatomy_matched.csv` / `stats_native.csv` are the reliable read.
 
 ## Known caveats
 
-- **Voxel-size confound**: every Chemical crop is 2nm or 4nm; almost
-  every HPF crop is 8nm. The matched and degradation runs are designed
-  to address this. See `ecs/config.py` constants for tunable
-  smoothing/threshold parameters.
+- **Voxel-size confound**: most Chemical crops are 2nm or 4nm and most
+  HPF crops are 8nm — but this is no longer clean. The new Chemical liver
+  crops (1118-1122) are 8nm-native, and Heart HPF (1149-1152) is 8nm, so
+  the prep/resolution coupling now varies within a tissue. The matched
+  (8nm) and degradation runs are designed to address this. See
+  `ecs/config.py` constants for tunable smoothing/threshold parameters.
 - **`bm` annotation is inconsistent across preps**: 4 Kidney-Chemical
   crops have bm separately labeled; HPF kidneys have bm=0 even though
   the basement membrane is physically present. We assume HPF rolled
