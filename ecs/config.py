@@ -131,10 +131,13 @@ _DATASET_TABLE: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
 
     ("jrc_mus-heart-6",  "Heart",  "Chemical",
      ("crop1145", "crop1146", "crop1147", "crop1148")),
+    ("jrc_mus-heart-4",  "Heart",  "Rapid HPF",
+     ("crop1149", "crop1150", "crop1151", "crop1152")),
 
     ("jrc_mus-liver",    "Liver",  "Chemical",
      ("crop1038", "crop1039", "crop1040", "crop1041",
-      "crop1042", "crop1043", "crop1044")),
+      "crop1042", "crop1043", "crop1044",
+      "crop1118", "crop1119", "crop1120", "crop1121", "crop1122")),
     ("jrc_mus-liver-8",  "Liver",  "Rapid HPF",
      ("crop1071", "crop1072", "crop1073", "crop1074", "crop1075",
       "crop1123", "crop1124", "crop1125", "crop1126", "crop1127")),

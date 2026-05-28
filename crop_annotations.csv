@@ -40,3 +40,12 @@ crop1036,Cortex,Chemical,Glial-neuronal (synaptic clefts),,Intercellular space b
 crop1037,Cortex,Chemical,Neurovascular (endothelium/glia/neurons),,"Intercellular space among the neurovascular endothelium, glial cell and neuron cells."
 crop1045,Cortex,Chemical,Neurovascular (mixed nerve fibers),,"Intercellular space among the neurovascular endothelium, glial cell, myelinated and unmyelinated nerve fibers."
 crop1046,Cortex,Chemical,Neurovascular (myelinated/unmyelinated fibers),,"Intercellular space among the neurovascular endothelium, myelinated and unmyelinated nerve fibers."
+crop1149,Heart,Rapid HPF,Interstitial,Cardiac interstitial,The interstitial space between the endothelium of blood vessel and a cardiac muscle cell.
+crop1150,Heart,Rapid HPF,Interstitial,Cardiac interstitial,The interstitial network among one blood vessel and two cardiac cells.
+crop1151,Heart,Rapid HPF,Intercalated disc,Intercalated disc,The intercalated disc between two cardiac cells.
+crop1152,Heart,Rapid HPF,Intercalated disc,Intercalated disc,"The intercalated disc, sarcolemma and interstitial space among three cardiac cells."
+crop1118,Liver,Chemical,Hepatocyte lateral,Hepatocyte lateral,The interstitial space between two hepatocytes lateral membranes and neat to their apical area.
+crop1119,Liver,Chemical,Hepatocyte lateral,Hepatocyte lateral,The interstitial space between two hepatocytes lateral membranes and neat to their apical area.
+crop1120,Liver,Chemical,Hepatocyte lateral,Hepatocyte lateral,The interstitial space between two hepatocytes lateral membranes.
+crop1121,Liver,Chemical,Hepatocyte lateral,Hepatocyte lateral,The interstitial space between two hepatocytes lateral membranes.
+crop1122,Liver,Chemical,Hepatocyte lateral,Hepatocyte lateral,The interstitial space between two hepatocytes lateral membranes and neat to their apical area.
