@@ -362,15 +362,19 @@ def _build_overview_tables(volume_fraction: dict) -> str:
 
   <p class="takeaway">
     <strong>One-paragraph read:</strong>
-    In <strong>Liver</strong>, Chem produces ~5× more ECS than HPF at tissue level;
-    the bile canaliculus matched comparison replicates this cleanly (2.6×, n=3 vs 4).
+    In <strong>Liver</strong>, Chem leans toward more ECS (tissue ECS ~4.6×, but
+    only borderline: Cliff +0.47, p=0.07; SA:V stays significant, +0.55, p=0.03).
+    The bile canaliculus matched comparison is the cleanest signal (Chem &gt; HPF
+    cell density, p≈0.05). Note: hepatocyte lateral is now 6-vs-6 and null —
+    the earlier strong lateral result rested on a single Chemical crop.
     In <strong>Kidney</strong>, the tissue-level Chem &gt; HPF holds (2.8×),
     but the matched anatomy splits: DCT base goes Chem &gt; HPF; Glomerular and
     PCT lateral go the opposite direction (HPF more ECS).
     In <strong>Cortex</strong>, both the tissue level and the matched signal lean HPF &gt; Chem,
     though sample sizes are small (only 2 HPF crops).
-    <strong>Heart</strong> has no HPF data yet. The clearest, best-powered story is
-    Liver bile canaliculus.
+    <strong>Heart</strong> now has an HPF arm (4 vs 4): no significant Chem-vs-HPF
+    difference at tissue level, and region-matched groups are only 2-vs-2
+    (underpowered). The clearest, best-powered story is Liver bile canaliculus.
   </p>
 </section>"""
 

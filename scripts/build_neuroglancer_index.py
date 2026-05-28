@@ -144,7 +144,7 @@ def _load_annotations() -> dict[str, dict]:
 
 
 def _build_entries() -> list[CropEntry]:
-    """Compile the full crop list: 41 active from config + 10 new."""
+    """Compile the full crop list: active crops from config + any filesystem-only NEW_CROPS."""
     anno = _load_annotations()
     entries: list[CropEntry] = []
     seen: set[str] = set()
