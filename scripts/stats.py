@@ -31,8 +31,10 @@ from ecs import config as cfg
 from scripts.summarize import COLUMNS, read_csv, safe_float
 
 
-# Topology metrics are still being computed; skip per task instructions.
-SKIP_METRICS = {"topology"}
+# Topology is now fully computed across all crops, so include it in the
+# stat comparisons (curvature, multi-scale roughness, protrusion/indentation
+# density) — these are the candidate "correlate of difference" metrics.
+SKIP_METRICS: set[str] = set()
 
 N_BOOT = 5000
 RNG_SEED = 1234

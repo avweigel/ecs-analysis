@@ -1,0 +1,14 @@
+crop,prep,region_group,ecs_fraction_with_bm,ecs_fraction_bm_excluded,bm_voxels
+crop1137,Rapid HPF,DCT base,0.1473,0.1473,0
+crop1134,Rapid HPF,Glomerular,0.6475,0.6475,0
+crop1136,Rapid HPF,DCT base,0.0899,0.0899,0
+crop1028,Chemical,PCT brush border,0.5972,0.5972,0
+crop1029,Chemical,PCT brush border,0.7456,0.7456,0
+crop1144,Rapid HPF,DCT base,0.1086,0.1086,0
+crop1032,Chemical,PCT base,0.3033,0.1994,6647628
+crop1030,Chemical,DCT base,0.195,0.137,4638511
+crop1027,Chemical,Glomerular,0.444,0.3846,6414754
+crop1135,Rapid HPF,Glomerular,0.3483,0.3483,0
+crop1031,Chemical,PCT lateral,0.0144,0.0144,0
+crop1026,Chemical,Glomerular,0.3558,0.3292,2871308
+crop1138,Rapid HPF,PCT lateral,0.09,0.09,0
