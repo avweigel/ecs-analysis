@@ -1,32 +1,42 @@
 crop,tissue,prep,anatomical_region,region_group,annotation
-crop1026,Kidney,Chemical,Glomerular interstitium,Glomerular,Interstitial space among fenestrated endothelium podocyte and basal membrane
-crop1027,Kidney,Chemical,Glomerular interstitium,Glomerular,Interstitial space among fenestrated endothelium podocyte and basal membrane
-crop1028,Kidney,Chemical,PCT brush border,PCT brush border,Microvilli at PCT brush border
-crop1029,Kidney,Chemical,PCT brush border,PCT brush border,Microvilli at PCT brush border
-crop1030,Kidney,Chemical,DCT base,DCT base,Base of epithelium (striping) in DCT basement lamina basal space between DCT
-crop1031,Kidney,Chemical,PCT lateral,PCT lateral,Lateral space between two apical epitheliums of PCT
-crop1032,Kidney,Chemical,PCT base,DCT base,Base of epithelium (striping) in PCT basement lamina basal space between PCT
-crop1134,Kidney,Rapid HPF,Glomerular interstitium,Glomerular,Interstitial space among fenestrated endothelium podocyte and basal membrane
-crop1136,Kidney,Rapid HPF,DCT base,DCT base,Base of epithelium (striping) in DCT connecting tubule and ECS between them
-crop1137,Kidney,Rapid HPF,DCT base,DCT base,Base of epithelium (striping) in DCT basal lamina endothelium of blood vessel and interstitial space
-crop1144,Kidney,Rapid HPF,DCT base,DCT base,Base of epithelium (striping) in DCT
-crop1145,Heart,Chemical,Interstitial,Cardiac interstitial,Interstitial space among one blood vessel and two cardiac cells
-crop1146,Heart,Chemical,Interstitial,Cardiac interstitial,Interstitial space among one blood vessel one fibrocyte and two cardiac cells
-crop1147,Heart,Chemical,Intercalated disc,Intercalated disc,Intercalated disc space and interstitial space between two cardiac cells
-crop1038,Liver,Chemical,Space of Disse,Space of Disse,Space of Disse between hepatocyte and endothelium of sinusoid
-crop1039,Liver,Chemical,Bile canaliculus,Bile canaliculus,Area of bile canaliculus among three hepatocytes
-crop1040,Liver,Chemical,Bile canaliculus,Bile canaliculus,Bile canaliculus between two hepatocytes
-crop1041,Liver,Chemical,Space of Disse,Space of Disse,Space of Disse between hepatocyte and endothelium of sinusoid
-crop1042,Liver,Chemical,Bile canaliculus,Bile canaliculus,Bile canaliculus between two hepatocytes
-crop1043,Liver,Chemical,Space of Disse,Space of Disse,Space of Disse near two hepatocyte tight junction area
-crop1044,Liver,Chemical,Hepatocyte lateral,Hepatocyte lateral,Intercellular space between hepatocyte and Kupffer cell
-crop1123,Liver,Rapid HPF,Tight junction,Hepatocyte lateral,Tight junction between two hepatocytes near bile canaliculus
-crop1124,Liver,Rapid HPF,Hepatocyte lateral,Hepatocyte lateral,Interstitial space between two hepatocytes lateral membranes
-crop1125,Liver,Rapid HPF,Hepatocyte lateral,Hepatocyte lateral,Interstitial space between three hepatocytes lateral membranes
-crop1126,Liver,Rapid HPF,Tight junction,Hepatocyte lateral,Tight junction and interstitial space between two hepatocytes lateral membranes
-crop1127,Liver,Rapid HPF,Hepatocyte lateral,Hepatocyte lateral,Interstitial space between three hepatocytes lateral membranes
-crop1071,Liver,Rapid HPF,Hepatocyte lateral,Hepatocyte lateral,Intercellular space among two hepatocytes and Kupffer cell
-crop1072,Liver,Rapid HPF,Bile canaliculus,Bile canaliculus,Bile canaliculus between two hepatocytes
-crop1073,Liver,Rapid HPF,Bile canaliculus,Bile canaliculus,Bile canaliculus among three hepatocytes
-crop1074,Liver,Rapid HPF,Bile canaliculus,Bile canaliculus,Bile canaliculus among three hepatocytes
-crop1075,Liver,Rapid HPF,Bile canaliculus,Bile canaliculus,Bile canaliculus and lateral space between two hepatocytes
+crop1026,Kidney,Chemical,Glomerular interstitium,Glomerular,"The interstitial space among fenestrated endothelium, podocyte and basal membrane."
+crop1027,Kidney,Chemical,Glomerular interstitium,Glomerular,"The interstitial space among fenestrated endothelium, podocyte and basal membrane."
+crop1028,Kidney,Chemical,PCT brush border,PCT brush border,The microvilli at PCT brush border.
+crop1029,Kidney,Chemical,PCT brush border,PCT brush border,The microvilli at PCT brush border.
+crop1030,Kidney,Chemical,DCT base,DCT base,"The base of the epithelium (striping) in a DCT, basement lamina, basal space between DCT."
+crop1031,Kidney,Chemical,PCT lateral,PCT lateral,The lateral space between two the apical epitheliums of PCT.
+crop1032,Kidney,Chemical,PCT base,PCT base,"The base of the epithelium (striping) in a PCT, basement lamina, basal space between PCT."
+crop1134,Kidney,Rapid HPF,Glomerular interstitium,Glomerular,"The interstitial space among fenestrated endothelium, podocyte and basal membrane."
+crop1135,Kidney,Rapid HPF,Glomerular interstitium,Glomerular,"The interstitial space among capillary endothelial cell, basal lamina and podocyte."
+crop1136,Kidney,Rapid HPF,DCT base,DCT base,"The base of the epithelium (striping) in a DCT, connecting tubule and ECS between them."
+crop1137,Kidney,Rapid HPF,DCT base,DCT base,"The base of the epithelium (striping) in a DCT, basal lamina, endothelium of blood vessel and interstitial space."
+crop1138,Kidney,Rapid HPF,PCT lateral,PCT lateral,The lateral space between two the apical epithelium of PCT.
+crop1144,Kidney,Rapid HPF,DCT base,DCT base,The base of the epithelium (striping) in a DCT.
+crop1145,Heart,Chemical,Interstitial,Cardiac interstitial,The interstitial space among one blood vessel and two cardiac cells.
+crop1146,Heart,Chemical,Interstitial,Cardiac interstitial,"The interstitial space among one blood vessel, one fibrocyte and two cardiac cells."
+crop1147,Heart,Chemical,Intercalated disc,Intercalated disc,The portion is the intercalated disc space and other portion is interstitial space between two cardiac cells
+crop1148,Heart,Chemical,Intercalated disc,Intercalated disc,"The intercalated disc, sarcolemma and interstitial space between two cardiac cells."
+crop1038,Liver,Chemical,Space of Disse,Space of Disse,The space of Disse between the hepatocyte and the endothelium of the sinusoid.
+crop1039,Liver,Chemical,Bile canaliculus,Bile canaliculus,The area of the bile canaliculus among three hepatocytes.
+crop1040,Liver,Chemical,Bile canaliculus,Bile canaliculus,The bile canaliculus between two hepatocytes.
+crop1041,Liver,Chemical,Space of Disse,Space of Disse,The space of Disse between the hepatocyte and the endothelium of the sinusoid.
+crop1042,Liver,Chemical,Bile canaliculus,Bile canaliculus,The bile canaliculus between two hepatocytes.
+crop1043,Liver,Chemical,Space of Disse,Space of Disse,The space of Disse near to two hepatocyte tight junction area.
+crop1044,Liver,Chemical,Hepatocyte lateral,Hepatocyte lateral,The intercellular space between the hepatocyte and the Kupffer cell.
+crop1123,Liver,Rapid HPF,Tight junction,Hepatocyte lateral,The tight junction between two hepatocytes near the bile canaliculus.
+crop1124,Liver,Rapid HPF,Hepatocyte lateral,Hepatocyte lateral,The interstitial space between two hepatocytes lateral membranes.
+crop1125,Liver,Rapid HPF,Hepatocyte lateral,Hepatocyte lateral,The interstitial space between three hepatocytes lateral membranes.
+crop1126,Liver,Rapid HPF,Tight junction,Hepatocyte lateral,The tight junction and the interstitial space between two hepatocytes lateral membranes.
+crop1127,Liver,Rapid HPF,Hepatocyte lateral,Hepatocyte lateral,The interstitial space between three hepatocytes lateral membranes.
+crop1071,Liver,Rapid HPF,Hepatocyte lateral,Hepatocyte lateral,The intercellular space among two hepatocytes and the Kupffer cell.
+crop1072,Liver,Rapid HPF,Bile canaliculus,Bile canaliculus,The bile canaliculus between two hepatocytes.
+crop1073,Liver,Rapid HPF,Bile canaliculus,Bile canaliculus,The bile canaliculus among three hepatocytes.
+crop1074,Liver,Rapid HPF,Bile canaliculus,Bile canaliculus,The bile canaliculus among three hepatocytes.
+crop1075,Liver,Rapid HPF,Bile canaliculus,Bile canaliculus,The bile canaliculus and the lateral space between two hepatocytes.
+crop1033,Cortex,Chemical,Unmyelinated nerve fibers,,Intercellular space among the unmyelinated nerve fibers.
+crop1034,Cortex,Chemical,Neuropil (synaptic cleft),,Intercellular space in the neuropil including one synaptic cleft.
+crop1035,Cortex,Chemical,Neuronal cell processes,,Intercellular space between two neuron cell processes.
+crop1036,Cortex,Chemical,Glial-neuronal (synaptic clefts),,Intercellular space between one glial cell and several neuron cells including 3 synaptic clefts.
+crop1037,Cortex,Chemical,Neurovascular (endothelium/glia/neurons),,"Intercellular space among the neurovascular endothelium, glial cell and neuron cells."
+crop1045,Cortex,Chemical,Neurovascular (mixed nerve fibers),,"Intercellular space among the neurovascular endothelium, glial cell, myelinated and unmyelinated nerve fibers."
+crop1046,Cortex,Chemical,Neurovascular (myelinated/unmyelinated fibers),,"Intercellular space among the neurovascular endothelium, myelinated and unmyelinated nerve fibers."

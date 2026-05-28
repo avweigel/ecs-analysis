@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ECS sanity check — Chem vs HPF, matched regions</title>
+<style>
+  :root { --bg: #fafafa; --card: white; --border: #e5e7eb; --text: #1f2937; --muted: #6b7280; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); margin: 0; color: var(--text); font-family: -apple-system, system-ui, sans-serif; line-height: 1.5; }
+  .container { max-width: 1500px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  h1 { font-size: 1.6rem; margin: 0 0 0.3rem; letter-spacing: -0.01em; }
+  .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 1.25rem; }
+  .back { display: inline-block; margin-bottom: 1rem; color: #2563eb; text-decoration: none; font-size: 0.9rem; }
+  .back:hover { text-decoration: underline; }
+
+  .legend {
+    background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px;
+    padding: 0.9rem 1.1rem; margin-bottom: 1.5rem; font-size: 0.9rem;
+    display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center;
+  }
+  .legend .swatch {
+    display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+    margin-right: 0.4rem; vertical-align: middle;
+  }
+
+  section.group {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 1.8rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .group-header {
+    padding: 0.95rem 1.2rem; border-bottom: 1px solid var(--border);
+    background: linear-gradient(to right, #f9fafb, white 60%);
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  }
+  .group-header h2 { margin: 0; font-size: 1.15rem; }
+  .group-sub { color: var(--muted); font-size: 0.86rem; margin-top: 0.15rem; }
+  .group-note {
+    background: #fef3c7; border-left: 4px solid #f59e0b;
+    padding: 0.55rem 1rem; font-size: 0.85rem; color: #78350f;
+    border-bottom: 1px solid var(--border);
+  }
+  .all-in-one {
+    background: #1f2937; color: white; padding: 0.45rem 0.85rem; border-radius: 6px;
+    text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap;
+  }
+  .all-in-one:hover { background: #111827; }
+
+  /* Summary panel */
+  .summary-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem; padding: 1rem 1.2rem; background: #f9fafb;
+    border-bottom: 1px solid var(--border);
+  }
+  .metric-summary {
+    background: white; border: 1px solid var(--border); border-radius: 6px;
+    padding: 0.6rem 0.7rem;
+  }
+  .ms-name { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+  .ms-medians { display: flex; align-items: baseline; gap: 0.4rem; flex-wrap: wrap; font-size: 0.85rem; margin: 0.25rem 0 0.25rem; }
+  .med-chem { color: #f97316; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .med-hpf  { color: #0ea5e9; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .med-arrow { font-size: 0.78rem; font-weight: 600; }
+  .med-ratio { margin-left: auto; color: #4b5563; font-weight: 600; }
+  .dot-plot { display: block; margin: 0.1rem 0; }
+  .ms-note { color: var(--muted); font-size: 0.75rem; }
+
+  /* Paired-row layout: [rank label] [Chem card] [vs] [HPF card] */
+  .pair-header {
+    display: grid; grid-template-columns: 5rem 1fr 2.5rem 1fr; gap: 0.8rem;
+    padding: 0.7rem 1.2rem; background: #f3f4f6; border-bottom: 1px solid var(--border);
+    font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 700;
+  }
+  .ph-label { color: var(--muted); }
+  .ph-chem, .ph-hpf { text-align: center; }
+  .pair-row {
+    display: grid; grid-template-columns: 5rem 1fr 2.5rem 1fr; gap: 0.8rem;
+    padding: 0.85rem 1.2rem; align-items: stretch;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .pair-row:last-child { border-bottom: none; }
+  .pair-label {
+    display: flex; align-items: center; color: var(--muted);
+    font-size: 0.8rem; font-weight: 600; line-height: 1.3;
+  }
+  .pair-side { display: flex; }
+  .pair-side .crop-card { flex: 1; margin-bottom: 0; }
+  .pair-vs {
+    display: flex; align-items: center; justify-content: center;
+    color: #94a3b8; font-weight: 700; font-size: 0.95rem;
+  }
+  .empty-card {
+    flex: 1; min-height: 200px;
+    background: #f9fafb; border: 1px dashed #d1d5db; border-left: 3px dashed var(--prep);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; padding: 1rem;
+  }
+  .empty-msg { color: #9ca3af; font-size: 0.85rem; text-align: center; line-height: 1.4; }
+
+  /* Crop card */
+  .crop-card {
+    background: white; border: 1px solid var(--border); border-left: 3px solid var(--prep);
+    border-radius: 6px; padding: 0; margin-bottom: 0.8rem; overflow: hidden;
+  }
+  .thumb-link { display: block; position: relative; text-decoration: none; background: #111; aspect-ratio: 1; }
+  .thumb { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .thumb-placeholder {
+    display: none; position: absolute; inset: 0; align-items: center; justify-content: center;
+    background: #f3f4f6; color: var(--muted); font-size: 0.8rem; text-align: center; padding: 1rem;
+  }
+  .thumb-overlay {
+    position: absolute; bottom: 0.4rem; left: 0.4rem;
+    background: rgba(0,0,0,0.7); color: white; padding: 0.15rem 0.5rem;
+    border-radius: 4px; font-family: ui-monospace, monospace; font-size: 0.82rem; font-weight: 600;
+  }
+  .crop-meta {
+    font-family: ui-monospace, monospace; font-size: 0.7rem; color: var(--muted);
+    padding: 0.35rem 0.7rem 0; text-align: right;
+  }
+  .crop-metrics {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; padding: 0.45rem 0.7rem 0.6rem;
+  }
+  .crop-metric { font-size: 0.8rem; line-height: 1.2; }
+  .cm-name { color: var(--muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  .cm-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cm-dot { height: 18px; }
+  .cm-dot svg { width: 100%; height: 18px; }
+
+  @media (max-width: 900px) {
+    .pair-header { grid-template-columns: 4rem 1fr 1.5rem 1fr; padding: 0.5rem 0.8rem; font-size: 0.7rem; }
+    .pair-row    { grid-template-columns: 4rem 1fr 1.5rem 1fr; gap: 0.4rem; padding: 0.6rem 0.8rem; }
+    .pair-label  { font-size: 0.72rem; }
+  }
+
+  /* Overview tables */
+  section.overview {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.2rem 1.4rem 1.3rem; margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  section.overview h2 { margin: 0 0 0.3rem; font-size: 1.25rem; }
+  section.overview h3 {
+    margin: 1.2rem 0 0.5rem; font-size: 0.9rem;
+    color: var(--text); font-weight: 700;
+  }
+  section.overview h3 .dim { color: var(--muted); font-weight: 500; font-size: 0.85rem; }
+  .overview-sub { color: var(--muted); margin: 0 0 0.6rem; font-size: 0.9rem; }
+  .legend-pill {
+    display: inline-block; padding: 0.05rem 0.5rem; border-radius: 4px;
+    font-size: 0.78rem; font-weight: 700; margin-left: 0.3rem;
+  }
+  .legend-pill.chem-dir { background: #fed7aa; color: #9a3412; }
+  .legend-pill.hpf-dir  { background: #bae6fd; color: #075985; }
+  .overview-tbl {
+    width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 0.7rem;
+  }
+  .overview-tbl th {
+    text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--muted); padding: 0.45rem 0.7rem; border-bottom: 1px solid var(--border);
+    background: #f9fafb;
+  }
+  .overview-tbl td {
+    padding: 0.5rem 0.7rem; border-bottom: 1px solid #f1f3f5;
+  }
+  .overview-tbl tr:last-child td { border-bottom: none; }
+  .overview-tbl tr.chem-dir td { background: #fff7ed; }
+  .overview-tbl tr.hpf-dir  td { background: #f0f9ff; }
+  .overview-tbl td.rg { font-weight: 600; }
+  .overview-tbl td.num { font-variant-numeric: tabular-nums; }
+  .takeaway {
+    background: #f3f4f6; border-left: 4px solid #6b7280;
+    padding: 0.7rem 1rem; margin-top: 1rem; border-radius: 6px;
+    font-size: 0.92rem; line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<a class="back" href="index.html">← Back to crops index</a>
+<h1>Sanity check — anatomy-matched Chem vs HPF</h1>
+<div class="subtitle">Side-by-side images, numbers and Neuroglancer links so you can visually verify whether the Chem &gt; HPF finding survives at the per-crop level.</div>
+
+
+<section class="overview">
+  <h2>ECS % at a glance</h2>
+  <p class="overview-sub">
+    Each table shows median ECS volume fraction. Rows are colored by direction:
+    <span class="legend-pill chem-dir">Chem &gt; HPF</span>
+    <span class="legend-pill hpf-dir">HPF &gt; Chem</span>
+  </p>
+
+  <h3>Matched anatomy — both Chemical and Rapid HPF crops available</h3>
+  <table class="overview-tbl">
+    <thead><tr><th>Region</th><th>Tissue</th><th>n_C</th><th>n_H</th><th>Chem ECS%</th><th>HPF ECS%</th><th>Ratio</th><th>Direction</th></tr></thead>
+    <tbody><tr class="chem-dir"><td class="rg">DCT base</td><td>Kidney</td><td class="num">1</td><td class="num">3</td><td class="num">19.5%</td><td class="num">10.9%</td><td class="num">1.80×</td><td>Chem > HPF (n=1)</td></tr><tr class="hpf-dir"><td class="rg">Glomerular</td><td>Kidney</td><td class="num">2</td><td class="num">2</td><td class="num">40.0%</td><td class="num">49.8%</td><td class="num">0.80×</td><td>HPF > Chem</td></tr><tr class="hpf-dir"><td class="rg">PCT lateral</td><td>Kidney</td><td class="num">1</td><td class="num">1</td><td class="num">1.4%</td><td class="num">9.0%</td><td class="num">0.16×</td><td>HPF > Chem (n=1)</td></tr><tr class="chem-dir"><td class="rg">Bile canaliculus</td><td>Liver</td><td class="num">3</td><td class="num">4</td><td class="num">19.2%</td><td class="num">7.3%</td><td class="num">2.62×</td><td>Chem > HPF</td></tr><tr class="chem-dir"><td class="rg">Hepatocyte lateral</td><td>Liver</td><td class="num">1</td><td class="num">6</td><td class="num">21.9%</td><td class="num">2.8%</td><td class="num">7.70×</td><td>Chem > HPF (n=1)</td></tr></tbody>
+  </table>
+
+  <h3>Chemical-only regions <span class="dim">(no HPF crop annotated yet for these regions)</span></h3>
+  <table class="overview-tbl">
+    <thead><tr><th>Region</th><th>Tissue</th><th>n</th><th>Chem ECS%</th></tr></thead>
+    <tbody><tr><td class="rg">Cardiac interstitial</td><td>Heart</td><td class="num">2</td><td class="num">25.8%</td></tr><tr><td class="rg">Intercalated disc</td><td>Heart</td><td class="num">2</td><td class="num">10.2%</td></tr><tr><td class="rg">PCT base</td><td>Kidney</td><td class="num">1</td><td class="num">30.3%</td></tr><tr><td class="rg">PCT brush border</td><td>Kidney</td><td class="num">2</td><td class="num">67.1%</td></tr><tr><td class="rg">Space of Disse</td><td>Liver</td><td class="num">3</td><td class="num">26.9%</td></tr></tbody>
+  </table>
+
+  <h3>Tissue-level pooled <span class="dim">(all crops in that tissue, regardless of region)</span></h3>
+  <table class="overview-tbl">
+    <thead><tr><th>Tissue</th><th>n_C</th><th>n_H</th><th>Chem ECS%</th><th>HPF ECS%</th><th>Ratio</th><th>Direction</th></tr></thead>
+    <tbody><tr class="chem-dir"><td class="rg">Liver</td><td class="num">7</td><td class="num">10</td><td class="num">22.6%</td><td class="num">4.0%</td><td class="num">5.71×</td><td>Chem > HPF</td></tr><tr class="chem-dir"><td class="rg">Kidney</td><td class="num">7</td><td class="num">6</td><td class="num">35.6%</td><td class="num">12.8%</td><td class="num">2.78×</td><td>Chem > HPF</td></tr><tr><td class="rg">Cortex</td><td class="num">7</td><td class="num">0</td><td class="num">10.7%</td><td class="num">—</td><td class="num">—</td><td>(no HPF data)</td></tr><tr><td class="rg">Heart</td><td class="num">4</td><td class="num">0</td><td class="num">15.8%</td><td class="num">—</td><td class="num">—</td><td>(no HPF data)</td></tr></tbody>
+  </table>
+
+  <p class="takeaway">
+    <strong>One-paragraph read:</strong>
+    In <strong>Liver</strong>, Chem produces ~5× more ECS than HPF at tissue level;
+    the bile canaliculus matched comparison replicates this cleanly (2.6×, n=3 vs 4).
+    In <strong>Kidney</strong>, the tissue-level Chem &gt; HPF holds (2.8×),
+    but the matched anatomy splits: DCT base goes Chem &gt; HPF; Glomerular and
+    PCT lateral go the opposite direction (HPF more ECS).
+    In <strong>Cortex</strong>, both the tissue level and the matched signal lean HPF &gt; Chem,
+    though sample sizes are small (only 2 HPF crops).
+    <strong>Heart</strong> has no HPF data yet. The clearest, best-powered story is
+    Liver bile canaliculus.
+  </p>
+</section>
+
+<div class="legend">
+  <span><span class="swatch" style="background:#f97316"></span><strong>Chemical</strong> (orange)</span>
+  <span><span class="swatch" style="background:#0ea5e9"></span><strong>Rapid HPF</strong> (cyan)</span>
+  <span>Each <strong>thumbnail</strong> is a mid-Z slice: <span style="background:rgba(0,217,242,0.55); padding:0 0.4rem;">cyan tint</span> = ECS overlay.</span>
+  <span><strong>Dot plot</strong> = all crops in the group along the metric axis (Chem on top, HPF on bottom).</span>
+  <span><strong>↗ All crops in one viewer</strong> loads every crop of the group as togglable layers in a single Neuroglancer tab.</span>
+  <span>Crops are paired by <strong>rank within their prep</strong> (sorted by ECS%): the rank-1 Chem crop sits next to the rank-1 HPF crop, etc. Pairing is by rank, not by anatomical sub-feature.</span>
+</div>
+
+
+<section class="group">
+  <header class="group-header">
+    <div class="gh-left">
+      <h2>Liver — Bile canaliculus</h2>
+      <div class="group-sub">Bile canaliculus between 2–3 hepatocytes</div>
+    </div>
+    <a class="all-in-one" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em_Chem_crop1039%22%2C%22visible%22%3Atrue%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1039%2Fecs%22%2C%22name%22%3A%22ecs_Chem_crop1039%22%2C%22visible%22%3Atrue%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em_Chem_crop1040%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1040%2Fecs%22%2C%22name%22%3A%22ecs_Chem_crop1040%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em_Chem_crop1042%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1042%2Fecs%22%2C%22name%22%3A%22ecs_Chem_crop1042%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1072%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1072%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1072%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1073%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1073%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1073%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1074%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1074%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1074%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1075%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1075%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1075%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em_Chem_crop1039%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open all crops in this group as togglable layers in a single Neuroglancer viewer">↗ All crops in one viewer</a>
+  </header>
+  
+  <div class="summary-row">
+<div class="metric-summary">
+  <div class="ms-name">ECS %</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.1921</span>
+    <span class="med-arrow" style="color:#16a34a">C&gt;H</span>
+    <span class="med-hpf">HPF 0.07334</span>
+    <span class="med-ratio">×2.62</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="191.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="172.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="132.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="82.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="15.2" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0391</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.226</text></svg>
+  <div class="ms-note">higher = more extracellular space</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">SA:V (1/nm)</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.01006</span>
+    <span class="med-arrow" style="color:#16a34a">C&gt;H</span>
+    <span class="med-hpf">HPF 0.002898</span>
+    <span class="med-ratio">×3.47</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="180.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="155.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="69.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="39.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="21.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00182</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0125</text></svg>
+  <div class="ms-note">higher = more membrane per unit cell volume</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">cells/μm³</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 3.418</span>
+    <span class="med-arrow" style="color:#16a34a">C&gt;H</span>
+    <span class="med-hpf">HPF 0.8681</span>
+    <span class="med-ratio">×3.94</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="92.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="216.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="67.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.145</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">3.66</text></svg>
+  <div class="ms-note">higher = denser packing of cells</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">gap p50 (nm)</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 39.3</span>
+    <span class="med-arrow" style="color:#0284c7">H&gt;C</span>
+    <span class="med-hpf">HPF 53.76</span>
+    <span class="med-ratio">×0.73</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="26.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="98.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="122.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">35.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">77.6</text></svg>
+  <div class="ms-note">median nearest-neighbor gap</div>
+</div></div>
+  <div class="pair-header">
+    <div class="ph-label">Rank</div>
+    <div class="ph-chem" style="color:#f97316">Chemical · n = 3</div>
+    <div class="ph-vs"></div>
+    <div class="ph-hpf"  style="color:#0ea5e9">Rapid HPF · n = 4</div>
+  </div>
+  
+<div class="pair-row">
+  <div class="pair-label">Pair 1 · highest ECS</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#f97316">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1040%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1040%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1040%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1040%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1040.png" alt="crop1040 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1040 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">22.6%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="191.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="172.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="132.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="82.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="15.2" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0391</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.226</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0125</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="180.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="155.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="69.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="39.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="21.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00182</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0125</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">3.42</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="92.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="216.5" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="67.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.145</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">3.66</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">39.3 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="26.5" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="98.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="122.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">35.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">77.6</text></svg></div>
+</div></div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1073%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1073%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1073%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1073%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1073.png" alt="crop1073 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1073 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver-8</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">14.3%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="191.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="172.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="132.3" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="82.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="15.2" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0391</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.226</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0048</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="180.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="155.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="69.5" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="39.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="21.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00182</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0125</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">0.87</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="92.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="216.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="67.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.145</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">3.66</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">57.3 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="26.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="98.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="122.9" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">35.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">77.6</text></svg></div>
+</div></div>
+</div></div>
+</div>
+<div class="pair-row">
+  <div class="pair-label">Pair 2</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#f97316">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1039%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1039%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1039%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1039%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1039.png" alt="crop1039 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1039 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">19.2%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="191.3" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="172.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="132.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="82.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="15.2" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0391</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.226</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0101</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="180.3" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="155.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="69.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="39.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="21.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00182</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0125</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">1.46</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="92.1" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="216.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="67.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.145</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">3.66</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">35.9 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="26.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="98.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="122.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">35.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">77.6</text></svg></div>
+</div></div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1074%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1074%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1074%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1074%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1074.png" alt="crop1074 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1074 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver-8</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">10.2%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="191.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="172.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="132.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="82.9" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="15.2" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0391</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.226</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0033</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="180.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="155.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="69.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="39.8" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="21.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00182</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0125</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">1.09</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="92.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="216.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="67.9" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.145</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">3.66</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">77.6 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="26.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="98.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="122.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">35.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">77.6</text></svg></div>
+</div></div>
+</div></div>
+</div>
+<div class="pair-row">
+  <div class="pair-label">Pair 3</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#f97316">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1042%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1042%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1042%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1042%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1042.png" alt="crop1042 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1042 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">17.6%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="191.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="172.1" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="132.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="82.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="15.2" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0391</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.226</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0089</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="180.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="155.1" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="69.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="39.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="21.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00182</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0125</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">3.66</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="92.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="216.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="67.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.145</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">3.66</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">52.7 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="26.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="98.1" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="122.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">35.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">77.6</text></svg></div>
+</div></div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1075%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1075%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1075%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1075%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1075.png" alt="crop1075 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1075 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver-8</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">4.5%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="191.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="172.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="132.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="82.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="15.2" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0391</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.226</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0025</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="180.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="155.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="69.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="39.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="21.3" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00182</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0125</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">0.87</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="92.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="216.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="67.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.145</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">3.66</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">50.2 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="26.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="98.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="122.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">35.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">77.6</text></svg></div>
+</div></div>
+</div></div>
+</div>
+<div class="pair-row">
+  <div class="pair-label">Pair 4 · lowest ECS</div>
+  <div class="pair-side">
+<div class="crop-card empty-card" style="--prep:#f97316">
+  <div class="empty-msg">No Chemical crop<br>at this rank</div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1072%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1072%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1072%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1072%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1072.png" alt="crop1072 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1072 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver-8</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">3.9%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="191.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="172.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="132.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="82.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="15.2" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0391</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.226</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0018</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="180.3" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="155.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="69.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="39.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="21.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00182</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0125</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">0.14</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="92.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="216.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="67.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="54.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.145</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">3.66</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">50.2 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="26.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="98.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="122.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="85.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">35.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">77.6</text></svg></div>
+</div></div>
+</div></div>
+</div>
+</section>
+
+<section class="group">
+  <header class="group-header">
+    <div class="gh-left">
+      <h2>Liver — Hepatocyte lateral</h2>
+      <div class="group-sub">Intercellular space between hepatocyte lateral membranes</div>
+    </div>
+    <a class="all-in-one" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em_Chem_crop1044%22%2C%22visible%22%3Atrue%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1044%2Fecs%22%2C%22name%22%3A%22ecs_Chem_crop1044%22%2C%22visible%22%3Atrue%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1071%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1071%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1071%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1124%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1124%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1124%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1125%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1125%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1125%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1127%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1127%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1127%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em_Chem_crop1044%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open all crops in this group as togglable layers in a single Neuroglancer viewer">↗ All crops in one viewer</a>
+  </header>
+  
+  <div class="summary-row">
+<div class="metric-summary">
+  <div class="ms-name">ECS %</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.2191</span>
+    <span class="med-arrow" style="color:#16a34a">C&gt;H</span>
+    <span class="med-hpf">HPF 0.03587</span>
+    <span class="med-ratio">×6.11</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="179.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="18.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="25.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0194</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.281</text></svg>
+  <div class="ms-note">higher = more extracellular space</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">SA:V (1/nm)</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.00629</span>
+    <span class="med-arrow" style="color:#16a34a">C&gt;H</span>
+    <span class="med-hpf">HPF 0.003329</span>
+    <span class="med-ratio">×1.89</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="87.4" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="37.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="23.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00215</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0138</text></svg>
+  <div class="ms-note">higher = more membrane per unit cell volume</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">cells/μm³</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.9766</span>
+    <span class="med-arrow" style="color:#16a34a">C&gt;H</span>
+    <span class="med-hpf">HPF 0.7993</span>
+    <span class="med-ratio">×1.22</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="33.2" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="17.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="34.6" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.349</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">5.93</text></svg>
+  <div class="ms-note">higher = denser packing of cells</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">gap p50 (nm)</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 110.9</span>
+    <span class="med-arrow" style="color:#16a34a">C&gt;H</span>
+    <span class="med-hpf">HPF 35.31</span>
+    <span class="med-ratio">×3.14</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="110.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="16.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="42.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">27.3</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">111</text></svg>
+  <div class="ms-note">median nearest-neighbor gap</div>
+</div></div>
+  <div class="pair-header">
+    <div class="ph-label">Rank</div>
+    <div class="ph-chem" style="color:#f97316">Chemical · n = 1</div>
+    <div class="ph-vs"></div>
+    <div class="ph-hpf"  style="color:#0ea5e9">Rapid HPF · n = 4</div>
+  </div>
+  
+<div class="pair-row">
+  <div class="pair-label">Pair 1 · highest ECS</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#f97316">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1044%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1044%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1044%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1044%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1044.png" alt="crop1044 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1044 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">21.9%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="179.1" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="18.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="25.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0194</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.281</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0063</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="87.4" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="37.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="23.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00215</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0138</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">0.98</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="33.2" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="17.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="34.6" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.349</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">5.93</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">110.9 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="110.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="16.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="42.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">27.3</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">111</text></svg></div>
+</div></div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1071%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1071%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1071%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1071%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1071.png" alt="crop1071 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1071 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver-8</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">28.1%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="179.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="18.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="25.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0194</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.281</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0138</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="87.4" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="37.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="23.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00215</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0138</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">5.93</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="33.2" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="17.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="34.6" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.349</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">5.93</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">65.7 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="110.9" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="16.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="42.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">27.3</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">111</text></svg></div>
+</div></div>
+</div></div>
+</div>
+<div class="pair-row">
+  <div class="pair-label">Pair 2</div>
+  <div class="pair-side">
+<div class="crop-card empty-card" style="--prep:#f97316">
+  <div class="empty-msg">No Chemical crop<br>at this rank</div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1127%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1127%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1127%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1127%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1127.png" alt="crop1127 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1127 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver-8</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">4.0%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="179.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="18.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="25.8" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0194</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.281</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0030</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="87.4" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="37.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="23.4" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00215</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0138</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">1.01</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="33.2" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="17.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="34.6" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.349</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">5.93</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">40.0 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="110.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="16.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="42.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">27.3</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">111</text></svg></div>
+</div></div>
+</div></div>
+</div>
+<div class="pair-row">
+  <div class="pair-label">Pair 3</div>
+  <div class="pair-side">
+<div class="crop-card empty-card" style="--prep:#f97316">
+  <div class="empty-msg">No Chemical crop<br>at this rank</div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1125%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1125%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1125%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1125%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1125.png" alt="crop1125 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1125 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver-8</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">3.2%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="179.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="18.5" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="25.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0194</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.281</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0037</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="87.4" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="37.8" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="23.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00215</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0138</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">0.59</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="33.2" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="17.5" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="34.6" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.349</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">5.93</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">27.3 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="110.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="16.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="42.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">27.3</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">111</text></svg></div>
+</div></div>
+</div></div>
+</div>
+<div class="pair-row">
+  <div class="pair-label">Pair 4 · lowest ECS</div>
+  <div class="pair-side">
+<div class="crop-card empty-card" style="--prep:#f97316">
+  <div class="empty-msg">No Chemical crop<br>at this rank</div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1124%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1124%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1124%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1124%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1124.png" alt="crop1124 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1124 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-liver-8</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">1.9%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="179.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="18.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="25.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0194</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.281</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0021</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="87.4" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="37.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="23.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00215</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0138</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">0.35</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="33.2" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="17.5" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="34.6" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.349</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">5.93</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">30.6 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="110.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="16.9" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="42.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">27.3</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">111</text></svg></div>
+</div></div>
+</div></div>
+</div>
+</section>
+
+<section class="group">
+  <header class="group-header">
+    <div class="gh-left">
+      <h2>Kidney — Glomerular interstitium</h2>
+      <div class="group-sub">Interstitial space among fenestrated endothelium, podocytes, and basal membrane</div>
+    </div>
+    <a class="all-in-one" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em_Chem_crop1026%22%2C%22visible%22%3Atrue%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1026%2Fecs%22%2C%22name%22%3A%22ecs_Chem_crop1026%22%2C%22visible%22%3Atrue%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em_Chem_crop1027%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1027%2Fecs%22%2C%22name%22%3A%22ecs_Chem_crop1027%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1134%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1134%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1134%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1135%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1135%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1135%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em_Chem_crop1026%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open all crops in this group as togglable layers in a single Neuroglancer viewer">↗ All crops in one viewer</a>
+  </header>
+  <div class="group-note">⚠ crop1135 was newly annotated (KP) and is not yet in the analysis pipeline — its metric cells will show '—' until a cluster re-run picks it up.</div>
+  <div class="summary-row">
+<div class="metric-summary">
+  <div class="ms-name">ECS %</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.3999</span>
+    <span class="med-arrow" style="color:#0284c7">H&gt;C</span>
+    <span class="med-hpf">HPF 0.4979</span>
+    <span class="med-ratio">×0.80</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="13.6" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="79.7" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.348</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.648</text></svg>
+  <div class="ms-note">higher = more extracellular space</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">SA:V (1/nm)</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.01548</span>
+    <span class="med-arrow" style="color:#0284c7">H&gt;C</span>
+    <span class="med-hpf">HPF 0.0167</span>
+    <span class="med-ratio">×0.93</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="181.6" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="100.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.014</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0178</text></svg>
+  <div class="ms-note">higher = more membrane per unit cell volume</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">cells/μm³</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 3.545</span>
+    <span class="med-arrow" style="color:#16a34a">C&gt;H</span>
+    <span class="med-hpf">HPF 2.436</span>
+    <span class="med-ratio">×1.46</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="89.8" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="115.6" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">1.83</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">4.34</text></svg>
+  <div class="ms-note">higher = denser packing of cells</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">gap p50 (nm)</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 105.7</span>
+    <span class="med-arrow" style="color:#0284c7">H&gt;C</span>
+    <span class="med-hpf">HPF 125.2</span>
+    <span class="med-ratio">×0.84</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="27.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="84.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">91.1</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">159</text></svg>
+  <div class="ms-note">median nearest-neighbor gap</div>
+</div></div>
+  <div class="pair-header">
+    <div class="ph-label">Rank</div>
+    <div class="ph-chem" style="color:#f97316">Chemical · n = 2</div>
+    <div class="ph-vs"></div>
+    <div class="ph-hpf"  style="color:#0ea5e9">Rapid HPF · n = 2</div>
+  </div>
+  
+<div class="pair-row">
+  <div class="pair-label">Pair 1 · highest ECS</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#f97316">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1027%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1027%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1027%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1027%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1027.png" alt="crop1027 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1027 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-kidney</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">44.4%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="13.6" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="79.7" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.348</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.648</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0170</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="181.6" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="100.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.014</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0178</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">2.75</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="89.8" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="115.6" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">1.83</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">4.34</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">114.4 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="27.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="84.5" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">91.1</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">159</text></svg></div>
+</div></div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1134%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1134%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1134%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1134%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1134.png" alt="crop1134 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1134 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-kidney-4</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">64.8%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="13.6" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="79.7" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.348</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.648</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0178</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="181.6" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="100.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.014</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0178</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">1.83</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="89.8" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="115.6" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">1.83</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">4.34</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">159.4 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="27.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="84.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">91.1</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">159</text></svg></div>
+</div></div>
+</div></div>
+</div>
+<div class="pair-row">
+  <div class="pair-label">Pair 2 · lowest ECS</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#f97316">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1026%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1026%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1026%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1026%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1026.png" alt="crop1026 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1026 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-kidney</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">35.6%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="13.6" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="79.7" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.348</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.648</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0140</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="181.6" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="100.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.014</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0178</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">4.34</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="89.8" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="115.6" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">1.83</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">4.34</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">96.9 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="27.1" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="84.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">91.1</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">159</text></svg></div>
+</div></div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1135%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1135%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1135%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1135%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1135.png" alt="crop1135 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1135 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-kidney-4</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">34.8%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="13.6" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="79.7" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.348</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.648</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0156</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="181.6" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="100.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.014</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0178</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">3.04</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="89.8" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="115.6" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">1.83</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">4.34</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">91.1 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="27.1" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="84.5" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">91.1</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">159</text></svg></div>
+</div></div>
+</div></div>
+</div>
+</section>
+
+<section class="group">
+  <header class="group-header">
+    <div class="gh-left">
+      <h2>Kidney — DCT base</h2>
+      <div class="group-sub">Base of distal convoluted tubule epithelium with basement lamina</div>
+    </div>
+    <a class="all-in-one" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em_Chem_crop1030%22%2C%22visible%22%3Atrue%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1030%2Fecs%22%2C%22name%22%3A%22ecs_Chem_crop1030%22%2C%22visible%22%3Atrue%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1136%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1136%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1136%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1137%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1137%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1137%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1144%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1144%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1144%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em_Chem_crop1030%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open all crops in this group as togglable layers in a single Neuroglancer viewer">↗ All crops in one viewer</a>
+  </header>
+  <div class="group-note">⚠ Underpowered as of 2026-05-14: crop1032 was reclassified PCT base per the WP/KP annotation doc, so the Chemical side now has only crop1030. Comparable stats are not computed for n=1.</div>
+  <div class="summary-row">
+<div class="metric-summary">
+  <div class="ms-name">ECS %</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.195</span>
+    <span class="med-arrow" style="color:#16a34a">C&gt;H</span>
+    <span class="med-hpf">HPF 0.1086</span>
+    <span class="med-ratio">×1.80</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="130.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="47.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0899</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.195</text></svg>
+  <div class="ms-note">higher = more extracellular space</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">SA:V (1/nm)</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.01693</span>
+    <span class="med-arrow" style="color:#16a34a">C&gt;H</span>
+    <span class="med-hpf">HPF 0.008254</span>
+    <span class="med-ratio">×2.05</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="216.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="23.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00762</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0169</text></svg>
+  <div class="ms-note">higher = more membrane per unit cell volume</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">cells/μm³</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 4.297</span>
+    <span class="med-arrow" style="color:#16a34a">C&gt;H</span>
+    <span class="med-hpf">HPF 1.258</span>
+    <span class="med-ratio">×3.42</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="205.8" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="39.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.687</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">4.77</text></svg>
+  <div class="ms-note">higher = denser packing of cells</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">gap p50 (nm)</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 19.87</span>
+    <span class="med-arrow" style="color:#0284c7">H&gt;C</span>
+    <span class="med-hpf">HPF 41.45</span>
+    <span class="med-ratio">×0.48</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="196.7" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="102.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">19.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">45.5</text></svg>
+  <div class="ms-note">median nearest-neighbor gap</div>
+</div></div>
+  <div class="pair-header">
+    <div class="ph-label">Rank</div>
+    <div class="ph-chem" style="color:#f97316">Chemical · n = 1</div>
+    <div class="ph-vs"></div>
+    <div class="ph-hpf"  style="color:#0ea5e9">Rapid HPF · n = 3</div>
+  </div>
+  
+<div class="pair-row">
+  <div class="pair-label">Pair 1 · highest ECS</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#f97316">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1030%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1030%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1030%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1030%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1030.png" alt="crop1030 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1030 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-kidney</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">19.5%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="130.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="47.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0899</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.195</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0169</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="216.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="23.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00762</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0169</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">4.30</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="205.8" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="39.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.687</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">4.77</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">19.9 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="196.7" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="102.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">19.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">45.5</text></svg></div>
+</div></div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1137%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1137%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1137%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1137%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1137.png" alt="crop1137 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1137 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-kidney-4</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">14.7%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="130.4" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="47.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0899</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.195</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0163</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="216.9" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="23.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00762</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0169</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">4.77</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="205.8" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="39.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.687</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">4.77</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">30.6 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="196.7" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="102.1" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">19.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">45.5</text></svg></div>
+</div></div>
+</div></div>
+</div>
+<div class="pair-row">
+  <div class="pair-label">Pair 2</div>
+  <div class="pair-side">
+<div class="crop-card empty-card" style="--prep:#f97316">
+  <div class="empty-msg">No Chemical crop<br>at this rank</div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1144%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1144%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1144%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1144%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1144.png" alt="crop1144 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1144 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-kidney-4</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">10.9%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="130.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="47.8" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0899</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.195</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0083</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="216.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="23.4" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00762</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0169</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">0.69</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="205.8" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="39.3" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.687</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">4.77</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">45.5 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="196.7" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="102.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">19.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">45.5</text></svg></div>
+</div></div>
+</div></div>
+</div>
+<div class="pair-row">
+  <div class="pair-label">Pair 3 · lowest ECS</div>
+  <div class="pair-side">
+<div class="crop-card empty-card" style="--prep:#f97316">
+  <div class="empty-msg">No Chemical crop<br>at this rank</div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1136%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1136%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1136%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1136%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1136.png" alt="crop1136 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1136 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-kidney-4</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">9.0%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="130.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="47.8" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0899</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.195</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0076</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="232.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="216.9" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="23.4" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00762</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.0169</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">1.26</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="205.8" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="39.3" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="8.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.687</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">4.77</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">41.5 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="196.7" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><circle cx="102.1" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">19.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">45.5</text></svg></div>
+</div></div>
+</div></div>
+</div>
+</section>
+
+<section class="group">
+  <header class="group-header">
+    <div class="gh-left">
+      <h2>Kidney — PCT lateral</h2>
+      <div class="group-sub">Lateral space between two apical epithelia of proximal convoluted tubule</div>
+    </div>
+    <a class="all-in-one" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em_Chem_crop1031%22%2C%22visible%22%3Atrue%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1031%2Fecs%22%2C%22name%22%3A%22ecs_Chem_crop1031%22%2C%22visible%22%3Atrue%7D%2C%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em_HPF_crop1138%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1138%2Fecs%22%2C%22name%22%3A%22ecs_HPF_crop1138%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em_Chem_crop1031%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open all crops in this group as togglable layers in a single Neuroglancer viewer">↗ All crops in one viewer</a>
+  </header>
+  <div class="group-note">⚠ n=1 vs n=1 — too few crops for formal stats; shown because the direction is unusual (HPF appears to have more ECS than Chem here, opposite to Liver).</div>
+  <div class="summary-row">
+<div class="metric-summary">
+  <div class="ms-name">ECS %</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.01441</span>
+    <span class="med-arrow" style="color:#0284c7">H&gt;C</span>
+    <span class="med-hpf">HPF 0.09002</span>
+    <span class="med-ratio">×0.16</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0144</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.09</text></svg>
+  <div class="ms-note">higher = more extracellular space</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">SA:V (1/nm)</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.001505</span>
+    <span class="med-arrow" style="color:#0284c7">H&gt;C</span>
+    <span class="med-hpf">HPF 0.006364</span>
+    <span class="med-ratio">×0.24</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00151</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.00636</text></svg>
+  <div class="ms-note">higher = more membrane per unit cell volume</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">cells/μm³</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 0.1246</span>
+    <span class="med-arrow" style="color:#0284c7">H&gt;C</span>
+    <span class="med-hpf">HPF 1.383</span>
+    <span class="med-ratio">×0.09</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.125</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">1.38</text></svg>
+  <div class="ms-note">higher = denser packing of cells</div>
+</div>
+<div class="metric-summary">
+  <div class="ms-name">gap p50 (nm)</div>
+  <div class="ms-medians">
+    <span class="med-chem">Chem 20.94</span>
+    <span class="med-arrow" style="color:#0284c7">H&gt;C</span>
+    <span class="med-hpf">HPF 41.89</span>
+    <span class="med-ratio">×0.50</span>
+  </div>
+  <svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">20.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">41.9</text></svg>
+  <div class="ms-note">median nearest-neighbor gap</div>
+</div></div>
+  <div class="pair-header">
+    <div class="ph-label">Rank</div>
+    <div class="ph-chem" style="color:#f97316">Chemical · n = 1</div>
+    <div class="ph-vs"></div>
+    <div class="ph-hpf"  style="color:#0ea5e9">Rapid HPF · n = 1</div>
+  </div>
+  
+<div class="pair-row">
+  <div class="pair-label">Pair 1 · highest ECS</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#f97316">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1031%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1031%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1031%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1031%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1031.png" alt="crop1031 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1031 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-kidney</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">1.4%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0144</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.09</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0015</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00151</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.00636</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">0.12</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.125</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">1.38</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">20.9 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="4" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/><circle cx="232.0" cy="32" r="3" fill="#0ea5e9" stroke="none" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">20.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">41.9</text></svg></div>
+</div></div>
+</div></div>
+  <div class="pair-vs">vs</div>
+  <div class="pair-side">
+<div class="crop-card" style="--prep:#0ea5e9">
+  <a class="thumb-link" href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1138%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1138%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1138%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1138%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener" title="Open in Neuroglancer">
+    <img class="thumb" src="thumbs/crop1138.png" alt="crop1138 thumbnail" loading="lazy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="thumb-placeholder">(thumbnail rendering on cluster — refresh in a minute)</div>
+    <div class="thumb-overlay">crop1138 ↗</div>
+  </a>
+  <div class="crop-meta">jrc_mus-kidney-4</div>
+  <div class="crop-metrics">
+<div class="crop-metric">
+  <div class="cm-name">ECS %</div>
+  <div class="cm-value">9.0%</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.0144</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.09</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">SA:V (1/nm)</div>
+  <div class="cm-value">0.0064</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.00151</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">0.00636</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">cells/μm³</div>
+  <div class="cm-value">1.38</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">0.125</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">1.38</text></svg></div>
+</div>
+<div class="crop-metric">
+  <div class="cm-name">gap p50 (nm)</div>
+  <div class="cm-value">41.9 nm</div>
+  <div class="cm-dot"><svg width="240" height="38" viewBox="0 0 240 38" class="dot-plot"><line x1="8" y1="26" x2="232" y2="26" stroke="#cbd5e1" stroke-width="1"/><circle cx="8.0" cy="20" r="3" fill="#f97316" stroke="none" stroke-width="1.5"/><circle cx="232.0" cy="32" r="4" fill="#0ea5e9" stroke="#0c4a6e" stroke-width="1.5"/><text x="8" y="37" font-size="9" fill="#9ca3af">20.9</text><text x="232" y="37" font-size="9" fill="#9ca3af" text-anchor="end">41.9</text></svg></div>
+</div></div>
+</div></div>
+</div>
+</section>
+
+</div>
+</body>
+</html>

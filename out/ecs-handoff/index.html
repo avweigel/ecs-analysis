@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ECS analysis crops — Neuroglancer links</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --accent: #2563eb;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .container { max-width: 1280px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+  header.page-header { margin-bottom: 1.5rem; }
+  header.page-header h1 { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.35rem; letter-spacing: -0.01em; }
+  .subtitle { color: var(--muted); font-size: 0.95rem; }
+
+  .summary-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem; margin: 1.25rem 0 1.5rem;
+  }
+  .summary-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+  }
+  .summary-card .num { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+  .summary-card .lbl { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.2rem; }
+
+  .controls {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.7rem 1rem; margin-bottom: 1.5rem;
+    display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+  }
+  .controls label { font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 0.45rem; }
+  .controls select {
+    padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 5px;
+    background: white; font-size: 0.9rem; font-family: inherit;
+  }
+  .controls .checkbox { display: flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+
+  section.dataset {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; margin-bottom: 1.25rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .dataset-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid var(--tissue);
+    background: linear-gradient(to right, color-mix(in srgb, var(--tissue) 8%, white), white 60%);
+    border-bottom: 1px solid var(--border);
+  }
+  .dataset-title { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .tissue-chip, .prep-chip, .voxel-chip {
+    font-size: 0.72rem; font-weight: 600; padding: 0.18rem 0.55rem;
+    border-radius: 999px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: white;
+  }
+  .tissue-chip { background: var(--tissue); }
+  .prep-chip   { background: var(--prep); }
+  .voxel-chip  { background: #475569; }
+  .dataset-id  { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.82rem; color: var(--muted); }
+  .dataset-count { color: var(--muted); font-size: 0.85rem; }
+  .needs-count { color: #b45309; font-weight: 600; }
+
+  table.crops-table { width: 100%; border-collapse: collapse; }
+  table.crops-table th {
+    text-align: left; padding: 0.55rem 1rem; background: #f9fafb;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border);
+  }
+  table.crops-table td {
+    padding: 0.55rem 1rem; border-bottom: 1px solid #f1f3f5;
+    font-size: 0.9rem; vertical-align: top;
+  }
+  table.crops-table tr:last-child td { border-bottom: none; }
+  table.crops-table tr:hover td { background: #f9fafb; }
+
+  td.crop { width: 9rem; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.88rem; }
+  td.crop a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  td.crop a:hover { text-decoration: underline; }
+  td.region { width: 18rem; font-weight: 500; }
+  td.region-group { width: 11rem; color: var(--muted); font-size: 0.85rem; }
+  td.desc { color: #374151; }
+
+  .missing {
+    display: inline-block; color: #b45309; font-style: italic;
+    font-weight: 600; font-size: 0.82rem;
+  }
+  .missing::before { content: "✎ needs annotation"; }
+
+  /* Row-level "needs annotation" highlighting. The class is added in
+     server-rendered HTML when the original anatomical_region is empty,
+     and removed by JS once the user fills it in. */
+  tr.needs-annotation td.crop { position: relative; }
+  tr.needs-annotation td.crop::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: #f59e0b;
+  }
+  tr.needs-annotation td { background: #fffbeb; }
+  tr.needs-annotation:hover td { background: #fef3c7; }
+
+  /* Editable cells */
+  td.editable { cursor: text; position: relative; }
+  td.editable:hover { background: #f0f9ff; }
+  td.editable:hover::after {
+    content: "✎"; position: absolute; top: 0.4rem; right: 0.5rem;
+    font-size: 0.75rem; color: #94a3b8;
+  }
+  td.editable.edited { background: #fef3c7; }
+  td.editable.edited::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: #f59e0b;
+  }
+  td.editable textarea {
+    width: 100%; min-height: 2.2rem; padding: 0.35rem 0.5rem;
+    border: 1px solid #94a3b8; border-radius: 4px;
+    font-family: inherit; font-size: 0.88rem; line-height: 1.4;
+    background: white; resize: vertical;
+  }
+  td.editable textarea:focus { outline: 2px solid #2563eb; outline-offset: -1px; border-color: #2563eb; }
+
+  /* Editor toolbar */
+  .editor-bar {
+    background: linear-gradient(to right, #ecfdf5, #f0fdf4);
+    border: 1px solid #a7f3d0; border-radius: 8px;
+    padding: 0.7rem 1rem; margin-bottom: 1.25rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.9rem;
+  }
+  .editor-bar .note { flex: 1 1 14rem; color: #047857; font-size: 0.86rem; }
+  .editor-bar input[type=text] {
+    padding: 0.3rem 0.55rem; border: 1px solid #cbd5e1; border-radius: 5px;
+    font-size: 0.9rem; font-family: inherit; min-width: 12rem; background: white;
+  }
+  .editor-bar button {
+    padding: 0.4rem 0.85rem; border-radius: 6px; font-size: 0.88rem; font-weight: 600;
+    border: 1px solid #059669; background: #10b981; color: white; cursor: pointer;
+    font-family: inherit;
+  }
+  .editor-bar button:disabled { background: #cbd5e1; border-color: #94a3b8; cursor: not-allowed; }
+  .editor-bar button:hover:not(:disabled) { background: #059669; }
+  .editor-bar button.secondary { background: white; color: #047857; border-color: #6ee7b7; }
+  .editor-bar button.secondary:hover { background: #ecfdf5; }
+  .editor-bar .pending-count { font-weight: 700; color: #047857; }
+
+  /* How-to-use panel */
+  .howto {
+    background: #fffbeb; border: 2px solid #fbbf24; border-radius: 10px;
+    padding: 1.1rem 1.4rem; margin-bottom: 1.5rem;
+  }
+  .howto-header {
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; user-select: none;
+  }
+  .howto h2 {
+    margin: 0; font-size: 1.1rem; color: #78350f;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .howto h2::before { content: "👋"; }
+  .howto-toggle {
+    background: transparent; border: 1px solid #d97706; color: #78350f;
+    padding: 0.2rem 0.6rem; border-radius: 5px;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .howto-body { margin-top: 1rem; }
+  .howto.collapsed .howto-body { display: none; }
+  .howto p { margin: 0.4rem 0 0.7rem; line-height: 1.6; }
+  .howto .step-list { list-style: none; padding: 0; margin: 0.8rem 0; counter-reset: stp; }
+  .howto .step-list > li {
+    counter-increment: stp; padding: 0.6rem 0 0.6rem 2.6rem;
+    position: relative; border-top: 1px dashed #fde68a;
+  }
+  .howto .step-list > li:first-child { border-top: none; }
+  .howto .step-list > li::before {
+    content: counter(stp); position: absolute; left: 0; top: 0.55rem;
+    width: 1.8rem; height: 1.8rem; line-height: 1.8rem; text-align: center;
+    background: #f59e0b; color: white; border-radius: 999px;
+    font-weight: 700; font-size: 0.95rem;
+  }
+  .howto .step-title { font-weight: 700; color: #78350f; display: block; margin-bottom: 0.2rem; }
+  .howto kbd {
+    background: white; border: 1px solid #d97706; border-bottom-width: 2px;
+    border-radius: 3px; padding: 0.05rem 0.4rem; font-size: 0.82rem;
+    font-family: ui-monospace, monospace; color: #78350f;
+  }
+  .howto .warn {
+    background: #fef2f2; border-left: 4px solid #ef4444;
+    padding: 0.7rem 1rem; margin-top: 1rem; border-radius: 6px;
+  }
+  .howto .warn strong { color: #991b1b; }
+  .howto .demo-pill {
+    display: inline-block; background: #fef3c7; border: 1px solid #fcd34d;
+    padding: 0.05rem 0.45rem; border-radius: 4px; font-size: 0.82rem;
+  }
+
+  footer { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; }
+  footer code { background: #f3f4f6; padding: 0.05rem 0.3rem; border-radius: 3px; font-size: 0.8rem; }
+
+  @media (max-width: 720px) {
+    .container { padding: 1.25rem 1rem 3rem; }
+    .dataset-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    td.region, td.region-group { width: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="page-header">
+  <h1>ECS analysis crops</h1>
+  <div class="subtitle">CellMap groundtruth crops used in the Chemical vs Rapid HPF extracellular-space morphology study. Use this page to (a) view each crop in Neuroglancer and (b) fill in what anatomical structure the crop is showing.</div>
+  <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="sanity-check.html" style="display:inline-block; padding: 0.4rem 0.9rem; background:#2563eb; color:white; border-radius:6px; text-decoration:none; font-size:0.9rem; font-weight:600;">→ Sanity check: matched-region comparison</a>
+    <a href="contacts.html" style="display:inline-block; padding: 0.4rem 0.9rem; background:#7c3aed; color:white; border-radius:6px; text-decoration:none; font-size:0.9rem; font-weight:600;">→ Liver cell-cell contact sites</a>
+  </div>
+</header>
+
+<div class="howto" id="howto">
+  <div class="howto-header" onclick="document.getElementById('howto').classList.toggle('collapsed')">
+    <h2>How to use this page</h2>
+    <button class="howto-toggle" type="button">Show / hide</button>
+  </div>
+  <div class="howto-body">
+    <p>
+      Each row below is one EM crop. Two things you can do.
+      Rows with a <strong style="color:#b45309">yellow background</strong> still need
+      an anatomical region — those are the ones we'd most like you to fill in.
+    </p>
+
+    <ol class="step-list">
+      <li>
+        <span class="step-title">View a crop in Neuroglancer</span>
+        Click the blue crop ID in the left column (e.g. <span class="demo-pill">crop1033</span>).
+        A new tab opens in Neuroglancer with five layers: <kbd>em</kbd> (raw image, on by default),
+        <kbd>all</kbd> (color-coded full segmentation, on by default), and
+        <kbd>cell</kbd> / <kbd>ecs</kbd> / <kbd>bm</kbd> (off by default — click the eye in
+        Neuroglancer's left panel to toggle).
+      </li>
+      <li>
+        <span class="step-title">Add or edit an anatomical region / description</span>
+        Click any cell in the <strong>Anatomical region</strong>, <strong>Region group</strong>,
+        or <strong>Description</strong> column. The cell turns into a text box. Type, then click
+        outside (or press <kbd>Enter</kbd> for short fields). Press <kbd>Esc</kbd> to cancel an edit
+        without saving. <strong>Edited cells get a yellow background</strong> so you can see what
+        you've changed.
+        <br><br>
+        Use these guidelines:
+        <ul>
+          <li><strong>Anatomical region</strong> — the specific structure shown
+          (e.g. <em>"Bile canaliculus between hepatocytes"</em>).</li>
+          <li><strong>Region group</strong> — a short category that groups similar crops
+          (e.g. <em>"Bile canaliculus"</em>). Match the existing values where possible so
+          we can compare Chemical vs HPF crops with the same group label.</li>
+          <li><strong>Description</strong> — a longer free-text note about what's notable
+          (cell types present, orientation, anything unusual).</li>
+        </ul>
+      </li>
+      <li>
+        <span class="step-title">Send your edits back</span>
+        Type your name in the <strong>Annotator</strong> box up top (this gets attached to each row
+        in the export). Then click <strong>Download CSV</strong>. A file named
+        <code>crop_annotations_edits_…csv</code> downloads to your computer. <strong>Email or
+        Slack that file to Aubrey</strong> — she'll merge it into the master annotation list.
+      </li>
+    </ol>
+
+    <div class="warn">
+      <strong>⚠️ Important:</strong> your edits live in <em>this browser only</em>. They aren't
+      synced anywhere. Two consequences:
+      <ul>
+        <li>If you clear browser data, use private/incognito mode, or switch to a different
+        computer, your edits will not be there.</li>
+        <li>Two people editing simultaneously will not see each other's edits — each sends
+        their own CSV and Aubrey merges them.</li>
+      </ul>
+      <strong>Best practice:</strong> hit <strong>Download CSV</strong> when you finish a
+      batch, even if you plan to come back — it's a backup.
+    </div>
+  </div>
+</div>
+
+<div class="summary-grid">
+  <div class="summary-card"><div class="num">53</div><div class="lbl">Crops total</div></div>
+  <div class="summary-card"><div class="num">41</div><div class="lbl">Annotated</div></div>
+  <div class="summary-card"><div class="num" style="color:#b45309">12</div><div class="lbl">Need annotation</div></div>
+  <div class="summary-card"><div class="num">8</div><div class="lbl">Datasets</div></div>
+</div>
+
+<div class="editor-bar">
+  <label><strong>Your name:</strong> <input type="text" id="annotator-name" placeholder="e.g. KP"></label>
+  <span><span class="pending-count" id="pending-count">0</span> edits pending in this browser</span>
+  <button id="download-edits" disabled title="Download a CSV of just the rows you've edited">⬇ Download CSV</button>
+  <button id="clear-edits" class="secondary" title="Wipe all your unsent edits from this browser">Clear edits</button>
+</div>
+
+<div class="controls">
+  <label>Tissue
+    <select id="tissue-filter">
+      <option value="">All</option>
+      <option>Cortex</option><option>Heart</option><option>Kidney</option><option>Liver</option>
+    </select>
+  </label>
+  <label>Prep
+    <select id="prep-filter">
+      <option value="">All</option>
+      <option>Chemical</option><option>Rapid HPF</option>
+    </select>
+  </label>
+  <label class="checkbox"><input type="checkbox" id="needs-only"> Only show crops needing annotation</label>
+</div>
+
+
+<section class="dataset" data-tissue="Cortex" data-prep="Chemical" style="--tissue: #3b82f6; --prep: #f97316;">
+  <header class="dataset-header">
+    <div class="dataset-title">
+      <span class="tissue-chip">Cortex</span>
+      <span class="prep-chip">Chemical</span>
+      <span class="voxel-chip">2&nbsp;nm</span>
+      <code class="dataset-id">jrc_mus-cortex-3</code>
+    </div>
+    <div class="dataset-count">7 crops</div>
+  </header>
+  <table class="crops-table">
+    <thead>
+      <tr><th class="col-crop">Crop</th><th>Anatomical region</th><th>Region group</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+            <tr class="" data-tissue="Cortex" data-prep="Chemical" data-crop="crop1033" data-tissue-name="Cortex" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Fem%2Ffibsem-int16%22%2C%22name%22%3A%22em%22%2C%22shaderControls%22%3A%7B%22normalized%22%3A%7B%22range%22%3A%5B1114%2C884%5D%2C%22window%22%3A%5B-281%2C1395%5D%7D%7D%2C%22tab%22%3A%22rendering%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1033%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1033%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1033%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1033%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1033</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Unmyelinated nerve fibers">Unmyelinated nerve fibers</td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig="Intercellular space among the unmyelinated nerve fibers.">Intercellular space among the unmyelinated nerve fibers.</td>
+            </tr>
+            <tr class="" data-tissue="Cortex" data-prep="Chemical" data-crop="crop1034" data-tissue-name="Cortex" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Fem%2Ffibsem-int16%22%2C%22name%22%3A%22em%22%2C%22shaderControls%22%3A%7B%22normalized%22%3A%7B%22range%22%3A%5B1114%2C884%5D%2C%22window%22%3A%5B-281%2C1395%5D%7D%7D%2C%22tab%22%3A%22rendering%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1034%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1034%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1034%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1034%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1034</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Neuropil (synaptic cleft)">Neuropil (synaptic cleft)</td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig="Intercellular space in the neuropil including one synaptic cleft.">Intercellular space in the neuropil including one synaptic cleft.</td>
+            </tr>
+            <tr class="" data-tissue="Cortex" data-prep="Chemical" data-crop="crop1035" data-tissue-name="Cortex" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Fem%2Ffibsem-int16%22%2C%22name%22%3A%22em%22%2C%22shaderControls%22%3A%7B%22normalized%22%3A%7B%22range%22%3A%5B1114%2C884%5D%2C%22window%22%3A%5B-281%2C1395%5D%7D%7D%2C%22tab%22%3A%22rendering%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1035%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1035%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1035%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1035%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1035</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Neuronal cell processes">Neuronal cell processes</td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig="Intercellular space between two neuron cell processes.">Intercellular space between two neuron cell processes.</td>
+            </tr>
+            <tr class="" data-tissue="Cortex" data-prep="Chemical" data-crop="crop1036" data-tissue-name="Cortex" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Fem%2Ffibsem-int16%22%2C%22name%22%3A%22em%22%2C%22shaderControls%22%3A%7B%22normalized%22%3A%7B%22range%22%3A%5B1114%2C884%5D%2C%22window%22%3A%5B-281%2C1395%5D%7D%7D%2C%22tab%22%3A%22rendering%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1036%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1036%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1036%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1036%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1036</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Glial-neuronal (synaptic clefts)">Glial-neuronal (synaptic clefts)</td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig="Intercellular space between one glial cell and several neuron cells including 3 synaptic clefts.">Intercellular space between one glial cell and several neuron cells including 3 synaptic clefts.</td>
+            </tr>
+            <tr class="" data-tissue="Cortex" data-prep="Chemical" data-crop="crop1037" data-tissue-name="Cortex" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Fem%2Ffibsem-int16%22%2C%22name%22%3A%22em%22%2C%22shaderControls%22%3A%7B%22normalized%22%3A%7B%22range%22%3A%5B1114%2C884%5D%2C%22window%22%3A%5B-281%2C1395%5D%7D%7D%2C%22tab%22%3A%22rendering%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1037%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1037%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1037%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1037%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1037</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Neurovascular (endothelium/glia/neurons)">Neurovascular (endothelium/glia/neurons)</td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig="Intercellular space among the neurovascular endothelium, glial cell and neuron cells.">Intercellular space among the neurovascular endothelium, glial cell and neuron cells.</td>
+            </tr>
+            <tr class="" data-tissue="Cortex" data-prep="Chemical" data-crop="crop1045" data-tissue-name="Cortex" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Fem%2Ffibsem-int16%22%2C%22name%22%3A%22em%22%2C%22shaderControls%22%3A%7B%22normalized%22%3A%7B%22range%22%3A%5B1114%2C884%5D%2C%22window%22%3A%5B-281%2C1395%5D%7D%7D%2C%22tab%22%3A%22rendering%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1045%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1045%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1045%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1045%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1045</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Neurovascular (mixed nerve fibers)">Neurovascular (mixed nerve fibers)</td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig="Intercellular space among the neurovascular endothelium, glial cell, myelinated and unmyelinated nerve fibers.">Intercellular space among the neurovascular endothelium, glial cell, myelinated and unmyelinated nerve fibers.</td>
+            </tr>
+            <tr class="" data-tissue="Cortex" data-prep="Chemical" data-crop="crop1046" data-tissue-name="Cortex" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Fem%2Ffibsem-int16%22%2C%22name%22%3A%22em%22%2C%22shaderControls%22%3A%7B%22normalized%22%3A%7B%22range%22%3A%5B1114%2C884%5D%2C%22window%22%3A%5B-281%2C1395%5D%7D%7D%2C%22tab%22%3A%22rendering%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1046%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1046%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1046%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-3%2Fjrc_mus-cortex-3.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1046%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1046</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Neurovascular (myelinated/unmyelinated fibers)">Neurovascular (myelinated/unmyelinated fibers)</td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig="Intercellular space among the neurovascular endothelium, myelinated and unmyelinated nerve fibers.">Intercellular space among the neurovascular endothelium, myelinated and unmyelinated nerve fibers.</td>
+            </tr>
+    </tbody>
+  </table>
+</section>
+<section class="dataset" data-tissue="Cortex" data-prep="Rapid HPF" style="--tissue: #3b82f6; --prep: #0ea5e9;">
+  <header class="dataset-header">
+    <div class="dataset-title">
+      <span class="tissue-chip">Cortex</span>
+      <span class="prep-chip">Rapid HPF</span>
+      <span class="voxel-chip">8&nbsp;nm</span>
+      <code class="dataset-id">jrc_mus-cortex-2</code>
+    </div>
+    <div class="dataset-count">2 crops &middot; <span class="needs-count">2 need annotation</span></div>
+  </header>
+  <table class="crops-table">
+    <thead>
+      <tr><th class="col-crop">Crop</th><th>Anatomical region</th><th>Region group</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+            <tr class="needs-annotation" data-tissue="Cortex" data-prep="Rapid HPF" data-crop="crop1116" data-tissue-name="Cortex" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-2%2Fjrc_mus-cortex-2.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-2%2Fjrc_mus-cortex-2.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1116%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-2%2Fjrc_mus-cortex-2.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1116%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-2%2Fjrc_mus-cortex-2.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1116%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-2%2Fjrc_mus-cortex-2.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1116%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1116</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+            <tr class="needs-annotation" data-tissue="Cortex" data-prep="Rapid HPF" data-crop="crop1117" data-tissue-name="Cortex" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-2%2Fjrc_mus-cortex-2.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-2%2Fjrc_mus-cortex-2.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1117%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-2%2Fjrc_mus-cortex-2.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1117%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-2%2Fjrc_mus-cortex-2.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1117%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-2%2Fjrc_mus-cortex-2.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1117%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1117</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+    </tbody>
+  </table>
+</section>
+<section class="dataset" data-tissue="Cortex" data-prep="Rapid HPF" style="--tissue: #3b82f6; --prep: #0ea5e9;">
+  <header class="dataset-header">
+    <div class="dataset-title">
+      <span class="tissue-chip">Cortex</span>
+      <span class="prep-chip">Rapid HPF</span>
+      <span class="voxel-chip">8&nbsp;nm</span>
+      <code class="dataset-id">jrc_mus-cortex-4</code>
+    </div>
+    <div class="dataset-count">5 crops &middot; <span class="needs-count">5 need annotation</span></div>
+  </header>
+  <table class="crops-table">
+    <thead>
+      <tr><th class="col-crop">Crop</th><th>Anatomical region</th><th>Region group</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+            <tr class="needs-annotation" data-tissue="Cortex" data-prep="Rapid HPF" data-crop="crop1139" data-tissue-name="Cortex" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1139%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1139%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1139%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1139%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1139</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+            <tr class="needs-annotation" data-tissue="Cortex" data-prep="Rapid HPF" data-crop="crop1140" data-tissue-name="Cortex" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1140%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1140%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1140%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1140%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1140</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+            <tr class="needs-annotation" data-tissue="Cortex" data-prep="Rapid HPF" data-crop="crop1141" data-tissue-name="Cortex" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1141%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1141%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1141%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1141%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1141</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+            <tr class="needs-annotation" data-tissue="Cortex" data-prep="Rapid HPF" data-crop="crop1142" data-tissue-name="Cortex" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1142%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1142%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1142%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1142%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1142</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+            <tr class="needs-annotation" data-tissue="Cortex" data-prep="Rapid HPF" data-crop="crop1143" data-tissue-name="Cortex" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1143%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1143%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1143%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-cortex-4%2Fjrc_mus-cortex-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1143%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1143</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+    </tbody>
+  </table>
+</section>
+<section class="dataset" data-tissue="Heart" data-prep="Chemical" style="--tissue: #ef4444; --prep: #f97316;">
+  <header class="dataset-header">
+    <div class="dataset-title">
+      <span class="tissue-chip">Heart</span>
+      <span class="prep-chip">Chemical</span>
+      <span class="voxel-chip">8&nbsp;nm</span>
+      <code class="dataset-id">jrc_mus-heart-6</code>
+    </div>
+    <div class="dataset-count">4 crops</div>
+  </header>
+  <table class="crops-table">
+    <thead>
+      <tr><th class="col-crop">Crop</th><th>Anatomical region</th><th>Region group</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+            <tr class="" data-tissue="Heart" data-prep="Chemical" data-crop="crop1145" data-tissue-name="Heart" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1145%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1145%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1145%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1145%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1145</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Interstitial">Interstitial</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Cardiac interstitial">Cardiac interstitial</td>
+                <td class="editable desc" data-field="annotation" data-orig="The interstitial space among one blood vessel and two cardiac cells.">The interstitial space among one blood vessel and two cardiac cells.</td>
+            </tr>
+            <tr class="" data-tissue="Heart" data-prep="Chemical" data-crop="crop1146" data-tissue-name="Heart" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1146%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1146%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1146%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1146%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1146</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Interstitial">Interstitial</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Cardiac interstitial">Cardiac interstitial</td>
+                <td class="editable desc" data-field="annotation" data-orig="The interstitial space among one blood vessel, one fibrocyte and two cardiac cells.">The interstitial space among one blood vessel, one fibrocyte and two cardiac cells.</td>
+            </tr>
+            <tr class="" data-tissue="Heart" data-prep="Chemical" data-crop="crop1147" data-tissue-name="Heart" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1147%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1147%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1147%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1147%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1147</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Intercalated disc">Intercalated disc</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Intercalated disc">Intercalated disc</td>
+                <td class="editable desc" data-field="annotation" data-orig="The portion is the intercalated disc space and other portion is interstitial space between two cardiac cells">The portion is the intercalated disc space and other portion is interstitial space between two cardiac cells</td>
+            </tr>
+            <tr class="" data-tissue="Heart" data-prep="Chemical" data-crop="crop1148" data-tissue-name="Heart" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1148%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1148%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1148%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-heart-6%2Fjrc_mus-heart-6.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1148%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1148</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Intercalated disc">Intercalated disc</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Intercalated disc">Intercalated disc</td>
+                <td class="editable desc" data-field="annotation" data-orig="The intercalated disc, sarcolemma and interstitial space between two cardiac cells.">The intercalated disc, sarcolemma and interstitial space between two cardiac cells.</td>
+            </tr>
+    </tbody>
+  </table>
+</section>
+<section class="dataset" data-tissue="Kidney" data-prep="Chemical" style="--tissue: #f59e0b; --prep: #f97316;">
+  <header class="dataset-header">
+    <div class="dataset-title">
+      <span class="tissue-chip">Kidney</span>
+      <span class="prep-chip">Chemical</span>
+      <span class="voxel-chip">4&nbsp;nm</span>
+      <code class="dataset-id">jrc_mus-kidney</code>
+    </div>
+    <div class="dataset-count">7 crops</div>
+  </header>
+  <table class="crops-table">
+    <thead>
+      <tr><th class="col-crop">Crop</th><th>Anatomical region</th><th>Region group</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+            <tr class="" data-tissue="Kidney" data-prep="Chemical" data-crop="crop1026" data-tissue-name="Kidney" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1026%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1026%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1026%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1026%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1026</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Glomerular interstitium">Glomerular interstitium</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Glomerular">Glomerular</td>
+                <td class="editable desc" data-field="annotation" data-orig="The interstitial space among fenestrated endothelium, podocyte and basal membrane.">The interstitial space among fenestrated endothelium, podocyte and basal membrane.</td>
+            </tr>
+            <tr class="" data-tissue="Kidney" data-prep="Chemical" data-crop="crop1027" data-tissue-name="Kidney" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1027%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1027%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1027%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1027%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1027</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Glomerular interstitium">Glomerular interstitium</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Glomerular">Glomerular</td>
+                <td class="editable desc" data-field="annotation" data-orig="The interstitial space among fenestrated endothelium, podocyte and basal membrane.">The interstitial space among fenestrated endothelium, podocyte and basal membrane.</td>
+            </tr>
+            <tr class="" data-tissue="Kidney" data-prep="Chemical" data-crop="crop1028" data-tissue-name="Kidney" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1028%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1028%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1028%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1028%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1028</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="PCT brush border">PCT brush border</td>
+                <td class="editable region-group" data-field="region_group" data-orig="PCT brush border">PCT brush border</td>
+                <td class="editable desc" data-field="annotation" data-orig="The microvilli at PCT brush border.">The microvilli at PCT brush border.</td>
+            </tr>
+            <tr class="" data-tissue="Kidney" data-prep="Chemical" data-crop="crop1029" data-tissue-name="Kidney" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1029%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1029%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1029%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1029%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1029</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="PCT brush border">PCT brush border</td>
+                <td class="editable region-group" data-field="region_group" data-orig="PCT brush border">PCT brush border</td>
+                <td class="editable desc" data-field="annotation" data-orig="The microvilli at PCT brush border.">The microvilli at PCT brush border.</td>
+            </tr>
+            <tr class="" data-tissue="Kidney" data-prep="Chemical" data-crop="crop1030" data-tissue-name="Kidney" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1030%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1030%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1030%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1030%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1030</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="DCT base">DCT base</td>
+                <td class="editable region-group" data-field="region_group" data-orig="DCT base">DCT base</td>
+                <td class="editable desc" data-field="annotation" data-orig="The base of the epithelium (striping) in a DCT, basement lamina, basal space between DCT.">The base of the epithelium (striping) in a DCT, basement lamina, basal space between DCT.</td>
+            </tr>
+            <tr class="" data-tissue="Kidney" data-prep="Chemical" data-crop="crop1031" data-tissue-name="Kidney" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1031%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1031%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1031%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1031%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1031</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="PCT lateral">PCT lateral</td>
+                <td class="editable region-group" data-field="region_group" data-orig="PCT lateral">PCT lateral</td>
+                <td class="editable desc" data-field="annotation" data-orig="The lateral space between two the apical epitheliums of PCT.">The lateral space between two the apical epitheliums of PCT.</td>
+            </tr>
+            <tr class="" data-tissue="Kidney" data-prep="Chemical" data-crop="crop1032" data-tissue-name="Kidney" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1032%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1032%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1032%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney%2Fjrc_mus-kidney.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1032%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1032</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="PCT base">PCT base</td>
+                <td class="editable region-group" data-field="region_group" data-orig="PCT base">PCT base</td>
+                <td class="editable desc" data-field="annotation" data-orig="The base of the epithelium (striping) in a PCT, basement lamina, basal space between PCT.">The base of the epithelium (striping) in a PCT, basement lamina, basal space between PCT.</td>
+            </tr>
+    </tbody>
+  </table>
+</section>
+<section class="dataset" data-tissue="Kidney" data-prep="Rapid HPF" style="--tissue: #f59e0b; --prep: #0ea5e9;">
+  <header class="dataset-header">
+    <div class="dataset-title">
+      <span class="tissue-chip">Kidney</span>
+      <span class="prep-chip">Rapid HPF</span>
+      <span class="voxel-chip">8&nbsp;nm</span>
+      <code class="dataset-id">jrc_mus-kidney-4</code>
+    </div>
+    <div class="dataset-count">6 crops</div>
+  </header>
+  <table class="crops-table">
+    <thead>
+      <tr><th class="col-crop">Crop</th><th>Anatomical region</th><th>Region group</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+            <tr class="" data-tissue="Kidney" data-prep="Rapid HPF" data-crop="crop1134" data-tissue-name="Kidney" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1134%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1134%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1134%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1134%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1134</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Glomerular interstitium">Glomerular interstitium</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Glomerular">Glomerular</td>
+                <td class="editable desc" data-field="annotation" data-orig="The interstitial space among fenestrated endothelium, podocyte and basal membrane.">The interstitial space among fenestrated endothelium, podocyte and basal membrane.</td>
+            </tr>
+            <tr class="" data-tissue="Kidney" data-prep="Rapid HPF" data-crop="crop1135" data-tissue-name="Kidney" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1135%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1135%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1135%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1135%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1135</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Glomerular interstitium">Glomerular interstitium</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Glomerular">Glomerular</td>
+                <td class="editable desc" data-field="annotation" data-orig="The interstitial space among capillary endothelial cell, basal lamina and podocyte.">The interstitial space among capillary endothelial cell, basal lamina and podocyte.</td>
+            </tr>
+            <tr class="" data-tissue="Kidney" data-prep="Rapid HPF" data-crop="crop1136" data-tissue-name="Kidney" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1136%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1136%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1136%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1136%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1136</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="DCT base">DCT base</td>
+                <td class="editable region-group" data-field="region_group" data-orig="DCT base">DCT base</td>
+                <td class="editable desc" data-field="annotation" data-orig="The base of the epithelium (striping) in a DCT, connecting tubule and ECS between them.">The base of the epithelium (striping) in a DCT, connecting tubule and ECS between them.</td>
+            </tr>
+            <tr class="" data-tissue="Kidney" data-prep="Rapid HPF" data-crop="crop1137" data-tissue-name="Kidney" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1137%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1137%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1137%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1137%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1137</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="DCT base">DCT base</td>
+                <td class="editable region-group" data-field="region_group" data-orig="DCT base">DCT base</td>
+                <td class="editable desc" data-field="annotation" data-orig="The base of the epithelium (striping) in a DCT, basal lamina, endothelium of blood vessel and interstitial space.">The base of the epithelium (striping) in a DCT, basal lamina, endothelium of blood vessel and interstitial space.</td>
+            </tr>
+            <tr class="" data-tissue="Kidney" data-prep="Rapid HPF" data-crop="crop1138" data-tissue-name="Kidney" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1138%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1138%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1138%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1138%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1138</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="PCT lateral">PCT lateral</td>
+                <td class="editable region-group" data-field="region_group" data-orig="PCT lateral">PCT lateral</td>
+                <td class="editable desc" data-field="annotation" data-orig="The lateral space between two the apical epithelium of PCT.">The lateral space between two the apical epithelium of PCT.</td>
+            </tr>
+            <tr class="" data-tissue="Kidney" data-prep="Rapid HPF" data-crop="crop1144" data-tissue-name="Kidney" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1144%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1144%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1144%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-kidney-4%2Fjrc_mus-kidney-4.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1144%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1144</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="DCT base">DCT base</td>
+                <td class="editable region-group" data-field="region_group" data-orig="DCT base">DCT base</td>
+                <td class="editable desc" data-field="annotation" data-orig="The base of the epithelium (striping) in a DCT.">The base of the epithelium (striping) in a DCT.</td>
+            </tr>
+    </tbody>
+  </table>
+</section>
+<section class="dataset" data-tissue="Liver" data-prep="Chemical" style="--tissue: #84cc16; --prep: #f97316;">
+  <header class="dataset-header">
+    <div class="dataset-title">
+      <span class="tissue-chip">Liver</span>
+      <span class="prep-chip">Chemical</span>
+      <span class="voxel-chip">4&nbsp;nm</span>
+      <code class="dataset-id">jrc_mus-liver</code>
+    </div>
+    <div class="dataset-count">12 crops &middot; <span class="needs-count">5 need annotation</span></div>
+  </header>
+  <table class="crops-table">
+    <thead>
+      <tr><th class="col-crop">Crop</th><th>Anatomical region</th><th>Region group</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+            <tr class="" data-tissue="Liver" data-prep="Chemical" data-crop="crop1038" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1038%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1038%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1038%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1038%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1038</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Space of Disse">Space of Disse</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Space of Disse">Space of Disse</td>
+                <td class="editable desc" data-field="annotation" data-orig="The space of Disse between the hepatocyte and the endothelium of the sinusoid.">The space of Disse between the hepatocyte and the endothelium of the sinusoid.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Chemical" data-crop="crop1039" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1039%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1039%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1039%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1039%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1039</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable desc" data-field="annotation" data-orig="The area of the bile canaliculus among three hepatocytes.">The area of the bile canaliculus among three hepatocytes.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Chemical" data-crop="crop1040" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1040%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1040%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1040%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1040%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1040</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable desc" data-field="annotation" data-orig="The bile canaliculus between two hepatocytes.">The bile canaliculus between two hepatocytes.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Chemical" data-crop="crop1041" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1041%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1041%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1041%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1041%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1041</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Space of Disse">Space of Disse</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Space of Disse">Space of Disse</td>
+                <td class="editable desc" data-field="annotation" data-orig="The space of Disse between the hepatocyte and the endothelium of the sinusoid.">The space of Disse between the hepatocyte and the endothelium of the sinusoid.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Chemical" data-crop="crop1042" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1042%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1042%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1042%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1042%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1042</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable desc" data-field="annotation" data-orig="The bile canaliculus between two hepatocytes.">The bile canaliculus between two hepatocytes.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Chemical" data-crop="crop1043" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1043%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1043%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1043%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1043%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1043</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Space of Disse">Space of Disse</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Space of Disse">Space of Disse</td>
+                <td class="editable desc" data-field="annotation" data-orig="The space of Disse near to two hepatocyte tight junction area.">The space of Disse near to two hepatocyte tight junction area.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Chemical" data-crop="crop1044" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1044%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1044%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1044%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1044%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1044</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable desc" data-field="annotation" data-orig="The intercellular space between the hepatocyte and the Kupffer cell.">The intercellular space between the hepatocyte and the Kupffer cell.</td>
+            </tr>
+            <tr class="needs-annotation" data-tissue="Liver" data-prep="Chemical" data-crop="crop1118" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1118%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1118%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1118%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1118%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1118</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+            <tr class="needs-annotation" data-tissue="Liver" data-prep="Chemical" data-crop="crop1119" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1119%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1119%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1119%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1119%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1119</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+            <tr class="needs-annotation" data-tissue="Liver" data-prep="Chemical" data-crop="crop1120" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1120%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1120%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1120%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1120%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1120</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+            <tr class="needs-annotation" data-tissue="Liver" data-prep="Chemical" data-crop="crop1121" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1121%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1121%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1121%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1121%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1121</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+            <tr class="needs-annotation" data-tissue="Liver" data-prep="Chemical" data-crop="crop1122" data-tissue-name="Liver" data-prep-name="Chemical">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Fem%2Ffibsem-uint8%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1122%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1122%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1122%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver%2Fjrc_mus-liver.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1122%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1122</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig=""><span class="missing">—</span></td>
+                <td class="editable region-group" data-field="region_group" data-orig=""><span class="missing">—</span></td>
+                <td class="editable desc" data-field="annotation" data-orig=""><span class="missing">—</span></td>
+            </tr>
+    </tbody>
+  </table>
+</section>
+<section class="dataset" data-tissue="Liver" data-prep="Rapid HPF" style="--tissue: #84cc16; --prep: #0ea5e9;">
+  <header class="dataset-header">
+    <div class="dataset-title">
+      <span class="tissue-chip">Liver</span>
+      <span class="prep-chip">Rapid HPF</span>
+      <span class="voxel-chip">8&nbsp;nm</span>
+      <code class="dataset-id">jrc_mus-liver-8</code>
+    </div>
+    <div class="dataset-count">10 crops</div>
+  </header>
+  <table class="crops-table">
+    <thead>
+      <tr><th class="col-crop">Crop</th><th>Anatomical region</th><th>Region group</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+            <tr class="" data-tissue="Liver" data-prep="Rapid HPF" data-crop="crop1071" data-tissue-name="Liver" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1071%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1071%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1071%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1071%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1071</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable desc" data-field="annotation" data-orig="The intercellular space among two hepatocytes and the Kupffer cell.">The intercellular space among two hepatocytes and the Kupffer cell.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Rapid HPF" data-crop="crop1072" data-tissue-name="Liver" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1072%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1072%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1072%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1072%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1072</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable desc" data-field="annotation" data-orig="The bile canaliculus between two hepatocytes.">The bile canaliculus between two hepatocytes.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Rapid HPF" data-crop="crop1073" data-tissue-name="Liver" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1073%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1073%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1073%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1073%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1073</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable desc" data-field="annotation" data-orig="The bile canaliculus among three hepatocytes.">The bile canaliculus among three hepatocytes.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Rapid HPF" data-crop="crop1074" data-tissue-name="Liver" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1074%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1074%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1074%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1074%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1074</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable desc" data-field="annotation" data-orig="The bile canaliculus among three hepatocytes.">The bile canaliculus among three hepatocytes.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Rapid HPF" data-crop="crop1075" data-tissue-name="Liver" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1075%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1075%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1075%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1075%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1075</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Bile canaliculus">Bile canaliculus</td>
+                <td class="editable desc" data-field="annotation" data-orig="The bile canaliculus and the lateral space between two hepatocytes.">The bile canaliculus and the lateral space between two hepatocytes.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Rapid HPF" data-crop="crop1123" data-tissue-name="Liver" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1123%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1123%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1123%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1123%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1123</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Tight junction">Tight junction</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable desc" data-field="annotation" data-orig="The tight junction between two hepatocytes near the bile canaliculus.">The tight junction between two hepatocytes near the bile canaliculus.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Rapid HPF" data-crop="crop1124" data-tissue-name="Liver" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1124%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1124%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1124%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1124%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1124</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable desc" data-field="annotation" data-orig="The interstitial space between two hepatocytes lateral membranes.">The interstitial space between two hepatocytes lateral membranes.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Rapid HPF" data-crop="crop1125" data-tissue-name="Liver" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1125%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1125%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1125%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1125%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1125</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable desc" data-field="annotation" data-orig="The interstitial space between three hepatocytes lateral membranes.">The interstitial space between three hepatocytes lateral membranes.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Rapid HPF" data-crop="crop1126" data-tissue-name="Liver" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1126%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1126%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1126%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1126%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1126</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Tight junction">Tight junction</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable desc" data-field="annotation" data-orig="The tight junction and the interstitial space between two hepatocytes lateral membranes.">The tight junction and the interstitial space between two hepatocytes lateral membranes.</td>
+            </tr>
+            <tr class="" data-tissue="Liver" data-prep="Rapid HPF" data-crop="crop1127" data-tissue-name="Liver" data-prep-name="Rapid HPF">
+                <td class="crop"><a href="https://neuroglancer-demo.appspot.com/#!%7B%22layers%22%3A%5B%7B%22type%22%3A%22image%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Fem%2Ffibsem-uint16%22%2C%22name%22%3A%22em%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1127%2Fall%22%2C%22name%22%3A%22all%22%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1127%2Fcell%22%2C%22name%22%3A%22cell%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1127%2Fecs%22%2C%22name%22%3A%22ecs%22%2C%22visible%22%3Afalse%7D%2C%7B%22type%22%3A%22segmentation%22%2C%22source%22%3A%22zarr%3A%2F%2Fhttps%3A%2F%2Fcellmap-vm1.int.janelia.org%2Fnrs%2Fdata%2Fjrc_mus-liver-8%2Fjrc_mus-liver-8.zarr%2Frecon-1%2Flabels%2Fgroundtruth%2Fcrop1127%2Fbm%22%2C%22name%22%3A%22bm%22%2C%22visible%22%3Afalse%7D%5D%2C%22selectedLayer%22%3A%7B%22layer%22%3A%22em%22%7D%2C%22layout%22%3A%224panel%22%7D" target="_blank" rel="noopener">crop1127</a></td>
+                <td class="editable region" data-field="anatomical_region" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable region-group" data-field="region_group" data-orig="Hepatocyte lateral">Hepatocyte lateral</td>
+                <td class="editable desc" data-field="annotation" data-orig="The interstitial space between three hepatocytes lateral membranes.">The interstitial space between three hepatocytes lateral membranes.</td>
+            </tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  Click a crop ID to open it in Neuroglancer (em + all-labels + per-label segmentations: cell / ecs / bm).
+  Click any region/description cell to edit; edits live in your browser's localStorage and can be exported as CSV with the <strong>Download CSV</strong> button.
+  <br>
+  Rows with a <strong style="color:#b45309">yellow background and orange left bar</strong> are crops that still need an anatomical region. The "Need annotation" count in the summary updates as you fill these in.
+</footer>
+
+</div>
+
+<script>
+const sections = document.querySelectorAll('section.dataset');
+function applyFilters() {
+  const t = document.getElementById('tissue-filter').value;
+  const p = document.getElementById('prep-filter').value;
+  const needsOnly = document.getElementById('needs-only').checked;
+  sections.forEach(sec => {
+    const sectionTissueOk = !t || sec.dataset.tissue === t;
+    const sectionPrepOk = !p || sec.dataset.prep === p;
+    let visibleRows = 0;
+    sec.querySelectorAll('tbody tr').forEach(tr => {
+      const needsAnnotation = tr.classList.contains('needs-annotation');
+      const ok = sectionTissueOk && sectionPrepOk && (!needsOnly || needsAnnotation);
+      tr.style.display = ok ? '' : 'none';
+      if (ok) visibleRows++;
+    });
+    sec.style.display = visibleRows ? '' : 'none';
+  });
+}
+['tissue-filter', 'prep-filter', 'needs-only'].forEach(id => document.getElementById(id).addEventListener('change', applyFilters));
+
+/* ============================================================
+   Inline annotation editor — edits persist in localStorage so a
+   user can come back to the page and continue annotating without
+   losing work, then export a CSV of just the rows they touched.
+   ============================================================ */
+const STORAGE_KEY = 'ecs-handoff-edits-v1';
+const NAME_KEY = 'ecs-handoff-annotator';
+
+function loadEdits() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+function saveEdits(e) { localStorage.setItem(STORAGE_KEY, JSON.stringify(e)); }
+
+const annotatorInput = document.getElementById('annotator-name');
+annotatorInput.value = localStorage.getItem(NAME_KEY) || '';
+annotatorInput.addEventListener('input', () => localStorage.setItem(NAME_KEY, annotatorInput.value));
+
+function renderCellText(text) {
+  if (!text) return '<span class="missing">—</span>';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function paintEditedState() {
+  const edits = loadEdits();
+  document.querySelectorAll('td.editable').forEach(td => {
+    const crop = td.closest('tr').dataset.crop;
+    const field = td.dataset.field;
+    const orig = td.dataset.orig || '';
+    const editedVal = edits[crop] && edits[crop][field];
+    if (editedVal !== undefined && editedVal !== orig) {
+      td.classList.add('edited');
+      td.innerHTML = renderCellText(editedVal);
+    } else {
+      td.classList.remove('edited');
+      td.innerHTML = renderCellText(orig);
+    }
+  });
+  // Re-evaluate "needs annotation" per row based on the live value of
+  // anatomical_region (original + any edit).
+  document.querySelectorAll('tr[data-crop]').forEach(tr => {
+    const crop = tr.dataset.crop;
+    const td = tr.querySelector('td[data-field="anatomical_region"]');
+    const orig = td.dataset.orig || '';
+    const edit = edits[crop] && edits[crop].anatomical_region;
+    const live = edit !== undefined ? edit : orig;
+    tr.classList.toggle('needs-annotation', !live);
+  });
+  refreshCount();
+  // Filters depend on the needs-annotation class; re-apply.
+  if (typeof applyFilters === 'function') applyFilters();
+}
+
+function refreshCount() {
+  const edits = loadEdits();
+  const n = Object.values(edits).reduce((sum, fields) => sum + Object.keys(fields).length, 0);
+  document.getElementById('pending-count').textContent = n;
+  document.getElementById('download-edits').disabled = n === 0;
+}
+
+function beginEdit(td) {
+  if (td.querySelector('textarea')) return;
+  const edits = loadEdits();
+  const crop = td.closest('tr').dataset.crop;
+  const field = td.dataset.field;
+  const orig = td.dataset.orig || '';
+  const current = (edits[crop] && edits[crop][field] !== undefined) ? edits[crop][field] : orig;
+
+  const ta = document.createElement('textarea');
+  ta.value = current;
+  ta.rows = field === 'annotation' ? 3 : 1;
+  td.innerHTML = '';
+  td.appendChild(ta);
+  ta.focus();
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+
+  function commit() {
+    const v = ta.value.trim();
+    const edits = loadEdits();
+    if (v === (td.dataset.orig || '')) {
+      // Equal to original → remove any stored edit.
+      if (edits[crop]) {
+        delete edits[crop][field];
+        if (!Object.keys(edits[crop]).length) delete edits[crop];
+      }
+    } else {
+      edits[crop] = edits[crop] || {};
+      edits[crop][field] = v;
+    }
+    saveEdits(edits);
+    paintEditedState();
+  }
+
+  ta.addEventListener('blur', commit);
+  ta.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') { ev.preventDefault(); ta.value = current; ta.blur(); }
+    if (ev.key === 'Enter' && !ev.shiftKey && field !== 'annotation') { ev.preventDefault(); ta.blur(); }
+  });
+}
+
+document.querySelectorAll('td.editable').forEach(td => {
+  td.addEventListener('click', (ev) => {
+    if (ev.target.tagName === 'TEXTAREA') return;
+    beginEdit(td);
+  });
+});
+
+function csvEscape(s) {
+  s = s == null ? '' : String(s);
+  return /[,"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+document.getElementById('download-edits').addEventListener('click', () => {
+  const edits = loadEdits();
+  const annotator = annotatorInput.value.trim();
+  const cropMeta = {};
+  document.querySelectorAll('tr[data-crop]').forEach(tr => {
+    cropMeta[tr.dataset.crop] = {
+      tissue: tr.dataset.tissueName,
+      prep: tr.dataset.prepName,
+    };
+  });
+  const headers = ['crop','tissue','prep','anatomical_region','region_group','annotation','annotator'];
+  const lines = [headers.join(',')];
+  Object.keys(edits).sort().forEach(crop => {
+    const e = edits[crop];
+    const tds = document.querySelector('tr[data-crop="' + crop + '"]');
+    const orig = (field) => tds.querySelector('td[data-field="' + field + '"]').dataset.orig || '';
+    const get = (field) => e[field] !== undefined ? e[field] : orig(field);
+    lines.push([
+      crop,
+      cropMeta[crop].tissue,
+      cropMeta[crop].prep,
+      get('anatomical_region'),
+      get('region_group'),
+      get('annotation'),
+      annotator,
+    ].map(csvEscape).join(','));
+  });
+  const blob = new Blob([lines.join('\n') + '\n'], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  a.download = `crop_annotations_edits_${stamp}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('clear-edits').addEventListener('click', () => {
+  if (!Object.keys(loadEdits()).length) return;
+  if (!confirm('Clear all pending edits in this browser?')) return;
+  saveEdits({});
+  paintEditedState();
+});
+
+paintEditedState();
+</script>
+</body>
+</html>
