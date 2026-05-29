@@ -59,7 +59,8 @@ def extract_patch(V, F, keep_face):
 
 
 def build_patch(crop, cell: int | None = None, voxel: float = 8.0,
-                scale: float = 60.0, contact: float = 40.0) -> dict:
+                scale: float = 60.0, contact: float = 40.0,
+                dilate_rings: int = 2, boundary_margin: float = 2.0) -> dict:
     """Load a crop, pick a membrane-rich cell, mesh it, and extract the
     ECS-facing membrane patch with per-vertex scalars (all aligned to the
     patch vertices). Raises on degenerate/empty geometry. Shared by the PNG
@@ -93,7 +94,25 @@ def build_patch(crop, cell: int | None = None, voxel: float = 8.0,
         gap = np.full(len(V), np.nan)
 
     ecs_facing_v = classify_ecs_facing_vertices(V, vx, data.ecs)
-    keep = ecs_facing_v[F].mean(axis=1) >= 0.5
+    # The ECS-facing test flickers vertex-to-vertex on the smoothed surface,
+    # which drops scattered interior faces (pinholes). Dilate the mask a few
+    # vertex-rings along mesh edges to close those holes before extracting the
+    # patch; the boundary only grows by ~dilate_rings vertices.
+    if dilate_rings > 0:
+        edges = np.asarray(tm.edges_unique)
+        for _ in range(dilate_rings):
+            grown = ecs_facing_v.copy()
+            grown[edges[:, 0]] |= ecs_facing_v[edges[:, 1]]
+            grown[edges[:, 1]] |= ecs_facing_v[edges[:, 0]]
+            ecs_facing_v = grown
+    # Where the cell touches the crop's volume boundary, marching cubes caps it
+    # with a flat face; the cap's rim is an artificial 90-degree edge that reads
+    # as very high curvature. Drop faces within `boundary_margin` voxels of any
+    # volume face so the cut edge isn't shown / measured as real membrane.
+    vol_nm = np.asarray(data.cell.shape) * np.asarray(vx)
+    m = boundary_margin * vx[0]
+    near_bd = (V <= m).any(axis=1) | (V >= (vol_nm - m)).any(axis=1)
+    keep = (ecs_facing_v[F].mean(axis=1) >= 0.5) & ~near_bd[F].any(axis=1)
     if keep.sum() < 4:
         raise ValueError("no ECS-facing membrane patch")
     Vp, Fp, used = extract_patch(V, F, keep)
@@ -157,30 +176,80 @@ def export_patch_glb(crop, out_path: Path, scalar: str = "gap",
     return glb_from_patch(p, out_path, scalar)
 
 
+def bin_from_patch(p: dict, out_path: Path) -> dict:
+    """Write raw geometry + scalar values as a flat little-endian binary for the
+    three.js inspector (which colormaps client-side). Layout, in order:
+        positions  float32 [nverts*3]
+        indices    uint32  [nfaces*3]
+        curvature  float32 [nverts]
+        deviation  float32 [nverts]
+        gap        float32 [nverts]
+    Counts and per-scalar ranges go in the returned metadata (the inspector
+    reads them from the manifest to slice the buffer)."""
+    V = np.ascontiguousarray(p["Vp"], dtype="<f4")
+    F = np.ascontiguousarray(p["Fp"], dtype="<u4")
+    cur = np.ascontiguousarray(p["curvature"], dtype="<f4")
+    dev = np.ascontiguousarray(p["deviation"], dtype="<f4")
+    gap = np.ascontiguousarray(p["gap"], dtype="<f4")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "wb") as f:
+        for arr in (V, F, cur, dev, gap):
+            f.write(arr.tobytes())
+
+    def stat(a, default_lo):
+        a = np.asarray(a, float)
+        return {
+            "bounds": [float(a.min()), float(a.max())],
+            "default": [default_lo if default_lo is not None
+                        else float(np.percentile(a, 2)),
+                        float(np.percentile(a, 98))],
+        }
+    # symmetric defaults for diverging scalars, 0-based for gap
+    Hc, Dc = p["Hc"], p["Dc"]
+    meta = dict(p["meta"])
+    meta.update({
+        "nverts": int(len(V)), "nfaces": int(len(F)), "bin": out_path.name,
+        "ranges": {
+            "curvature": {"bounds": [float(cur.min()), float(cur.max())],
+                          "default": [-Hc, Hc]},
+            "deviation": {"bounds": [float(dev.min()), float(dev.max())],
+                          "default": [-Dc, Dc]},
+            "gap": {"bounds": [0.0, float(gap.max())],
+                    "default": [0.0, float(p["contact"] * 3)]},
+        },
+    })
+    return meta
+
+
 def render_membrane(crop, out_path: Path, cell: int | None = None,
                     voxel: float = 8.0, scale: float = 60.0,
-                    contact: float = 40.0) -> dict:
+                    contact: float = 40.0, patch: dict | None = None) -> dict:
     """Render one crop's ECS-facing membrane patch (3 panels) to out_path.
+    Pass a prebuilt `patch` (from build_patch) to avoid reloading/meshing.
     Returns a metadata dict. Raises on degenerate/empty geometry."""
-    p = build_patch(crop, cell=cell, voxel=voxel, scale=scale, contact=contact)
+    p = patch if patch is not None else build_patch(
+        crop, cell=cell, voxel=voxel, scale=scale, contact=contact)
     Vp, Fp = p["Vp"], p["Fp"]
     faces_pv = np.hstack([np.full((len(Fp), 1), 3), Fp]).ravel()
-    poly = pv.PolyData(Vp, faces_pv)
-    poly["Signed curvature (1/nm)"] = p["curvature"]
-    poly["Protrusion / indentation (nm)"] = p["deviation"]
-    poly["Gap to nearest cell (nm)"] = p["gap"]
     Hc, Dc = p["Hc"], p["Dc"]
 
+    # One PolyData PER panel, each carrying only its own scalar. Sharing a
+    # single multi-scalar PolyData across subplots makes pyvista map the LAST
+    # active array everywhere, so curvature/deviation panels silently render
+    # the gap values instead. Separate meshes keep each panel correct.
     panels = [
-        ("Signed curvature (1/nm)", "RdBu_r", (-Hc, Hc)),
-        ("Protrusion / indentation (nm)", "RdBu_r", (-Dc, Dc)),
-        ("Gap to nearest cell (nm)", "viridis", (0, contact * 3)),
+        ("Signed curvature (1/nm)", p["curvature"], "RdBu_r", (-Hc, Hc)),
+        ("Protrusion / indentation (nm)", p["deviation"], "RdBu_r", (-Dc, Dc)),
+        ("Gap to nearest cell (nm)", p["gap"], "viridis", (0, p["contact"] * 3)),
     ]
     pl = pv.Plotter(off_screen=True, shape=(1, 3), window_size=(1950, 760),
                     border=False)
-    for k, (name, cmap, clim) in enumerate(panels):
+    for k, (name, vals, cmap, clim) in enumerate(panels):
         pl.subplot(0, k)
-        pl.add_mesh(poly, scalars=name, cmap=cmap, clim=clim,
+        pp = pv.PolyData(Vp, faces_pv)
+        pp[name] = vals
+        pp.set_active_scalars(name)
+        pl.add_mesh(pp, scalars=name, cmap=cmap, clim=clim,
                     smooth_shading=True, show_scalar_bar=True,
                     scalar_bar_args=dict(title=name, n_labels=3, fmt="%.3g",
                                          title_font_size=14, label_font_size=12,

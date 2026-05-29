@@ -206,7 +206,7 @@ def main() -> None:
 <body>
 <div class="container">
 
-<a class="back" href="index.html">← Back to crops index</a>
+<a class="back" href="home.html">⌂ Project home</a> &nbsp; <a class="back" href="index.html">← Back to crops index</a>
 <h1>Liver cell–cell contact sites</h1>
 <div class="page-sub">
   Visual side-by-side of where cell membranes lie close to one another (yellow / orange)

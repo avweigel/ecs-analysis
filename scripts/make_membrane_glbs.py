@@ -35,6 +35,32 @@ TISSUE_ORDER = ["Liver", "Heart", "Kidney", "Cortex"]
 PROOF = ["crop1039", "crop1040", "crop1042", "crop1072", "crop1073", "crop1074", "crop1075"]
 SCALAR_LABELS = {"curvature": "Curvature", "deviation": "Protrusion/indent", "gap": "Contact gap"}
 
+# Shared Methods blurb (kept in sync with scripts/render_all_membranes.py).
+METHODS = """
+<details class=methods open><summary>Methods — what each analysis shows</summary>
+<p>Each card is one representative cell's <b>extracellular-space (ECS)-facing membrane</b>
+from a FIB-SEM crop, comparing <b style="color:#d9480f">Chemical</b> fixation vs
+<b style="color:#1971c2">Rapid HPF</b> (high-pressure freezing). Per crop the cell with the
+most ECS-facing surface is shown.</p>
+<ul>
+<li><b>Mesh.</b> The cell segmentation is surfaced by marching cubes and smoothed with a
+physical-scale Gaussian (&sigma;&nbsp;&asymp;&nbsp;1.5&times;voxel). Surfaces are coarsened to
+16&nbsp;nm voxels for the web (manuscript metrics use finer/native resolution). Only membrane
+facing ECS is kept (vertices within ~1 voxel of extracellular space); cell&ndash;cell contacts
+and crop-boundary cut faces are removed.</li>
+<li><b>Signed curvature (1/nm).</b> Mean curvature from the cotangent Laplacian.
+<b style="color:#b2182b">Red = convex</b> (membrane bulges into ECS, e.g. microvilli);
+<b style="color:#2166ac">blue = concave</b> (invagination). A dense microvillus brush reads
+strongly convex.</li>
+<li><b>Protrusion / indentation (nm).</b> Per-vertex displacement of the surface from a
+~60&nbsp;nm smoothed reference. <b style="color:#b2182b">Red = protrusion</b> (bulges outward
+into ECS); <b style="color:#2166ac">blue = indentation</b> (pit). Highlights fine features
+relative to the local mean surface.</li>
+<li><b>Contact gap (nm).</b> Distance from each membrane point to the nearest <i>neighbouring</i>
+cell. <b>Dark/purple = tight apposition</b> (close cell&ndash;cell contact);
+<b style="color:#b8a000">yellow = open extracellular space</b>.</li>
+</ul></details>"""
+
 
 def build_html(records: list[dict]) -> str:
     ok = [r for r in records if r.get("glbs")]
@@ -60,13 +86,19 @@ def build_html(records: list[dict]) -> str:
  .btns{margin-top:6px} .btns button{font-size:12px;border:1px solid #cdd3da;background:#fff;
    border-radius:4px;padding:3px 8px;margin-right:4px;cursor:pointer}
  .btns button.active{background:#1565c0;color:#fff;border-color:#1565c0}
+ .methods{background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:10px 16px;margin:14px 0;max-width:920px}
+ .methods summary{font-weight:600;cursor:pointer;color:#1565c0;font-size:14px}
+ .methods p{font-size:13px;color:#333;line-height:1.55} .methods ul{margin:8px 0 0;padding-left:18px}
+ .methods li{font-size:13px;color:#333;line-height:1.6;margin:4px 0}
  a{color:#1971c2}
 </style>
 <h1>ECS-facing membrane patches — interactive 3D</h1>
-<p><b><a href="index.html">&rarr; static map gallery (full resolution)</a></b></p>
-<p>Drag to rotate, scroll to zoom. Each card loads on scroll (poster = the quantitative
-maps). Toggle the surface coloring with the buttons. Meshes are decimated (~16&nbsp;nm) for the web;
-the PNG gallery has full-resolution maps.</p>
+<p><a href="../home.html">&larr; project home</a> ·
+<b><a href="index.html">static map gallery</a></b> ·
+<b><a href="inspector.html">adjustable-scale inspector</a></b></p>
+<p>Drag to rotate, scroll to zoom. Each card loads on scroll (poster = the static maps).
+Toggle the surface coloring with the buttons.</p>
+""" + METHODS + """
 """
     parts = [head]
     last_t = last_r = None
@@ -81,7 +113,7 @@ the PNG gallery has full-resolution maps.</p>
             parts.append(f"<h3>{escape(rg)}</h3><div class='grid'>")
             last_r = rg
         c = r["crop"]
-        default = "gap" if "gap" in r["glbs"] else next(iter(r["glbs"]))
+        default = "curvature" if "curvature" in r["glbs"] else next(iter(r["glbs"]))
         prep_cls = "chem" if r["prep"] == "Chemical" else "hpf"
         btns = "".join(
             f"<button class='{'active' if s == default else ''}' "

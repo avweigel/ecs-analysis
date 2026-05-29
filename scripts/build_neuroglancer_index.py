@@ -549,8 +549,10 @@ def main() -> None:
   <h1>ECS analysis crops</h1>
   <div class="subtitle">CellMap groundtruth crops used in the Chemical vs Rapid HPF extracellular-space morphology study. Use this page to (a) view each crop in Neuroglancer and (b) fill in what anatomical structure the crop is showing.</div>
   <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="home.html" style="display:inline-block; padding: 0.4rem 0.9rem; background:#111827; color:white; border-radius:6px; text-decoration:none; font-size:0.9rem; font-weight:600;">⌂ Project home</a>
     <a href="sanity-check.html" style="display:inline-block; padding: 0.4rem 0.9rem; background:#2563eb; color:white; border-radius:6px; text-decoration:none; font-size:0.9rem; font-weight:600;">→ Sanity check: matched-region comparison</a>
     <a href="contacts.html" style="display:inline-block; padding: 0.4rem 0.9rem; background:#7c3aed; color:white; border-radius:6px; text-decoration:none; font-size:0.9rem; font-weight:600;">→ Liver cell-cell contact sites</a>
+    <a href="membranes/membranes_3d.html" style="display:inline-block; padding: 0.4rem 0.9rem; background:#0d9488; color:white; border-radius:6px; text-decoration:none; font-size:0.9rem; font-weight:600;">→ Membrane topology (3D)</a>
   </div>
 </header>
 

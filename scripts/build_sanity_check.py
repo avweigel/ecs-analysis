@@ -688,7 +688,7 @@ def main() -> None:
 </head>
 <body>
 <div class="container">
-<a class="back" href="index.html">← Back to crops index</a>
+<a class="back" href="home.html">⌂ Project home</a> &nbsp; <a class="back" href="index.html">← Back to crops index</a>
 <h1>Sanity check — anatomy-matched Chem vs HPF</h1>
 <div class="subtitle">Side-by-side images, numbers and Neuroglancer links so you can visually verify whether the Chem &gt; HPF finding survives at the per-crop level.</div>
 
