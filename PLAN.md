@@ -30,10 +30,8 @@ Last updated: 2026-05-28
 ## Figure targets vs repo
 
 ### Figure 1 (workflow + brain benchmarking)
-Mostly wet-lab and EM material, not the analysis pipeline.
-- Panel E/G cortex % ECS: **data exists** (0.107 Chem vs 0.148 HPF). Needs plotting only.
-- Panels A, B, C, D, F (needle cartoon, imaging cartoon, success-rate table, TEM
-  screening, FIB-SEM volume renders): **not mine.**
+**Not mine — Kayvon and Albert own all of Figure 1, including the cortex % ECS
+panel.** Do not build Fig 1 figures here.
 
 ### Figure 2 (showcase of results, the main analysis figure)
 Grid of Liver / Heart / Kidney, two anatomical areas each, with Chem example,
@@ -72,13 +70,10 @@ asymmetry sits right on it (Chemical kidneys have bm labeled, HPF kidneys have
 bm=0). Recompute kidney ECS% with bm excluded on both sides to bound how much of
 the kidney pattern is annotation artifact vs biology. Runnable now.
 
-### 4. Fig 1G cortex % ECS plot  [plotting only]
-Data exists. Just needs the panel rendered.
-
-### 5. Fig 2 example image snapshots  [rendering]
+### 4. Fig 2 example image snapshots  [rendering]
 Generate Chem/HPF crop snapshots for each chosen Fig 2 region. Not computation.
 
-### 6. matched_volume_fraction.csv  [small code fix, optional]
+### 5. matched_volume_fraction.csv  [small code fix, optional]
 Add a `from_data()` call to `run_matched.METRICS`. Optional, since matched SA:V
 already confirms the liver resolution story.
 

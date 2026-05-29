@@ -98,3 +98,7 @@ cython_debug/
 
 # OS
 .DS_Store
+
+# Large 3D render outputs (hosted on cellmap-vm1, not tracked in git)
+meshes/
+figures/membranes/
