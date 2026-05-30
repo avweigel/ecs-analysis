@@ -52,7 +52,11 @@ into ECS); <b style="color:#2166ac">blue = indentation</b> (pit). Highlights fin
 relative to the local mean surface.</li>
 <li><b>Contact gap (nm).</b> Distance from each membrane point to the nearest <i>neighbouring</i>
 cell. <b>Dark/purple = tight apposition</b> (close cell&ndash;cell contact);
-<b style="color:#b8a000">yellow = open extracellular space</b>.</li>
+<b style="color:#b8a000">yellow = open extracellular space</b>. The in-volume distance
+transform can't see neighbours that lie just outside the crop, so any vertex whose
+reading exceeds its distance to the crop face is dropped from the gap panel — the
+silhouette goes missing rather than getting painted with a fake "far" value. The
+<code>bd-clip</code> badge on each card reports the fraction of patch vertices dropped.</li>
 </ul></details>"""
 
 
@@ -77,6 +81,9 @@ def build_html(records: list[dict]) -> str:
  .meta{font-size:12px;color:#555b63;margin-top:6px;line-height:1.5}
  .tag{display:inline-block;background:#eef1f5;border-radius:4px;padding:1px 6px;margin-right:4px}
  .chem{color:#d9480f;font-weight:600} .hpf{color:#1971c2;font-weight:600}
+ .bd-clip{display:inline-block;background:#fff3cd;color:#7a5400;border:1px solid #f0d97a;
+   border-radius:4px;padding:0 5px;font-size:11px;font-weight:600;margin-right:4px}
+ .bd-clip.high{background:#ffd6a8;color:#7a3a00;border-color:#f0a060}
  .err{color:#c92a2a} a{color:#1971c2}
  .methods{background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:10px 16px;margin:14px 0;max-width:920px}
  .methods summary{font-weight:600;cursor:pointer;color:#1565c0;font-size:14px}
@@ -106,12 +113,22 @@ and gap-to-nearest-cell. Click an image to open full size.</p>
                 parts.insert(-1, "")  # noop, keep simple
             last_r = rg
         prep_cls = "chem" if r["prep"] == "Chemical" else "hpf"
+        bd = r.get("gap_bounded_frac")
+        bd_html = ""
+        if bd is not None:
+            cls = "bd-clip high" if bd >= 0.25 else "bd-clip"
+            bd_html = (f"<span class='{cls}' title='Patch vertices dropped from "
+                       f"the gap panel because the in-volume distance transform "
+                       f"overstated the gap (true nearest neighbour likely sat "
+                       f"outside the crop). High = most of the gap silhouette is "
+                       f"missing.'>bd-clip {bd:.0%}</span>")
         parts.append(
             f"<div class=card><a href='{escape(r['image'])}' target=_blank>"
             f"<img src='{escape(r['image'])}'></a>"
             f"<div class=meta>"
             f"<span class='tag {prep_cls}'>{escape(r['prep'])}</span>"
             f"<span class=tag>{escape(r['crop'])}</span>"
+            f"{bd_html}"
             f"cell {r['cell']} &middot; ECS frac {r['ecs_frac']} &middot; "
             f"patch {r['patch_faces']:,}/{r['total_faces']:,} faces "
             f"({int(r['ecs_facing_frac']*100)}% ECS-facing) &middot; "

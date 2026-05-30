@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import numpy as np
 import pyvista as pv
+import zarr
 from scipy.ndimage import distance_transform_edt
 
 from ecs import config as cfg
@@ -37,6 +38,29 @@ from ecs.geometry import (CellMesh, classify_ecs_facing_vertices,
 
 pv.OFF_SCREEN = True
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _read_crop_translation_nm(crop) -> list[float] | None:
+    """Translation (offset) of the crop's groundtruth in the parent dataset's
+    coordinate system, in nm. Reads OME-NGFF multiscales metadata directly so
+    we can center a Neuroglancer link on the crop ROI."""
+    if not crop.zarr_path.is_dir():
+        return None
+    z = zarr.open(str(crop.zarr_path), mode="r")
+    for label in ("cell", "ecs"):
+        if label not in z:
+            continue
+        attrs = dict(z[label].attrs)
+        ms = attrs.get("cellmap", {}).get("multiscales") or attrs.get("multiscales")
+        if not ms:
+            continue
+        datasets = ms[0].get("datasets") or []
+        if not datasets:
+            continue
+        for t in datasets[0].get("coordinateTransformations", []):
+            if t.get("type") == "translation":
+                return [float(v) for v in t["translation"]]
+    return None
 
 
 def pick_membrane_cell(data, sizes):
@@ -84,6 +108,12 @@ def build_patch(crop, cell: int | None = None, voxel: float = 8.0,
 
     H, _ = signed_mean_curvature(tm)
     dev, _ = smoothed_surface_deviation(tm, scale_nm=scale)
+    # Distance from each cell voxel to the nearest neighbouring-cell voxel
+    # WITHIN the crop. This overestimates the true gap wherever the closest
+    # neighbour lies just outside the crop — the EDT can't see across the
+    # volume boundary, so it returns the distance to the next-nearest
+    # in-volume neighbour instead. Vertices near the crop wall therefore read
+    # as "far" even when the real microenvironment is a tight apposition.
     other = (data.cell != 0) & (data.cell != cid)
     if other.any():
         gap_field = distance_transform_edt(~other, sampling=vx)
@@ -92,6 +122,19 @@ def build_patch(crop, cell: int | None = None, voxel: float = 8.0,
         gap = gap_field[vi[:, 0], vi[:, 1], vi[:, 2]]
     else:
         gap = np.full(len(V), np.nan)
+    # Per-vertex distance to the nearest of the six volume faces. The true
+    # gap is bounded above by this — a neighbour cell could lie just outside
+    # the crop at distance <= d_bd. We don't clip with this (that just paints
+    # a low-value rim, swapping one artifact for another); instead we flag
+    # any vertex where gap > d_bd as boundary-uncertain and drop those faces
+    # from the gap rendering. Curvature and deviation are local and stay.
+    vol_nm = np.asarray(data.cell.shape) * np.asarray(vx)
+    d_bd = np.minimum.reduce([
+        V[:, 0], vol_nm[0] - V[:, 0],
+        V[:, 1], vol_nm[1] - V[:, 1],
+        V[:, 2], vol_nm[2] - V[:, 2],
+    ])
+    gap_uncertain = ~np.isnan(gap) & (gap > d_bd)
 
     ecs_facing_v = classify_ecs_facing_vertices(V, vx, data.ecs)
     # The ECS-facing test flickers vertex-to-vertex on the smoothed surface,
@@ -117,23 +160,73 @@ def build_patch(crop, cell: int | None = None, voxel: float = 8.0,
         raise ValueError("no ECS-facing membrane patch")
     Vp, Fp, used = extract_patch(V, F, keep)
 
+    gap_used = gap[used]
+    gap_uncertain_vp = gap_uncertain[used]
+    # Per-Fp face: True iff the gap reading at every vertex of this face is
+    # reliable. We render the gap channel from this submesh only; curvature
+    # and deviation use the full Fp.
+    gap_face_keep = ~gap_uncertain_vp[Fp].any(axis=1)
+    # Fraction of patch vertices whose gap reading we couldn't trust.
+    # (Same definition as the old bd-clip badge — just now they're dropped
+    # rather than silently bounded.)
+    gap_bounded_frac = float(gap_uncertain_vp.mean()) if len(Vp) else 0.0
+    # Adaptive gap colormap. A fixed 0-120 nm clim is right when the patch is
+    # full of close contacts, but saturates to flat yellow whenever a crop's
+    # ECS-facing surface actually sits hundreds of nm away from any other
+    # cell (e.g. a cell whose neighbour-facing side is the disc and whose
+    # back side faces open ECS). Anchor at contact*3 so disc-style crops
+    # keep the comparable scale, then expand to p95 of kept-vertex gap
+    # values so wide-gap crops show gradient instead of a blob.
+    used_v = np.unique(Fp[gap_face_keep]) if gap_face_keep.any() else np.array([], int)
+    gap_clim_hi = float(contact * 3)
+    if len(used_v) >= 20:
+        p95 = float(np.percentile(gap_used[used_v], 95))
+        gap_clim_hi = max(gap_clim_hi, p95)
     return {
         "crop": crop, "cid": cid, "Vp": Vp, "Fp": Fp,
         "curvature": H[used],
         "deviation": dev[used],
-        "gap": np.nan_to_num(gap[used], nan=contact * 3),
+        "gap": np.nan_to_num(gap_used, nan=contact * 3),
+        "gap_uncertain": gap_uncertain_vp,
+        "gap_face_keep": gap_face_keep,
+        "gap_clim_hi": gap_clim_hi,
         "Hc": float(np.percentile(np.abs(H[used]), 90)) or 1e-6,
         "Dc": float(np.percentile(np.abs(dev[used]), 90)) or 1e-6,
         "contact": contact,
         "meta": {
-            "crop": crop.crop, "tissue": crop.tissue, "prep": crop.prep,
+            "crop": crop.crop, "dataset": crop.dataset,
+            "tissue": crop.tissue, "prep": crop.prep,
             "region_group": crop.region_group or "", "anatomy": crop.anatomy or "",
             "cell": cid, "patch_faces": int(len(Fp)), "total_faces": int(len(F)),
+            "gap_faces": int(gap_face_keep.sum()),
             "ecs_facing_frac": round(float(keep.mean()), 3),
             "ecs_frac": round(float(data.ecs.mean()), 4),
+            "gap_bounded_frac": round(gap_bounded_frac, 3),
+            "gap_clim_nm": [0.0, round(gap_clim_hi, 1)],
             "n_cells": len(sizes), "voxel_nm": vx[0],
+            # For the Neuroglancer link in the gallery: center the camera on
+            # the crop ROI (translation + half the shape) and pre-load every
+            # cell mesh that exists in this crop.
+            "cell_ids": sorted(sizes.keys()),
+            "crop_shape_vox": [int(s) for s in data.cell.shape],
+            "translation_nm": _read_crop_translation_nm(crop) or [0.0, 0.0, 0.0],
         },
     }
+
+
+def _gap_submesh(p: dict):
+    """Vertices + faces for the gap channel: drops faces whose gap reading is
+    unreliable so the boundary rim disappears instead of being painted with
+    a fake value. Returns (Vg, Fg, gap_vals) — empty if every face was
+    flagged (e.g. tiny patch dominated by edge effects)."""
+    Vp, Fp = p["Vp"], p["Fp"]
+    Fg = Fp[p["gap_face_keep"]]
+    if len(Fg) == 0:
+        return Vp[:0], Fg, p["gap"][:0]
+    used = np.unique(Fg)
+    vmap = -np.ones(len(Vp), dtype=int)
+    vmap[used] = np.arange(len(used))
+    return Vp[used], vmap[Fg], p["gap"][used]
 
 
 # scalar key -> (patch field, display name, cmap, symmetric?)
@@ -149,18 +242,24 @@ def _clim(p: dict, key: str):
         return (-p["Hc"], p["Hc"])
     if key == "deviation":
         return (-p["Dc"], p["Dc"])
-    return (0.0, p["contact"] * 3)
+    return (0.0, p.get("gap_clim_hi", p["contact"] * 3))
 
 
 def glb_from_patch(p: dict, out_path: Path, scalar: str = "gap") -> dict:
-    """Export a vertex-colored GLB for one scalar from an already-built patch."""
+    """Export a vertex-colored GLB for one scalar from an already-built patch.
+    The gap channel renders from the trimmed boundary-reliable submesh; the
+    curvature and deviation channels use the full patch."""
     import matplotlib
     import trimesh
     field, _name, cmap, _sym = SCALARS[scalar]
     lo, hi = _clim(p, scalar)
+    if scalar == "gap":
+        V, F, vals = _gap_submesh(p)
+    else:
+        V, F, vals = p["Vp"], p["Fp"], p[field]
     norm = matplotlib.colors.Normalize(vmin=lo, vmax=hi)
-    colors = (matplotlib.colormaps[cmap](norm(p[field])) * 255).astype(np.uint8)
-    tm = trimesh.Trimesh(p["Vp"], p["Fp"], vertex_colors=colors, process=False)
+    colors = (matplotlib.colormaps[cmap](norm(vals)) * 255).astype(np.uint8)
+    tm = trimesh.Trimesh(V, F, vertex_colors=colors, process=False)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     tm.export(out_path)
     meta = dict(p["meta"]); meta["glb"] = out_path.name; meta["scalar"] = scalar
@@ -190,7 +289,12 @@ def bin_from_patch(p: dict, out_path: Path) -> dict:
     F = np.ascontiguousarray(p["Fp"], dtype="<u4")
     cur = np.ascontiguousarray(p["curvature"], dtype="<f4")
     dev = np.ascontiguousarray(p["deviation"], dtype="<f4")
-    gap = np.ascontiguousarray(p["gap"], dtype="<f4")
+    # Boundary-uncertain vertices ride into the bin as NaN gap values; the
+    # inspector renders NaN as neutral gray so the rim doesn't get painted
+    # with the in-volume-EDT's overestimate.
+    gap = p["gap"].astype("<f4", copy=True)
+    gap[p["gap_uncertain"]] = np.float32("nan")
+    gap = np.ascontiguousarray(gap)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "wb") as f:
         for arr in (V, F, cur, dev, gap):
@@ -207,6 +311,7 @@ def bin_from_patch(p: dict, out_path: Path) -> dict:
     # symmetric defaults for diverging scalars, 0-based for gap
     Hc, Dc = p["Hc"], p["Dc"]
     meta = dict(p["meta"])
+    gap_max = float(np.nanmax(gap)) if np.isfinite(gap).any() else float(p["contact"] * 3)
     meta.update({
         "nverts": int(len(V)), "nfaces": int(len(F)), "bin": out_path.name,
         "ranges": {
@@ -214,8 +319,8 @@ def bin_from_patch(p: dict, out_path: Path) -> dict:
                           "default": [-Hc, Hc]},
             "deviation": {"bounds": [float(dev.min()), float(dev.max())],
                           "default": [-Dc, Dc]},
-            "gap": {"bounds": [0.0, float(gap.max())],
-                    "default": [0.0, float(p["contact"] * 3)]},
+            "gap": {"bounds": [0.0, gap_max],
+                    "default": [0.0, float(p.get("gap_clim_hi", p["contact"] * 3))]},
         },
     })
     return meta
@@ -231,22 +336,30 @@ def render_membrane(crop, out_path: Path, cell: int | None = None,
         crop, cell=cell, voxel=voxel, scale=scale, contact=contact)
     Vp, Fp = p["Vp"], p["Fp"]
     faces_pv = np.hstack([np.full((len(Fp), 1), 3), Fp]).ravel()
+    Vg, Fg, gap_vals = _gap_submesh(p)
     Hc, Dc = p["Hc"], p["Dc"]
 
     # One PolyData PER panel, each carrying only its own scalar. Sharing a
     # single multi-scalar PolyData across subplots makes pyvista map the LAST
     # active array everywhere, so curvature/deviation panels silently render
-    # the gap values instead. Separate meshes keep each panel correct.
+    # the gap values instead. The gap panel uses a separate submesh that
+    # drops faces with unreliable readings near the volume boundary.
     panels = [
-        ("Signed curvature (1/nm)", p["curvature"], "RdBu_r", (-Hc, Hc)),
-        ("Protrusion / indentation (nm)", p["deviation"], "RdBu_r", (-Dc, Dc)),
-        ("Gap to nearest cell (nm)", p["gap"], "viridis", (0, p["contact"] * 3)),
+        ("Signed curvature (1/nm)", Vp, Fp, p["curvature"], "RdBu_r", (-Hc, Hc)),
+        ("Protrusion / indentation (nm)", Vp, Fp, p["deviation"], "RdBu_r", (-Dc, Dc)),
+        ("Gap to nearest cell (nm)", Vg, Fg, gap_vals, "viridis",
+         (0, p["contact"] * 3)),
     ]
     pl = pv.Plotter(off_screen=True, shape=(1, 3), window_size=(1950, 760),
                     border=False)
-    for k, (name, vals, cmap, clim) in enumerate(panels):
+    for k, (name, V, F, vals, cmap, clim) in enumerate(panels):
         pl.subplot(0, k)
-        pp = pv.PolyData(Vp, faces_pv)
+        if len(F) == 0:
+            pl.add_text(f"{name.split(' (')[0]}\n(no reliable faces)",
+                        font_size=11, position="upper_edge")
+            continue
+        f_pv = np.hstack([np.full((len(F), 1), 3), F]).ravel()
+        pp = pv.PolyData(V, f_pv)
         pp[name] = vals
         pp.set_active_scalars(name)
         pl.add_mesh(pp, scalars=name, cmap=cmap, clim=clim,

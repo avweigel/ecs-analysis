@@ -198,7 +198,11 @@ function applyColors(){
   const vals=scalarsData[s], N=vals.length, col=new Float32Array(N*3);
   const span=(hi-lo)||1e-9;
   for(let i=0;i<N;i++){
-    let t=(vals[i]-lo)/span; t=t<0?0:t>1?1:t;
+    const v=vals[i];
+    // NaN gap values mark boundary-uncertain vertices — render neutral grey
+    // so the rim doesn't get painted with the in-volume EDT's overestimate.
+    if(v!==v){ col[i*3]=0.87; col[i*3+1]=0.87; col[i*3+2]=0.87; continue; }
+    let t=(v-lo)/span; t=t<0?0:t>1?1:t;
     const c=lut[Math.round(t*n)];
     col[i*3]=c[0];col[i*3+1]=c[1];col[i*3+2]=c[2];
   }
