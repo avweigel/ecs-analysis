@@ -27,8 +27,8 @@ analysis grid regardless of acquisition resolution.
 
 The cell's binary mask was smoothed with a 3D Gaussian of physical width
 $\sigma = 1.5 \cdot v_x$ nm (i.e.~$\sigma = 24$\,nm at the 16\,nm working
-voxel), then surfaced by marching cubes at iso-level 0.5 (skimage
-implementation). Surface vertices were placed in nm coordinates accounting
+voxel), then surfaced by marching cubes \cite{Lorensen1987} at iso-level
+0.5 (\texttt{scikit-image} implementation \cite{vanderWalt2014}). Surface vertices were placed in nm coordinates accounting
 for both the cropping bounding-box offset and the smoothing pad. Sign
 convention for downstream metrics is calibrated against a synthetic
 convex sphere of radius 400\,nm using the same pipeline; convex membranes
@@ -38,9 +38,9 @@ Three per-vertex scalars were then computed on the resulting triangle mesh:
 
 \begin{enumerate}[nosep, leftmargin=*]
 \item \textbf{Signed mean curvature} $H$ (units: nm$^{-1}$) was computed
-from the cotangent Laplacian. For each interior edge of the mesh the
-cotangent weights of the two opposite angles enter a sparse Laplacian
-operator $L$; the mean-curvature normal vector at vertex $i$ is
+from the cotangent Laplacian \cite{Pinkall1993, Meyer2003}. For each
+interior edge of the mesh the cotangent weights of the two opposite
+angles enter a sparse Laplacian operator $L$; the mean-curvature normal vector at vertex $i$ is
 $\mathbf{H}_i \mathbf{n}_i = \frac{1}{2A_i}(L\mathbf{V})_i$, where $A_i$
 is the barycentric vertex area. The magnitude $|H_i|$ is the unsigned
 curvature; the sign is taken from $\operatorname{sgn}(\mathbf{H}_i \cdot \mathbf{n}_i^{\text{trimesh}})$,
@@ -55,10 +55,10 @@ $H = 0.10$\,nm$^{-1}$ $\leftrightarrow$ $R = 10$\,nm (sharp spike).
 the signed normal-projected displacement of each vertex from a smoothed
 reference surface generated from the same mesh. The reference was
 produced by random-walk Laplacian iteration on vertex coordinates
-($v_\text{new} = v - \lambda D^{-1} L v$, $\lambda = 0.5$),
-with the iteration count chosen so the effective smoothing scale is
-$\sigma = 60$\,nm given the mesh's mean edge length: $N \approx
-\sigma^2 / (2 h^2 \lambda)$. The signed deviation is the inward-normal
+($v_\text{new} = v - \lambda D^{-1} L v$, $\lambda = 0.5$)
+\cite{Desbrun1999}, with the iteration count chosen so the effective
+smoothing scale is $\sigma = 60$\,nm given the mesh's mean edge length:
+$N \approx \sigma^2 / (2 h^2 \lambda)$. The signed deviation is the inward-normal
 projection of the original-minus-smoothed displacement vector, so $d > 0$
 corresponds to a vertex protruding outward into ECS and $d < 0$ to an
 inward indentation. Conceptually, $d$ answers ``does this point stick
@@ -67,9 +67,10 @@ $H$ in that it is scale-aware: a 100\,nm-tall ridge gives large positive
 $d$ but small $|H|$; a 5\,nm bump on flat membrane gives small $d$ but
 large $|H|$.
 
-\item \textbf{Local contact gap $g$} (units: nm) was computed as the 3D
-Euclidean distance transform (EDT) of the ``not-other-cell'' indicator
-field, sampled at the rounded voxel coordinate of each mesh vertex.
+\item \textbf{Local contact gap $g$} (units: nm) was computed as the
+3D Euclidean distance transform (EDT) \cite{Maurer2003,Virtanen2020}
+of the ``not-other-cell'' indicator field, sampled at the rounded
+voxel coordinate of each mesh vertex.
 $g_i$ is therefore the distance from vertex $i$ to the nearest voxel
 belonging to any cell other than the one being analysed.
 \end{enumerate}
@@ -194,9 +195,10 @@ silhouette is irregular --- but should be interpreted with the
 \subsection*{Visualization}
 For the public gallery (\texttt{figures/membranes/membranes\_3d.html}),
 the per-vertex scalars are vertex-coloured into glTF~2.0 (\texttt{.glb})
-meshes via the \texttt{matplotlib} \texttt{RdBu\_r} (curvature,
-protrusion) and \texttt{viridis} (gap) colormaps and rendered with
-the \texttt{model-viewer} web component. Each card displays the
+meshes via \texttt{trimesh} \cite{DawsonHaggerty2019} with the
+\texttt{matplotlib} \texttt{RdBu\_r} (curvature, protrusion) and
+\texttt{viridis} (gap) colormaps, and rendered with the
+\texttt{model-viewer} web component \cite{ModelViewer}. Each card displays the
 patch's three channels selectable in-place and also via a global
 ``color all by'' selector. The curvature and protrusion colormap
 limits are symmetric and set to $\pm$\,p90 of $|H|$ and $|d|$ on the
@@ -207,9 +209,13 @@ dominated by close contacts share a common scale) and expanded to
 p95 of the kept-vertex gap distribution when the patch genuinely
 sits hundreds of nm from any in-volume neighbour, with the active
 upper bound shown on each card. Each card also exposes a
-Neuroglancer link wired to the underlying crop with the EM, ECS
-silhouette mesh, and all cell meshes pre-loaded; this allows
-visual verification of any reading against the raw FIB-SEM EM.
+Neuroglancer \cite{Neuroglancer} link wired to the underlying crop
+with the EM, ECS silhouette mesh, and all cell meshes pre-loaded;
+this allows visual verification of any reading against the raw
+FIB-SEM EM. The numerical pipeline runs on top of
+\texttt{NumPy} \cite{Harris2020} and \texttt{SciPy} \cite{Virtanen2020};
+the EM volumes are hosted by the CellMap project
+\cite{Heinrich2021, Xu2021}.
 
 \subsection*{Results --- overall}
 

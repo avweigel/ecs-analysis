@@ -21,6 +21,119 @@ OUT = REPO_ROOT / "figures" / "membranes" / "methods.html"
 AGG = REPO_ROOT / "results" / "membrane_topology_aggregates.json"
 
 
+# References for the methods text. Keys mirror paper/references.bib so the
+# HTML page and the LaTeX manuscript stay in lockstep. When citing from the
+# BODY template, use [{key}] (e.g. [Lorensen1987]); _resolve_cites() replaces
+# them with anchored superscripts and the trailing References section is
+# rendered from the entries actually cited (in citation order).
+REFS = {
+    "Lorensen1987": (
+        "Lorensen WE, Cline HE. Marching cubes: A high resolution 3D surface "
+        "construction algorithm. Proc. SIGGRAPH '87, 163–169 (1987). "
+        "doi:10.1145/37401.37422"
+    ),
+    "Pinkall1993": (
+        "Pinkall U, Polthier K. Computing discrete minimal surfaces and "
+        "their conjugates. Experimental Mathematics 2(1): 15–36 (1993). "
+        "doi:10.1080/10586458.1993.10504266"
+    ),
+    "Meyer2003": (
+        "Meyer M, Desbrun M, Schröder P, Barr AH. Discrete differential-"
+        "geometry operators for triangulated 2-manifolds. Visualization and "
+        "Mathematics III, 35–57 (Springer, 2003). "
+        "doi:10.1007/978-3-662-05105-4_2"
+    ),
+    "Desbrun1999": (
+        "Desbrun M, Meyer M, Schröder P, Barr AH. Implicit fairing of "
+        "irregular meshes using diffusion and curvature flow. Proc. "
+        "SIGGRAPH '99, 317–324 (1999). doi:10.1145/311535.311576"
+    ),
+    "Maurer2003": (
+        "Maurer CR, Qi R, Raghavan V. A linear time algorithm for computing "
+        "exact Euclidean distance transforms of binary images in arbitrary "
+        "dimensions. IEEE TPAMI 25(2): 265–270 (2003). "
+        "doi:10.1109/TPAMI.2003.1177156"
+    ),
+    "vanderWalt2014": (
+        "van der Walt S, Schönberger JL, Nunez-Iglesias J, et al. "
+        "scikit-image: image processing in Python. PeerJ 2: e453 (2014). "
+        "doi:10.7717/peerj.453"
+    ),
+    "Virtanen2020": (
+        "Virtanen P, Gommers R, Oliphant TE, et al. SciPy 1.0: fundamental "
+        "algorithms for scientific computing in Python. Nature Methods 17: "
+        "261–272 (2020). doi:10.1038/s41592-019-0686-2"
+    ),
+    "Harris2020": (
+        "Harris CR, Millman KJ, van der Walt SJ, et al. Array programming "
+        "with NumPy. Nature 585: 357–362 (2020). "
+        "doi:10.1038/s41586-020-2649-2"
+    ),
+    "DawsonHaggerty2019": (
+        "Dawson-Haggerty M et al. trimesh: Python library for triangular "
+        "mesh processing. <a href='https://github.com/mikedh/trimesh'>"
+        "github.com/mikedh/trimesh</a>"
+    ),
+    "Neuroglancer": (
+        "Maitin-Shepard J et al. Neuroglancer: web-based volumetric data "
+        "viewer. <a href='https://github.com/google/neuroglancer'>"
+        "github.com/google/neuroglancer</a>"
+    ),
+    "ModelViewer": (
+        "Google. &lt;model-viewer&gt;: easily display interactive 3D models "
+        "on the web. <a href='https://modelviewer.dev'>modelviewer.dev</a>"
+    ),
+    "Heinrich2021": (
+        "Heinrich L, Bennett D, Ackerman D, et al. Whole-cell organelle "
+        "segmentation in volume electron microscopy. Nature 599: 141–146 "
+        "(2021). doi:10.1038/s41586-021-03977-3"
+    ),
+    "Xu2021": (
+        "Xu CS, et al. An open-access volume electron microscopy atlas of "
+        "whole cells and tissues. Nature 599: 147–151 (2021). "
+        "doi:10.1038/s41586-021-03992-4"
+    ),
+}
+
+
+def _resolve_cites(text: str) -> tuple[str, list[str]]:
+    """Replace [Key] / [Key1,Key2] markers in `text` with numbered superscript
+    HTML anchors, returning (rendered text, ordered list of cited keys). Each
+    key is numbered in first-citation order. Unknown keys raise LookupError so
+    typos in the template surface immediately rather than silently."""
+    import re
+    order: list[str] = []
+    nums: dict[str, int] = {}
+
+    def repl(m: re.Match) -> str:
+        keys = [k.strip() for k in m.group(1).split(",")]
+        # Only treat as a citation when every key is a known ref. Other
+        # bracketed content (e.g. table captions like [Q1, Q3]) passes
+        # through unchanged.
+        if not all(k in REFS for k in keys):
+            return m.group(0)
+        parts = []
+        for k in keys:
+            if k not in nums:
+                order.append(k)
+                nums[k] = len(order)
+            n = nums[k]
+            parts.append(f"<a class=cite href='#ref-{k}'>{n}</a>")
+        return f"<sup class=cite>[{','.join(parts)}]</sup>"
+
+    rendered = re.sub(r"\[([A-Za-z][A-Za-z0-9]*(?:\s*,\s*[A-Za-z][A-Za-z0-9]*)*)\]",
+                      repl, text)
+    return rendered, order
+
+
+def _references_html(order: list[str]) -> str:
+    items = []
+    for i, k in enumerate(order, 1):
+        items.append(f"<li id='ref-{k}'><span class=refn>{i}.</span> {REFS[k]}</li>")
+    return ("<h2 id=refs>References</h2>"
+            "<ol class=refs>" + "".join(items) + "</ol>")
+
+
 def _fmt(v, fmt=".3g"):
     if v is None or (isinstance(v, float) and not math.isfinite(v)):
         return "—"
@@ -109,9 +222,11 @@ and stays in sync with the results CSVs at <code>results/</code>.
   <a href="#gap">Contact gap</a> ·
   <a href="#bd">Boundary handling</a> ·
   <a href="#stats">Per-crop stats</a> ·
+  <a href="#viz">Visualisation</a> ·
   <a href="#res">Results — overall</a> ·
   <a href="#reg">Results — region-matched</a> ·
-  <a href="#voronoi">vs Metric 5 (Voronoi)</a>
+  <a href="#voronoi">vs Metric 5 (Voronoi)</a> ·
+  <a href="#refs">references</a>
 </nav>
 
 <h2 id=wha>What was done</h2>
@@ -126,18 +241,20 @@ analysis grid regardless of acquisition resolution.
 <p>
 The cell's binary mask was smoothed with a 3D Gaussian of physical width
 <code>σ = 1.5·v<sub>x</sub></code> nm (= 24&nbsp;nm at the 16&nbsp;nm
-working voxel), then surfaced by marching cubes at iso-level 0.5
-(<code>skimage</code> implementation). Surface vertices are placed in
-nm coordinates accounting for both the cropping bounding-box offset and
-the smoothing pad. The sign convention is calibrated against a
-synthetic convex sphere of radius 400&nbsp;nm through the same pipeline;
-convex membranes return positive curvature.
+working voxel), then surfaced by marching cubes [Lorensen1987] at
+iso-level 0.5 (<code>scikit-image</code> implementation
+[vanderWalt2014]). Surface vertices are placed in nm coordinates
+accounting for both the cropping bounding-box offset and the smoothing
+pad. The sign convention is calibrated against a synthetic convex
+sphere of radius 400&nbsp;nm through the same pipeline; convex membranes
+return positive curvature.
 </p>
 
 <h2 id=curv>Signed mean curvature <code>H</code> (1/nm)</h2>
 <p>
-Computed from the <b>cotangent Laplacian</b>, a strictly <i>local</i>
-1-ring quantity. For each interior edge of the mesh, cotangent weights
+Computed from the <b>cotangent Laplacian</b>
+[Pinkall1993,Meyer2003], a strictly <i>local</i> 1-ring quantity. For
+each interior edge of the mesh, cotangent weights
 of the two opposite angles enter a sparse Laplacian operator
 <code>L</code>; the mean-curvature normal vector at vertex <i>i</i> is
 <code>H<sub>i</sub>·n<sub>i</sub> = (LV)<sub>i</sub> / (2A<sub>i</sub>)</code>,
@@ -167,7 +284,8 @@ Per-vertex signed normal-projected displacement of each vertex from a
 smoothed reference surface generated from the same mesh. The reference
 is produced by random-walk Laplacian iteration on vertex coordinates
 (<code>v<sub>new</sub> = v − λ&nbsp;D<sup>−1</sup>&nbsp;L&nbsp;v</code>,
-<code>λ&nbsp;=&nbsp;0.5</code>) with the iteration count chosen so the
+<code>λ&nbsp;=&nbsp;0.5</code>) [Desbrun1999] with the iteration count
+chosen so the
 effective smoothing scale is <code>σ&nbsp;=&nbsp;60&nbsp;nm</code> given
 the mesh's mean edge length:
 <code>N&nbsp;≈&nbsp;σ²/(2h²λ)</code>. The signed deviation is the
@@ -189,8 +307,9 @@ surfaces.
 
 <h2 id=gap>Local contact gap <code>g</code> (nm)</h2>
 <p>
-3D Euclidean distance transform (EDT) of the "not-other-cell" indicator
-field, sampled at the rounded voxel coordinate of each mesh vertex.
+3D Euclidean distance transform (EDT) [Maurer2003,Virtanen2020] of the
+"not-other-cell" indicator field, sampled at the rounded voxel
+coordinate of each mesh vertex.
 <code>g<sub>i</sub></code> is therefore the distance from vertex
 <code>i</code> to the nearest voxel belonging to any cell other than
 the one being analysed. A membrane patch was isolated by retaining
@@ -246,6 +365,22 @@ colormap range, and per-channel signed/unsigned percentile statistics
 percentiles; convex/concave and protrusion/indent fractions). See
 <code>results/membrane_topology_per_crop.csv</code> for the full
 per-crop table.
+</p>
+
+<h2 id=viz>Visualisation</h2>
+<p>
+The interactive 3D gallery exports each per-vertex scalar as a
+vertex-coloured glTF&nbsp;2.0 (<code>.glb</code>) mesh via
+<code>trimesh</code> [DawsonHaggerty2019] coloured with the
+<code>matplotlib</code> <code>RdBu_r</code> (curvature, protrusion) and
+<code>viridis</code> (gap) colormaps; meshes are rendered in the
+browser by the <code>&lt;model-viewer&gt;</code> web component
+[ModelViewer]. Each gallery card also exposes a Neuroglancer
+[Neuroglancer] link wired to the underlying crop with the EM, ECS
+silhouette mesh, and all cell meshes pre-loaded for visual
+verification against the raw FIB-SEM EM. The volumes themselves are
+hosted by the CellMap project [Heinrich2021, Xu2021]. The numerical
+pipeline runs on top of NumPy [Harris2020] and SciPy [Virtanen2020].
 </p>
 
 <h2 id=res>Results — overall</h2>
@@ -344,9 +479,11 @@ def main() -> None:
         raise SystemExit(
             f"missing {AGG}; run scripts/aggregate_topology_stats.py first")
     data = json.loads(AGG.read_text())
-    body = (BODY
+    body, cited_order = _resolve_cites(BODY)
+    body = (body
             .replace("__TISSUE_TABLE__", tissue_table(data["by_tissue"]))
-            .replace("__REGION_TABLE__", region_table(data["by_region"])))
+            .replace("__REGION_TABLE__", region_table(data["by_region"]))
+            + _references_html(cited_order))
 
     html = ("<!doctype html><meta charset=utf-8>\n"
             "<title>Methods — mesh-based membrane topology</title>\n"
@@ -396,6 +533,16 @@ def main() -> None:
             " table.cmp thead th{background:#f4f6f9}\n"
             " table.cmp tbody th{background:#fafbfc;text-align:left;width:120px;"
             "color:#3a4148;font-weight:600}\n"
+            " sup.cite{font-size:10.5px;color:#1565c0;font-weight:600;vertical-align:super;"
+            "line-height:0}\n"
+            " sup.cite a{color:inherit;text-decoration:none}\n"
+            " sup.cite a:hover{text-decoration:underline}\n"
+            " ol.refs{list-style:none;padding:0;margin:8px 0 0;counter-reset:r}\n"
+            " ol.refs li{font-size:13px;color:#222;margin:6px 0;padding:6px 10px 6px 38px;"
+            "position:relative;border-bottom:1px solid #f0f2f5}\n"
+            " ol.refs li:target{background:#fff7d1;border-radius:4px}\n"
+            " ol.refs .refn{position:absolute;left:8px;color:#1565c0;font-weight:600;"
+            "font-variant-numeric:tabular-nums}\n"
             "</style>\n"
             "<nav class=bar>"
             "<a href='../home.html'>⌂ project home</a>"
