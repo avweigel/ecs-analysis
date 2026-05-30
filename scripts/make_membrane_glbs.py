@@ -268,6 +268,11 @@ is pre-selected; <code>cell</code> / <code>ecs</code> / <code>all</code> layers 
     last_t = last_r = None
     for r in ok:
         if r["tissue"] != last_t:
+            # Close the previous region's grid before starting a new tissue —
+            # otherwise the new <h2> becomes a flex item inside the previous
+            # tissue's open .grid div and renders alongside the cards.
+            if last_r is not None:
+                parts.append("</div>")
             parts.append(f"<h2>{escape(r['tissue'])}</h2>")
             last_t, last_r = r["tissue"], None
         rg = r.get("region_group") or "(unassigned)"
