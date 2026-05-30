@@ -1,0 +1,231 @@
+% =====================================================================
+% Methods text for the mesh-based membrane topology analysis.
+% Written to slot into paper/main.tex either as a new Metric 8 (after the
+% voxel curvature Metric 7) or to supersede Metric 7. Style matches the
+% existing "What was done / Strengths / Weaknesses / Biases / Results"
+% template used throughout main.tex.
+%
+% To use, either \input{methods_membrane_topology} at the appropriate
+% place in main.tex, or copy the section body in.
+% =====================================================================
+
+\section*{Metric 8: Membrane Topology --- Mesh-Based Curvature, Protrusion, and Local Contact Gap}
+
+{\small\textbf{Scripts:} \texttt{scripts/render\_membrane\_patch.py},
+\texttt{scripts/regen\_galleries.py},
+\texttt{ecs/geometry.py:\{signed\_mean\_curvature, smoothed\_surface\_deviation,
+classify\_ecs\_facing\_vertices\}}.
+\textbf{Manifest:} \texttt{figures/membranes/manifest\_3d.json}.}
+
+\subsection*{What was done}
+For each crop, a single membrane-rich cell was selected as the cell with
+the greatest area of cell--ECS interface (counted as the number of cell
+faces sharing a boundary with an ECS voxel; ties broken by cell index).
+Crops with finer-than-16\,nm native voxel size were box-downsampled to
+16\,nm isotropic prior to meshing, so that all crops feed an identical
+analysis grid regardless of acquisition resolution.
+
+The cell's binary mask was smoothed with a 3D Gaussian of physical width
+$\sigma = 1.5 \cdot v_x$ nm (i.e.~$\sigma = 24$\,nm at the 16\,nm working
+voxel), then surfaced by marching cubes at iso-level 0.5 (skimage
+implementation). Surface vertices were placed in nm coordinates accounting
+for both the cropping bounding-box offset and the smoothing pad. Sign
+convention for downstream metrics is calibrated against a synthetic
+convex sphere of radius 400\,nm using the same pipeline; convex membranes
+return positive curvature.
+
+Three per-vertex scalars were then computed on the resulting triangle mesh:
+
+\begin{enumerate}[nosep, leftmargin=*]
+\item \textbf{Signed mean curvature} $H$ (units: nm$^{-1}$) was computed
+from the cotangent Laplacian. For each interior edge of the mesh the
+cotangent weights of the two opposite angles enter a sparse Laplacian
+operator $L$; the mean-curvature normal vector at vertex $i$ is
+$\mathbf{H}_i \mathbf{n}_i = \frac{1}{2A_i}(L\mathbf{V})_i$, where $A_i$
+is the barycentric vertex area. The magnitude $|H_i|$ is the unsigned
+curvature; the sign is taken from $\operatorname{sgn}(\mathbf{H}_i \cdot \mathbf{n}_i^{\text{trimesh}})$,
+calibrated so convex (membrane-into-ECS) surfaces are positive. The
+radius of curvature is $R = 1/|H|$; representative values:
+$H = 0.005$\,nm$^{-1}$ $\leftrightarrow$ $R = 200$\,nm (gentle bend);
+$H = 0.02$\,nm$^{-1}$ $\leftrightarrow$ $R = 50$\,nm (microvillus shaft);
+$H = 0.05$\,nm$^{-1}$ $\leftrightarrow$ $R = 20$\,nm (microvillus tip);
+$H = 0.10$\,nm$^{-1}$ $\leftrightarrow$ $R = 10$\,nm (sharp spike).
+
+\item \textbf{Protrusion / indentation $d$} (units: nm) was computed as
+the signed normal-projected displacement of each vertex from a smoothed
+reference surface generated from the same mesh. The reference was
+produced by random-walk Laplacian iteration on vertex coordinates
+($v_\text{new} = v - \lambda D^{-1} L v$, $\lambda = 0.5$),
+with the iteration count chosen so the effective smoothing scale is
+$\sigma = 60$\,nm given the mesh's mean edge length: $N \approx
+\sigma^2 / (2 h^2 \lambda)$. The signed deviation is the inward-normal
+projection of the original-minus-smoothed displacement vector, so $d > 0$
+corresponds to a vertex protruding outward into ECS and $d < 0$ to an
+inward indentation. Conceptually, $d$ answers ``does this point stick
+out (or in) compared to its 60\,nm neighbourhood?'' --- distinct from
+$H$ in that it is scale-aware: a 100\,nm-tall ridge gives large positive
+$d$ but small $|H|$; a 5\,nm bump on flat membrane gives small $d$ but
+large $|H|$.
+
+\item \textbf{Local contact gap $g$} (units: nm) was computed as the 3D
+Euclidean distance transform (EDT) of the ``not-other-cell'' indicator
+field, sampled at the rounded voxel coordinate of each mesh vertex.
+$g_i$ is therefore the distance from vertex $i$ to the nearest voxel
+belonging to any cell other than the one being analysed.
+\end{enumerate}
+
+A membrane patch was isolated by retaining only those vertices within
+one voxel (max-norm) of an ECS-labeled voxel; the per-vertex test was
+dilated by two ring-neighbour iterations on the mesh edge graph to
+close scattered single-vertex dropouts in the ECS-facing classifier.
+Faces with at least 50\% of their vertices marked ECS-facing were
+included in the patch. To avoid marching-cubes ``cap'' faces produced
+where the cell touches the crop wall, faces within two voxels of any
+volume face were dropped from the patch.
+
+\paragraph{Volume-boundary handling.}
+Two boundary effects are corrected in the per-channel rendering and
+summary statistics. (i)~The contact gap $g_i$ is computed by an in-volume
+distance transform and is an upper-bounded reading only when the
+nearest cell within the crop is closer than the nearest crop wall;
+formally, for every vertex $g_i^{\text{true}} \le \min(g_i^{\text{EDT}},
+d_i^{\text{wall}})$ where $d_i^{\text{wall}}$ is the L$_\infty$ distance from
+vertex $i$ to the nearest of the six volume faces. Vertices satisfying
+$g_i^{\text{EDT}} > d_i^{\text{wall}}$ were flagged as
+boundary-uncertain and dropped from the gap channel (rather than
+silently clipped --- clipping just paints a low-value rim, swapping one
+artifact for another). The per-patch boundary-uncertain fraction
+(\texttt{gap\_bounded\_frac}, abbreviated \emph{bd-clip} in figure legends)
+is reported as a quality indicator. (ii)~The cotangent Laplacian and the
+60\,nm smoothing kernel both reach beyond the patch rim into the
+marching-cubes cap face at the volume boundary, biasing values inward
+and painting an artificial protrusion stripe along the edge of every
+patch. Faces whose vertices lie within $\sigma = 60$\,nm of any volume
+face were therefore dropped from the curvature and protrusion channels.
+Patch geometry, per-cell statistics (face counts, ECS-facing area
+fraction) are reported on the unfiltered patch so the boundary trims
+affect rendering and per-channel summaries but not the geometric
+denominator.
+
+\paragraph{Per-crop summary statistics.}
+For each crop's patch the following are reported in
+\texttt{manifest\_3d.json}: number of patch faces, number of mesh faces
+in the underlying full-cell mesh, ECS-facing area fraction, gap-channel
+face count, boundary-uncertain fraction, dataset and cell ID, and the
+adaptive gap colormap range (see Visualization below).
+
+\subsection*{Strengths}
+\begin{itemize}[nosep]
+\item Mesh-based curvature is computed directly from the smoothed
+isosurface, avoiding the finite-difference noise that limits the
+voxel-based formula (Metric~7).
+\item The smoothing scale ($\sigma_\text{mesh} = 1.5 v_x$ for surface
+extraction, $\sigma_\text{ref} = 60$\,nm for protrusion) is set in
+physical units independent of the acquisition voxel size, so HPF
+(8\,nm voxel) and Chemical (4\,nm, downsampled to 16\,nm working voxel)
+crops feed the same analysis at the same physical scale.
+\item Three orthogonal channels (curvature, protrusion, contact gap)
+capture different aspects of membrane geometry. Curvature answers
+``how bent is the surface?''; protrusion answers ``how far does it
+stick out compared to its 60\,nm neighbourhood?''; contact gap
+answers ``how far is the nearest neighbouring cell?''. The channels
+agree at sharp microvillar features and diverge over gently
+undulating surfaces, providing internal cross-checks.
+\item The boundary-uncertain face filter for the gap channel makes
+crop-wall artifacts explicit rather than hidden: high
+\texttt{bd-clip} indicates a crop whose ECS-facing patch hugs the
+volume wall and whose gap channel should be interpreted cautiously.
+\end{itemize}
+
+\subsection*{Weaknesses}
+\begin{itemize}[nosep]
+\item Only one cell per crop is analysed (the cell with the largest
+ECS-facing surface). This biases toward cells with simple convex
+exposure and against cells whose ECS-facing surface is broken up by
+cell-cell contacts.
+\item The 16\,nm working voxel limits the resolution of the surface;
+features at the 8--16\,nm scale (e.g.~very narrow microvilli in some
+kidney brush borders) may be smoothed below detectability before
+marching cubes is applied. Stats use 16\,nm grid uniformly across all
+crops; finer-resolution Chemical crops are deliberately not given a
+finer-scale advantage.
+\item The 60\,nm reference scale for protrusion is a choice, not a
+calibrated optimum; protrusion magnitudes shift with this scale.
+\item The contact gap channel is computed only along ECS-facing
+membrane and therefore does not capture cell--cell contacts where
+the gap is too narrow to contain an ECS voxel. The companion
+Voronoi tessellation analysis (Metric~5) reports the latter.
+\item Boundary trims remove informative surface on small crops:
+$\sigma = 60$\,nm corresponds to 3--4 16\,nm voxels of rim per face.
+On a $1.6 \times 1.6 \times 1.6$\,\micro m kidney crop with two cells
+this can drop 30--50\% of the patch from the curvature/protrusion
+render even when the underlying signal is genuine.
+\end{itemize}
+
+\subsection*{Biases and artifacts}
+\begin{itemize}[nosep]
+\item \textbf{Resolution confound mitigation.} All crops are
+downsampled to 16\,nm before analysis. Chemical crops (native 4\,nm)
+therefore lose finer structure they could have resolved; HPF crops
+(native 8\,nm) lose less. The choice is deliberate --- the alternative
+of analysing each at native resolution makes Chemical look
+artifactually sharper (higher $|H|$, larger $|d|$) for resolution
+reasons unrelated to fixation.
+\item \textbf{Cell selection bias.} The largest-ECS-facing-cell
+criterion will favour cells that already have open ECS around them;
+crops where the ``best'' cell is jammed between others may yield no
+patch and be excluded. Of the 52 crops analysed, this filter produced
+non-degenerate patches for all 52.
+\item \textbf{Sign-of-curvature calibration.} The sign of $H$ depends
+on which direction is treated as ``outward.'' We anchor the convention
+to a synthetic convex sphere through the same pipeline (see
+\texttt{sphere\_sign\_check}); convex surfaces return $H > 0$. Any
+break of this convention (e.g.~a degenerate cell whose mesh has
+inverted normals) is detectable from the sphere check and was not
+observed in production crops.
+\item \textbf{Disconnected gap-channel components.} On crops where a
+significant fraction of vertices are boundary-uncertain, the dropped
+rim can physically separate the gap-channel submesh into multiple
+connected components. This is rendered honestly --- the submesh
+silhouette is irregular --- but should be interpreted with the
+\texttt{bd-clip} fraction.
+\end{itemize}
+
+\subsection*{Visualization}
+For the public gallery (\texttt{figures/membranes/membranes\_3d.html}),
+the per-vertex scalars are vertex-coloured into glTF~2.0 (\texttt{.glb})
+meshes via the \texttt{matplotlib} \texttt{RdBu\_r} (curvature,
+protrusion) and \texttt{viridis} (gap) colormaps and rendered with
+the \texttt{model-viewer} web component. Each card displays the
+patch's three channels selectable in-place and also via a global
+``color all by'' selector. The curvature and protrusion colormap
+limits are symmetric and set to $\pm$\,p90 of $|H|$ and $|d|$ on the
+patch (the brightest reds/blues are the sharpest features
+\emph{in that patch}, not a fixed absolute threshold across crops).
+The gap colormap is anchored at 0--$3 \cdot 40 = 120$\,nm (so crops
+dominated by close contacts share a common scale) and expanded to
+p95 of the kept-vertex gap distribution when the patch genuinely
+sits hundreds of nm from any in-volume neighbour, with the active
+upper bound shown on each card. Each card also exposes a
+Neuroglancer link wired to the underlying crop with the EM, ECS
+silhouette mesh, and all cell meshes pre-loaded; this allows
+visual verification of any reading against the raw FIB-SEM EM.
+
+\subsection*{Results --- overall}
+% TODO: populate from manifest_3d.json once aggregate per-tissue
+% summaries are computed. Suggested form: per-tissue table of
+% (median $|H|$, IQR), (median $|d|$, IQR), (median $g$, IQR), and
+% the bd-clip distribution, separated by prep. The matched-region
+% comparison in the following subsection is the primary analytical
+% result; this paragraph is a high-level descriptive aggregate.
+
+\subsection*{Results --- region-matched comparisons}
+% TODO: populate from manifest_3d.json + crop_annotations.csv. The
+% matched region groups (e.g.~Liver Bile canaliculus, Liver Space of
+% Disse, Liver Hepatocyte lateral; Heart Intercalated disc, Cardiac
+% interstitial; Kidney PCT brush border, PCT lateral, DCT base,
+% Glomerular interstitium; Cortex Neurovascular, Synaptic,
+% Mitochondrion-rich) are the unit of comparison. Suggested form for
+% each region group: paired per-channel (Chem vs HPF) per-vertex
+% distributions, summarized as median + IQR, with a small inset
+% mesh showing the most-representative crop.
