@@ -42,14 +42,32 @@ physical-scale Gaussian (&sigma;&nbsp;&asymp;&nbsp;1.5&times;voxel). Surfaces ar
 16&nbsp;nm voxels for the web (manuscript metrics use finer/native resolution). Only membrane
 facing ECS is kept (vertices within ~1 voxel of extracellular space); cell&ndash;cell contacts
 and crop-boundary cut faces are removed.</li>
-<li><b>Signed curvature (1/nm).</b> Mean curvature from the cotangent Laplacian.
-<b style="color:#b2182b">Red = convex</b> (membrane bulges into ECS, e.g. microvilli);
-<b style="color:#2166ac">blue = concave</b> (invagination). A dense microvillus brush reads
-strongly convex.</li>
-<li><b>Protrusion / indentation (nm).</b> Per-vertex displacement of the surface from a
-~60&nbsp;nm smoothed reference. <b style="color:#b2182b">Red = protrusion</b> (bulges outward
-into ECS); <b style="color:#2166ac">blue = indentation</b> (pit). Highlights fine features
-relative to the local mean surface.</li>
+<li><b>Signed curvature (1/nm).</b> Mean curvature from the cotangent Laplacian
+&mdash; a strictly <i>local</i> 1-ring quantity (depends only on each vertex and its
+immediate mesh neighbours, no smoothing scale). Sign is set by the outward normal:
+<b style="color:#b2182b">red&nbsp;=&nbsp;convex</b> (membrane bulges into ECS, e.g. microvilli);
+<b style="color:#2166ac">blue&nbsp;=&nbsp;concave</b> (invagination).
+The numeric value <code>H</code> is the reciprocal of a radius:
+the local membrane "fits" a sphere of radius <code>R&nbsp;=&nbsp;1/|H|</code>.
+Worked examples &mdash; <code>H&nbsp;=&nbsp;0.005&nbsp;nm<sup>&minus;1</sup></code> &harr; <code>R&nbsp;=&nbsp;200&nbsp;nm</code>
+(gentle membrane curvature);
+<code>0.02&nbsp;nm<sup>&minus;1</sup></code> &harr; <code>50&nbsp;nm</code> (microvillus shaft);
+<code>0.05&nbsp;nm<sup>&minus;1</sup></code> &harr; <code>20&nbsp;nm</code> (sharp microvillus tip);
+<code>0.10&nbsp;nm<sup>&minus;1</sup></code> &harr; <code>10&nbsp;nm</code> (very sharp spike).
+The colour limits are per&#8209;crop &mdash; the colourbar saturates at the 90th percentile
+of <code>|H|</code> in this particular patch.</li>
+<li><b>Protrusion / indentation (nm).</b> Per-vertex signed displacement of the actual
+surface from a Gaussian-smoothed reference of the same surface
+(<code>&sigma;&nbsp;&asymp;&nbsp;60&nbsp;nm</code>). Units are <i>nanometres</i>, not
+<code>1/nm</code>: the value is literally "how far this vertex sits outside (red)
+or inside (blue) its ~60&nbsp;nm smoothed neighbourhood." Scale-aware where curvature
+isn't &mdash; a gentle 100&nbsp;nm-tall ridge shows large positive protrusion but low
+curvature; a 5&nbsp;nm bump on flat membrane shows high curvature but tiny protrusion.</li>
+<li><b>When the two agree vs. disagree.</b> Curvature answers <i>"is the surface bent
+here, and which way?"</i> &mdash; protrusion answers <i>"does this point stick out (or in)
+compared to its ~60&nbsp;nm neighbourhood?"</i>. On a microvillus brush both light up
+together. On a slowly undulating surface only protrusion fires &mdash; the bends are
+too gentle for curvature to read.</li>
 <li><b>Contact gap (nm).</b> Distance from each membrane point to the nearest <i>neighbouring</i>
 cell. <b>Dark/purple = tight apposition</b> (close cell&ndash;cell contact);
 <b style="color:#b8a000">yellow = open extracellular space</b>. The in-volume distance
