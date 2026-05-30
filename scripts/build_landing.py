@@ -34,6 +34,10 @@ SECTIONS = [
         ("membranes/inspector.html", "Adjustable-scale inspector",
          "Single-mesh viewer with live colormap min/max sliders and a colorbar legend "
          "for rescaling any scalar in real time.", ""),
+        ("membranes/methods.html", "Full methods &amp; results",
+         "Long-form methods page mirroring the manuscript: pipeline, sign-convention "
+         "calibration, boundary handling, per-tissue and region-matched result tables, "
+         "and a comparison vs Metric 5 (Voronoi).", ""),
     ]),
     ("Contact sites", "Cell–cell apposition analysis.", [
         ("contacts.html", "Liver cell–cell contacts",

@@ -110,7 +110,8 @@ def build_html(records: list[dict]) -> str:
 </style>
 <h1>ECS-facing membrane patches — all crops</h1>
 <p><a href="../home.html">&larr; project home</a> ·
-<b><a href="membranes_3d.html">interactive 3D version</a></b> (rotate/zoom each patch)</p>
+<b><a href="membranes_3d.html">interactive 3D version</a></b> (rotate/zoom each patch) ·
+<b><a href="methods.html">full methods &amp; results</a></b></p>
 <p>Each card shows three maps of the same membrane patch: signed curvature, protrusion/indentation,
 and gap-to-nearest-cell. Click an image to open full size.</p>
 """ + METHODS + """

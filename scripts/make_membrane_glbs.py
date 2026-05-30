@@ -272,7 +272,8 @@ def build_html(records: list[dict]) -> str:
 <h1>ECS-facing membrane patches — interactive 3D</h1>
 <p><a href="../home.html">&larr; project home</a> ·
 <b><a href="index.html">static map gallery</a></b> ·
-<b><a href="inspector.html">adjustable-scale inspector</a></b></p>
+<b><a href="inspector.html">adjustable-scale inspector</a></b> ·
+<b><a href="methods.html">full methods &amp; results</a></b></p>
 <p>Drag to rotate, scroll to zoom. Each card loads on scroll (poster = the static maps).
 Use the buttons up top to recolor every card at once, or the per-card buttons for one.
 Click <b>NG</b> on any card to open the underlying crop in Neuroglancer (cell of interest

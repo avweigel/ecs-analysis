@@ -73,7 +73,8 @@ INSPECTOR_HTML = r"""<!doctype html><html><head><meta charset=utf-8>
    <p>Pick a crop, choose a scalar, drag the min/max sliders to rescale the
    colormap live. <a href="../home.html">project home</a> ·
    <a href="membranes_3d.html">3D gallery</a> ·
-   <a href="index.html">maps</a></p>
+   <a href="index.html">maps</a> ·
+   <a href="methods.html">methods</a></p>
    <div id=list></div>
  </div>
  <div id=main>
