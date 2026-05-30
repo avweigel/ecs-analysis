@@ -19,6 +19,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 OUT = REPO_ROOT / "figures" / "membranes" / "methods.html"
 AGG = REPO_ROOT / "results" / "membrane_topology_aggregates.json"
+OUTLIERS_JSON = REPO_ROOT / "results" / "topology_outliers.json"
 
 
 # References for the methods text. Keys mirror paper/references.bib so the
@@ -81,7 +82,9 @@ REFS = {
     ),
     "ModelViewer": (
         "Google. &lt;model-viewer&gt;: easily display interactive 3D models "
-        "on the web. <a href='https://modelviewer.dev'>modelviewer.dev</a>"
+        "on the web and in augmented reality. "
+        "<a href='https://github.com/google/model-viewer'>"
+        "github.com/google/model-viewer</a>"
     ),
     "Heinrich2021": (
         "Heinrich L, Bennett D, Ackerman D, et al. Whole-cell organelle "
@@ -94,6 +97,44 @@ REFS = {
         "doi:10.1038/s41586-021-03992-4"
     ),
 }
+
+
+def outliers_table(outliers: dict) -> str:
+    """Render the per-crop outlier candidates as a table. Outliers are sorted
+    by (tissue, region, prep, crop) for a stable display order; empty input
+    renders a friendly 'no candidates' note instead of an empty table."""
+    if not outliers:
+        return ("<p style='color:#445;font-size:14px'><em>No outlier "
+                "candidates with the current thresholds.</em></p>")
+    rows = []
+    for crop, info in sorted(outliers.items(),
+                             key=lambda kv: (kv[1]["tissue"],
+                                             kv[1]["region_group"],
+                                             kv[1]["prep"], kv[0])):
+        prep_cls = "chem" if info["prep"] == "Chemical" else "hpf"
+
+        def cell_ratio(r):
+            if r is None or not math.isfinite(r):
+                return "—"
+            cls = "hi" if r > 1.7 else ("lo" if r < 0.6 else "")
+            return f"<span class='ratio {cls}'>{r:.2f}×</span>"
+        rows.append(
+            f"<tr>"
+            f"<td><code>{escape(crop)}</code></td>"
+            f"<td>{escape(info['tissue'])}</td>"
+            f"<td>{escape(info['region_group'])}</td>"
+            f"<td><span class='prep {prep_cls}'>{escape(info['prep'])}</span></td>"
+            f"<td class=n>{info['group_n']}</td>"
+            f"<td>{cell_ratio(info.get('H_ratio'))}</td>"
+            f"<td>{cell_ratio(info.get('d_ratio'))}</td>"
+            f"<td class=reason>{escape(info['reason'])}</td>"
+            f"</tr>")
+    return ("<table class=outliers><thead><tr>"
+            "<th>Crop</th><th>Tissue</th><th>Region group</th>"
+            "<th>Prep</th><th>n</th>"
+            "<th>|H| vs group</th><th>|d| vs group</th>"
+            "<th>Reason</th></tr></thead><tbody>"
+            + "".join(rows) + "</tbody></table>")
 
 
 def _resolve_cites(text: str) -> tuple[str, list[str]]:
@@ -226,6 +267,7 @@ and stays in sync with the results CSVs at <code>results/</code>.
   <a href="#res">Results — overall</a> ·
   <a href="#reg">Results — region-matched</a> ·
   <a href="#voronoi">vs Metric 5 (Voronoi)</a> ·
+  <a href="#outliers">Outlier candidates</a> ·
   <a href="#refs">references</a>
 </nav>
 
@@ -434,6 +476,35 @@ off the per-crop CSV rather than the aggregate.</li>
 </ul>
 __REGION_TABLE__
 
+<h2 id=outliers>Outlier candidates within annotated peer groups</h2>
+<p>
+For each annotation group ((tissue, region group, fixation) with n&nbsp;≥&nbsp;3
+crops), the per-crop median curvature |H| and median protrusion |d| are
+compared against the within-group median. Any crop whose ratio to the
+group median exceeds <code>1.7×</code> or falls below <code>0.6×</code>
+on either metric is flagged. Singleton and n=2 groups are skipped (the
+median is ill-defined for a peer of one or two). These are <i>candidates
+for re-annotation or sub-grouping</i>, not automatic rejections — the
+gallery cards surface a <span class=outlier-inline>⚠ outlier</span>
+badge so the candidates aren't forgotten. Re-annotation decisions
+belong to the annotator (Kayvon, Wei-Ping). The flagged list:
+</p>
+__OUTLIER_LIST__
+<p class=note>
+Heuristic rationale: within a correctly-annotated region group the
+per-crop topology should cluster (the membrane biology should be the
+same modulo crop-level variation). A &gt;1.7× or &lt;0.6× spread on
+either |H| or |d| is well outside the typical within-group MAD
+observed across the other 6 groups, so an outlier here usually
+indicates either (a) the cell selected by the most-ECS-facing-surface
+heuristic happens to capture a non-representative part of the tissue
+(e.g.~a Kupffer cell rather than a hepatocyte in the
+<i>Hepatocyte lateral</i> pool), (b) the underlying anatomical
+substructure is heterogeneous and the region group label is too
+coarse, or (c) the crop genuinely sits at the tail of the biological
+distribution.
+</p>
+
 <h2 id=voronoi>Methods comparison vs Metric 5 (Voronoi gap)</h2>
 <p>
 The mesh-based contact gap channel measures the same physical quantity
@@ -479,10 +550,15 @@ def main() -> None:
         raise SystemExit(
             f"missing {AGG}; run scripts/aggregate_topology_stats.py first")
     data = json.loads(AGG.read_text())
+    try:
+        outliers = json.loads(OUTLIERS_JSON.read_text())
+    except FileNotFoundError:
+        outliers = {}
     body, cited_order = _resolve_cites(BODY)
     body = (body
             .replace("__TISSUE_TABLE__", tissue_table(data["by_tissue"]))
             .replace("__REGION_TABLE__", region_table(data["by_region"]))
+            .replace("__OUTLIER_LIST__", outliers_table(outliers))
             + _references_html(cited_order))
 
     html = ("<!doctype html><meta charset=utf-8>\n"
@@ -543,6 +619,21 @@ def main() -> None:
             " ol.refs li:target{background:#fff7d1;border-radius:4px}\n"
             " ol.refs .refn{position:absolute;left:8px;color:#1565c0;font-weight:600;"
             "font-variant-numeric:tabular-nums}\n"
+            " table.outliers{width:100%;border-collapse:collapse;margin:6px 0 12px;"
+            "background:#fff;border:1px solid #e3e6ea;border-radius:6px;overflow:hidden}\n"
+            " table.outliers th,table.outliers td{padding:6px 10px;font-size:13px;"
+            "text-align:left;border-bottom:1px solid #f0f2f5;vertical-align:top}\n"
+            " table.outliers thead{background:#fff3f0}\n"
+            " table.outliers th{font-weight:600;color:#9b1c1c}\n"
+            " table.outliers td.n{font-variant-numeric:tabular-nums;color:#555}\n"
+            " table.outliers td.reason{color:#445;font-size:12.5px;max-width:340px}\n"
+            " table.outliers .ratio{font-variant-numeric:tabular-nums;font-weight:600;"
+            "color:#666}\n"
+            " table.outliers .ratio.hi{color:#9b1c1c}\n"
+            " table.outliers .ratio.lo{color:#0b6a3f}\n"
+            " span.outlier-inline{background:#fde2e2;color:#9b1c1c;"
+            "border:1px solid #f4a8a8;border-radius:4px;padding:0 6px;"
+            "font-size:11.5px;font-weight:700}\n"
             "</style>\n"
             "<nav class=bar>"
             "<a href='../home.html'>⌂ project home</a>"

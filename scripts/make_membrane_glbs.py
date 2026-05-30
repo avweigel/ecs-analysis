@@ -206,6 +206,21 @@ Use the per-card <b>Neuroglancer</b> link to inspect the raw EM and verify.</li>
 </ul></details>"""
 
 
+def _load_outliers() -> dict:
+    """Load per-crop topology-outlier flags from
+    results/topology_outliers.json so the gallery cards can surface them.
+    Missing file = no flags (e.g. fresh checkout before running the
+    aggregation script)."""
+    path = Path(__file__).resolve().parents[1] / "results" / "topology_outliers.json"
+    try:
+        return json.loads(path.read_text())
+    except FileNotFoundError:
+        return {}
+
+
+OUTLIERS = _load_outliers()
+
+
 def build_html(records: list[dict]) -> str:
     ok = [r for r in records if r.get("glbs")]
 
@@ -244,6 +259,11 @@ def build_html(records: list[dict]) -> str:
  .bd-clip{background:#fff3cd;color:#7a5400;border:1px solid #f0d97a;border-radius:4px;
    padding:0 5px;font-size:10.5px;font-weight:600}
  .bd-clip.high{background:#ffd6a8;color:#7a3a00;border-color:#f0a060}
+ /* Within-region outlier badge — surfaces crops whose |H| or |d| sits far
+    from their annotated peer group's median. Click reveals the reason. */
+ .outlier{background:#fde2e2;color:#9b1c1c;border:1px solid #f4a8a8;
+   border-radius:4px;padding:0 6px;font-size:10.5px;font-weight:700;
+   cursor:help;letter-spacing:.02em}
  .btns{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
  .btns button{font-size:12px;border:1px solid #cdd3da;background:#fff;
    border-radius:4px;padding:3px 8px;cursor:pointer;font-family:inherit}
@@ -330,6 +350,15 @@ is pre-selected; <code>cell</code> / <code>ecs</code> / <code>all</code> layers 
                        f"neighbour likely sat outside the crop). High = most of "
                        f"the gap silhouette is missing; treat the gap reading "
                        f"with caution.'>bd-clip {bd:.0%}</span>")
+        outlier = OUTLIERS.get(c)
+        outlier_html = ""
+        if outlier:
+            outlier_html = (
+                f"<span class=outlier title='Topology outlier vs annotated peer "
+                f"group ({escape(outlier['region_group'])} {escape(outlier['prep'])}, "
+                f"n={outlier['group_n']}). {escape(outlier['reason'])}. "
+                f"Consider re-annotating, splitting the region group, or "
+                f"verifying the cell selection.'>⚠ outlier</span>")
         anat_html = (f"<div class='meta-row anat'>{escape(r['anatomy'])}</div>"
                      if r.get("anatomy") else "")
         glbs_attr = escape(json.dumps(r["glbs"]), quote=True)
@@ -345,6 +374,7 @@ is pre-selected; <code>cell</code> / <code>ecs</code> / <code>all</code> layers 
             f"<span class='prep-tag {prep_cls}'>{escape(r['prep'])}</span>"
             f"<span class=tag>{escape(c)}</span>"
             f"<span>cell {r['cell']}</span>"
+            f"{outlier_html}"
             f"{bd_html}"
             f"</div>"
             f"<div class='meta-row stats'>"

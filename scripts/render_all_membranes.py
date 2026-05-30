@@ -78,6 +78,17 @@ silhouette goes missing rather than getting painted with a fake "far" value. The
 </ul></details>"""
 
 
+def _load_outliers() -> dict:
+    path = Path(__file__).resolve().parents[1] / "results" / "topology_outliers.json"
+    try:
+        return json.loads(path.read_text())
+    except FileNotFoundError:
+        return {}
+
+
+OUTLIERS = _load_outliers()
+
+
 def build_html(records: list[dict]) -> str:
     ok = [r for r in records if r.get("image")]
     err = [r for r in records if not r.get("image")]
@@ -102,6 +113,8 @@ def build_html(records: list[dict]) -> str:
  .bd-clip{display:inline-block;background:#fff3cd;color:#7a5400;border:1px solid #f0d97a;
    border-radius:4px;padding:0 5px;font-size:11px;font-weight:600;margin-right:4px}
  .bd-clip.high{background:#ffd6a8;color:#7a3a00;border-color:#f0a060}
+ .outlier{display:inline-block;background:#fde2e2;color:#9b1c1c;border:1px solid #f4a8a8;
+   border-radius:4px;padding:0 6px;font-size:11px;font-weight:700;margin-right:4px;cursor:help}
  .err{color:#c92a2a} a{color:#1971c2}
  .methods{background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:10px 16px;margin:14px 0;max-width:920px}
  .methods summary{font-weight:600;cursor:pointer;color:#1565c0;font-size:14px}
@@ -141,12 +154,21 @@ and gap-to-nearest-cell. Click an image to open full size.</p>
                        f"overstated the gap (true nearest neighbour likely sat "
                        f"outside the crop). High = most of the gap silhouette is "
                        f"missing.'>bd-clip {bd:.0%}</span>")
+        outlier = OUTLIERS.get(r["crop"])
+        outlier_html = ""
+        if outlier:
+            outlier_html = (
+                f"<span class=outlier title='Topology outlier vs annotated peer "
+                f"group ({escape(outlier['region_group'])} "
+                f"{escape(outlier['prep'])}, n={outlier['group_n']}). "
+                f"{escape(outlier['reason'])}.'>⚠ outlier</span>")
         parts.append(
             f"<div class=card><a href='{escape(r['image'])}' target=_blank>"
             f"<img src='{escape(r['image'])}'></a>"
             f"<div class=meta>"
             f"<span class='tag {prep_cls}'>{escape(r['prep'])}</span>"
             f"<span class=tag>{escape(r['crop'])}</span>"
+            f"{outlier_html}"
             f"{bd_html}"
             f"cell {r['cell']} &middot; ECS frac {r['ecs_frac']} &middot; "
             f"patch {r['patch_faces']:,}/{r['total_faces']:,} faces "

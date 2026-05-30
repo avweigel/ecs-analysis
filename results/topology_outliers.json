@@ -1,0 +1,50 @@
+{
+ "crop1044": {
+  "reason": "|H| 0.0061 is 2.60\u00d7 the Hepatocyte lateral Chemical median (0.0023, n=6); |d| 3.60 nm is 2.70\u00d7 the Hepatocyte lateral Chemical median (1.33 nm, n=6)",
+  "channel": "both",
+  "H_ratio": 2.5962733804794276,
+  "d_ratio": 2.702595911836794,
+  "group_median_H": 0.0023352979915216565,
+  "group_median_d": 1.3315799236297607,
+  "group_n": 6,
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Hepatocyte lateral"
+ },
+ "crop1118": {
+  "reason": "|d| 0.79 nm is 0.59\u00d7 the Hepatocyte lateral Chemical median (1.33 nm, n=6)",
+  "channel": "d",
+  "H_ratio": 0.6448800718761667,
+  "d_ratio": 0.5908646134117665,
+  "group_median_H": 0.0023352979915216565,
+  "group_median_d": 1.3315799236297607,
+  "group_n": 6,
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Hepatocyte lateral"
+ },
+ "crop1121": {
+  "reason": "|H| 0.0011 is 0.45\u00d7 the Hepatocyte lateral Chemical median (0.0023, n=6); |d| 0.50 nm is 0.38\u00d7 the Hepatocyte lateral Chemical median (1.33 nm, n=6)",
+  "channel": "both",
+  "H_ratio": 0.454200304615286,
+  "d_ratio": 0.3778425658064716,
+  "group_median_H": 0.0023352979915216565,
+  "group_median_d": 1.3315799236297607,
+  "group_n": 6,
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Hepatocyte lateral"
+ },
+ "crop1071": {
+  "reason": "|H| 0.0038 is 2.35\u00d7 the Hepatocyte lateral Rapid HPF median (0.0016, n=6); |d| 2.36 nm is 2.81\u00d7 the Hepatocyte lateral Rapid HPF median (0.84 nm, n=6)",
+  "channel": "both",
+  "H_ratio": 2.347087775320446,
+  "d_ratio": 2.8066835354285127,
+  "group_median_H": 0.0016247938619926572,
+  "group_median_d": 0.8405802249908447,
+  "group_n": 6,
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region_group": "Hepatocyte lateral"
+ }
+}
