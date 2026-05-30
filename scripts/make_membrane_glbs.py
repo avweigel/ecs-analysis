@@ -201,12 +201,14 @@ def build_html(records: list[dict]) -> str:
 <style>
  body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;margin:24px;background:#f7f8fa;color:#1a1d21}
  h1{font-size:20px;margin:0 0 4px} h2{margin-top:32px;border-bottom:1px solid #d7dbe0;padding-bottom:4px}
- h3{color:#1565c0;margin:18px 0 8px} .grid{display:flex;flex-wrap:wrap;gap:18px}
- /* Fixed-width card with a flex column so every row sits on its own line and
-    the action row hugs the bottom — keeps the grid tidy even when the meta
-    text varies a lot. */
+ h3{color:#1565c0;margin:18px 0 8px}
+ /* 3-column grid; collapses to 2 then 1 when the viewport gets narrow. */
+ .grid{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:18px}
+ @media (max-width:1180px){ .grid{grid-template-columns:repeat(2, minmax(0, 1fr))} }
+ @media (max-width: 760px){ .grid{grid-template-columns:1fr} }
+ /* Cards fill their grid cell; flex column keeps the action row at the bottom. */
  .card{background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:10px;
-   width:420px;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+   width:auto;min-width:0;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.06)}
  model-viewer{width:100%;height:380px;background:#fff;border-radius:4px;--poster-color:#fff}
  .meta{font-size:12px;color:#555b63;margin-top:6px;line-height:1.45;
    display:flex;flex-direction:column;gap:3px}
