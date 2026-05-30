@@ -163,9 +163,21 @@ def build_patch(crop, cell: int | None = None, voxel: float = 8.0,
     gap_used = gap[used]
     gap_uncertain_vp = gap_uncertain[used]
     # Per-Fp face: True iff the gap reading at every vertex of this face is
-    # reliable. We render the gap channel from this submesh only; curvature
-    # and deviation use the full Fp.
+    # reliable.
     gap_face_keep = ~gap_uncertain_vp[Fp].any(axis=1)
+    # Visualisation-quality mask for the curvature + deviation channels.
+    # The smoothed-surface-deviation kernel (`scale` nm) and the cotangent
+    # Laplacian both reach beyond the mesh rim into the marching-cubes cap
+    # face at the volume boundary, biasing values inward and painting a
+    # dark "protrusion" stripe along the patch edge. The 2-voxel patch trim
+    # kills the cap face itself but not the smoothing's reach back into it.
+    # Drop faces whose vertices fall within `scale` nm of any wall from
+    # the curvature/deviation render; the gap channel and the patch stats
+    # are unaffected.
+    vis_margin_nm = max(boundary_margin * vx[0], scale)
+    near_bd_vis = ((V <= vis_margin_nm).any(axis=1)
+                   | (V >= (vol_nm - vis_margin_nm)).any(axis=1))
+    vis_face_keep = ~near_bd_vis[used][Fp].any(axis=1)
     # Fraction of patch vertices whose gap reading we couldn't trust.
     # (Same definition as the old bd-clip badge — just now they're dropped
     # rather than silently bounded.)
@@ -189,6 +201,8 @@ def build_patch(crop, cell: int | None = None, voxel: float = 8.0,
         "gap": np.nan_to_num(gap_used, nan=contact * 3),
         "gap_uncertain": gap_uncertain_vp,
         "gap_face_keep": gap_face_keep,
+        "vis_face_keep": vis_face_keep,
+        "vis_uncertain": near_bd_vis[used],
         "gap_clim_hi": gap_clim_hi,
         "Hc": float(np.percentile(np.abs(H[used]), 90)) or 1e-6,
         "Dc": float(np.percentile(np.abs(dev[used]), 90)) or 1e-6,
@@ -214,19 +228,31 @@ def build_patch(crop, cell: int | None = None, voxel: float = 8.0,
     }
 
 
-def _gap_submesh(p: dict):
-    """Vertices + faces for the gap channel: drops faces whose gap reading is
-    unreliable so the boundary rim disappears instead of being painted with
-    a fake value. Returns (Vg, Fg, gap_vals) — empty if every face was
-    flagged (e.g. tiny patch dominated by edge effects)."""
+def _submesh(p: dict, face_keep_key: str, scalar_key: str):
+    """Compact submesh from a patch + a face-keep mask + a scalar.
+    Returns (V, F, vals) — empty if every face was filtered out."""
     Vp, Fp = p["Vp"], p["Fp"]
-    Fg = Fp[p["gap_face_keep"]]
-    if len(Fg) == 0:
-        return Vp[:0], Fg, p["gap"][:0]
-    used = np.unique(Fg)
+    F = Fp[p[face_keep_key]]
+    if len(F) == 0:
+        return Vp[:0], F, p[scalar_key][:0]
+    used = np.unique(F)
     vmap = -np.ones(len(Vp), dtype=int)
     vmap[used] = np.arange(len(used))
-    return Vp[used], vmap[Fg], p["gap"][used]
+    return Vp[used], vmap[F], p[scalar_key][used]
+
+
+def _gap_submesh(p: dict):
+    """Submesh for the gap channel: drops faces whose gap reading is
+    unreliable so the boundary rim disappears instead of being painted with
+    a fake value."""
+    return _submesh(p, "gap_face_keep", "gap")
+
+
+def _vis_submesh(p: dict, scalar_key: str):
+    """Submesh for curvature / deviation: drops faces near the volume
+    boundary where the cotangent Laplacian (1-ring) and smoothed-deviation
+    kernel reach the marching-cubes cap and bias values inward."""
+    return _submesh(p, "vis_face_keep", scalar_key)
 
 
 # scalar key -> (patch field, display name, cmap, symmetric?)
@@ -247,8 +273,11 @@ def _clim(p: dict, key: str):
 
 def glb_from_patch(p: dict, out_path: Path, scalar: str = "gap") -> dict:
     """Export a vertex-colored GLB for one scalar from an already-built patch.
-    The gap channel renders from the trimmed boundary-reliable submesh; the
-    curvature and deviation channels use the full patch."""
+    Each channel renders from its own boundary-reliable submesh:
+      gap        → drop faces with in-volume-EDT-uncertain vertices
+      curvature  → drop faces near the marching-cubes cap (1-ring bias)
+      deviation  → drop faces near the cap (smoothing-kernel bias)
+    """
     import matplotlib
     import trimesh
     field, _name, cmap, _sym = SCALARS[scalar]
@@ -256,7 +285,7 @@ def glb_from_patch(p: dict, out_path: Path, scalar: str = "gap") -> dict:
     if scalar == "gap":
         V, F, vals = _gap_submesh(p)
     else:
-        V, F, vals = p["Vp"], p["Fp"], p[field]
+        V, F, vals = _vis_submesh(p, field)
     norm = matplotlib.colors.Normalize(vmin=lo, vmax=hi)
     colors = (matplotlib.colormaps[cmap](norm(vals)) * 255).astype(np.uint8)
     tm = trimesh.Trimesh(V, F, vertex_colors=colors, process=False)
@@ -287,11 +316,17 @@ def bin_from_patch(p: dict, out_path: Path) -> dict:
     reads them from the manifest to slice the buffer)."""
     V = np.ascontiguousarray(p["Vp"], dtype="<f4")
     F = np.ascontiguousarray(p["Fp"], dtype="<u4")
-    cur = np.ascontiguousarray(p["curvature"], dtype="<f4")
-    dev = np.ascontiguousarray(p["deviation"], dtype="<f4")
-    # Boundary-uncertain vertices ride into the bin as NaN gap values; the
-    # inspector renders NaN as neutral gray so the rim doesn't get painted
-    # with the in-volume-EDT's overestimate.
+    # Boundary-uncertain vertices ride into the bin as NaN so the inspector
+    # renders them neutral grey. Curvature + deviation are biased by the
+    # marching-cubes cap face at the volume boundary (smoothing kernel and
+    # Laplacian reach back into it); gap is biased separately by the
+    # in-volume EDT overestimating distance to neighbours.
+    cur = p["curvature"].astype("<f4", copy=True)
+    dev = p["deviation"].astype("<f4", copy=True)
+    cur[p["vis_uncertain"]] = np.float32("nan")
+    dev[p["vis_uncertain"]] = np.float32("nan")
+    cur = np.ascontiguousarray(cur)
+    dev = np.ascontiguousarray(dev)
     gap = p["gap"].astype("<f4", copy=True)
     gap[p["gap_uncertain"]] = np.float32("nan")
     gap = np.ascontiguousarray(gap)
@@ -311,14 +346,17 @@ def bin_from_patch(p: dict, out_path: Path) -> dict:
     # symmetric defaults for diverging scalars, 0-based for gap
     Hc, Dc = p["Hc"], p["Dc"]
     meta = dict(p["meta"])
+    def _bounds(a):
+        a = np.asarray(a, float)
+        if not np.isfinite(a).any():
+            return [0.0, 1.0]
+        return [float(np.nanmin(a)), float(np.nanmax(a))]
     gap_max = float(np.nanmax(gap)) if np.isfinite(gap).any() else float(p["contact"] * 3)
     meta.update({
         "nverts": int(len(V)), "nfaces": int(len(F)), "bin": out_path.name,
         "ranges": {
-            "curvature": {"bounds": [float(cur.min()), float(cur.max())],
-                          "default": [-Hc, Hc]},
-            "deviation": {"bounds": [float(dev.min()), float(dev.max())],
-                          "default": [-Dc, Dc]},
+            "curvature": {"bounds": _bounds(cur), "default": [-Hc, Hc]},
+            "deviation": {"bounds": _bounds(dev), "default": [-Dc, Dc]},
             "gap": {"bounds": [0.0, gap_max],
                     "default": [0.0, float(p.get("gap_clim_hi", p["contact"] * 3))]},
         },
@@ -334,19 +372,21 @@ def render_membrane(crop, out_path: Path, cell: int | None = None,
     Returns a metadata dict. Raises on degenerate/empty geometry."""
     p = patch if patch is not None else build_patch(
         crop, cell=cell, voxel=voxel, scale=scale, contact=contact)
-    Vp, Fp = p["Vp"], p["Fp"]
-    faces_pv = np.hstack([np.full((len(Fp), 1), 3), Fp]).ravel()
+    Vc, Fc, cur_vals = _vis_submesh(p, "curvature")
+    Vd, Fd, dev_vals = _vis_submesh(p, "deviation")
     Vg, Fg, gap_vals = _gap_submesh(p)
     Hc, Dc = p["Hc"], p["Dc"]
 
     # One PolyData PER panel, each carrying only its own scalar. Sharing a
     # single multi-scalar PolyData across subplots makes pyvista map the LAST
-    # active array everywhere, so curvature/deviation panels silently render
-    # the gap values instead. The gap panel uses a separate submesh that
-    # drops faces with unreliable readings near the volume boundary.
+    # active array everywhere. Each panel also uses its own boundary-cleaned
+    # submesh: gap drops EDT-uncertain faces; curvature and deviation drop a
+    # smoothing-scale-wide rim where the cotangent Laplacian and 60 nm
+    # smoothing kernel pick up the marching-cubes cap face at the volume
+    # boundary and paint an artificial protrusion stripe.
     panels = [
-        ("Signed curvature (1/nm)", Vp, Fp, p["curvature"], "RdBu_r", (-Hc, Hc)),
-        ("Protrusion / indentation (nm)", Vp, Fp, p["deviation"], "RdBu_r", (-Dc, Dc)),
+        ("Signed curvature (1/nm)", Vc, Fc, cur_vals, "RdBu_r", (-Hc, Hc)),
+        ("Protrusion / indentation (nm)", Vd, Fd, dev_vals, "RdBu_r", (-Dc, Dc)),
         ("Gap to nearest cell (nm)", Vg, Fg, gap_vals, "viridis",
          (0, p["contact"] * 3)),
     ]
