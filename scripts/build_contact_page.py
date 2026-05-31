@@ -147,30 +147,39 @@ def main() -> None:
 <meta charset="utf-8">
 <title>Liver cell-cell contact sites — Chem vs HPF</title>
 <style>
-  :root {{ --bg:#fafafa; --card:white; --border:#e5e7eb; --text:#1f2937; --muted:#6b7280; }}
+  :root {{
+    --bg:#0f1420; --card:#1a2030; --card2:#222b3e;
+    --border:#2a3346; --text:#e8ecf3; --muted:#8a93a6;
+    --accent:#5b9cff; --head:#cfe0ff;
+  }}
   * {{ box-sizing: border-box; }}
-  body {{ background: var(--bg); margin: 0; color: var(--text); font-family: -apple-system, system-ui, sans-serif; line-height: 1.55; }}
+  body {{ background: var(--bg); margin: 0; color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; line-height: 1.55; }}
   .container {{ max-width: 1500px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }}
-  h1 {{ margin: 0 0 0.4rem; font-size: 1.7rem; letter-spacing: -0.01em; }}
-  .page-sub {{ color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }}
-  a.back {{ display: inline-block; margin-bottom: 1rem; color: #2563eb; text-decoration: none; font-size: 0.9rem; }}
+  h1 {{ margin: 0 0 0.4rem; font-size: 1.7rem; letter-spacing: -0.01em; color: var(--text); }}
+  .page-sub {{ color: #c0c8d6; margin-bottom: 1.5rem; font-size: 0.95rem; }}
+  a.back {{ display: inline-block; margin-bottom: 1rem; color: var(--accent); text-decoration: none; font-size: 0.9rem; }}
 
   .legend {{
-    background: #f8fafc; border: 1px solid var(--border); border-radius: 10px;
-    padding: 1rem 1.2rem; margin-bottom: 1.5rem;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1rem 1.2rem; margin-bottom: 1.5rem; color: #c0c8d6;
   }}
-  .legend h2 {{ font-size: 1rem; margin: 0 0 0.5rem; }}
+  .legend h2 {{ font-size: 1rem; margin: 0 0 0.5rem; color: var(--head); }}
   .legend p {{ margin: 0.35rem 0; font-size: 0.92rem; }}
+  .legend em {{ color: var(--text); }}
+  .legend code {{
+    background: var(--card2); border-radius: 3px; padding: 1px 5px; color: #d6deea;
+    font-family: ui-monospace, Menlo, monospace; font-size: 0.85rem;
+  }}
   .swatches {{ display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 0.6rem; font-size: 0.85rem; }}
   .sw {{ display: inline-flex; align-items: center; gap: 0.35rem; }}
   .sw span.box {{ display: inline-block; width: 14px; height: 14px; border-radius: 3px; }}
 
   section.section {{
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
     padding: 1.1rem 1.3rem 1.4rem; margin-bottom: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
   }}
-  section.section h2 {{ margin: 0 0 0.25rem; font-size: 1.2rem; }}
+  section.section h2 {{ margin: 0 0 0.25rem; font-size: 1.2rem; color: var(--head); }}
   .subtitle {{ color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem; }}
 
   .row-block {{ margin-top: 1rem; }}
@@ -181,10 +190,10 @@ def main() -> None:
   .card-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.9rem; }}
 
   .card {{
-    background: white; border: 1px solid var(--border); border-left: 4px solid var(--prep);
-    border-radius: 8px; overflow: hidden;
+    background: var(--card2); border: 1px solid var(--border); border-left: 4px solid var(--prep);
+    border-radius: 10px; overflow: hidden;
   }}
-  .thumb-wrap {{ display: block; position: relative; text-decoration: none; background: #111; aspect-ratio: 1; }}
+  .thumb-wrap {{ display: block; position: relative; text-decoration: none; background: #0a0f1c; aspect-ratio: 1; }}
   .thumb {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
   .thumb-overlay {{
     position: absolute; bottom: 0.4rem; left: 0.4rem;
@@ -200,7 +209,7 @@ def main() -> None:
   }}
   .metrics > div {{ display: flex; flex-direction: column; align-items: center; }}
   .metrics .lbl {{ font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }}
-  .metrics .val {{ font-size: 0.92rem; font-weight: 700; font-variant-numeric: tabular-nums; }}
+  .metrics .val {{ font-size: 0.92rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }}
 </style>
 </head>
 <body>
