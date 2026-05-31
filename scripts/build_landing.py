@@ -62,22 +62,27 @@ def main() -> None:
     html = f"""<!doctype html><meta charset=utf-8>
 <title>ECS preservation project — pages</title>
 <style>
- body{{font-family:-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#f7f8fa;color:#1a1d21}}
- header{{background:#fff;border-bottom:1px solid #e3e6ea;padding:24px 32px}}
- header h1{{margin:0 0 6px;font-size:22px}} header p{{margin:0;color:#555;font-size:14px;max-width:760px;line-height:1.5}}
+ :root{{--bg:#0f1420;--card:#1a2030;--card2:#222b3e;--ink:#e8ecf3;--muted:#8a93a6;
+   --line:#2a3346;--accent:#5b9cff;--head:#cfe0ff}}
+ *{{box-sizing:border-box}}
+ body{{font-family:'Segoe UI',Tahoma,sans-serif;margin:0;background:var(--bg);color:var(--ink);line-height:1.5}}
+ header{{background:linear-gradient(135deg,#16243f,#1d3a33);border-bottom:1px solid var(--line);padding:30px 32px}}
+ header h1{{margin:0 0 6px;font-size:24px;color:var(--ink)}}
+ header p{{margin:0;color:#c4ccda;font-size:14px;max-width:760px;line-height:1.5}}
  main{{padding:8px 32px 40px}} section{{margin-top:28px}}
- h2{{font-size:16px;color:#1565c0;border-bottom:1px solid #d7dbe0;padding-bottom:4px}}
- .blurb{{color:#555;font-size:13px;margin:6px 0 12px}}
+ h2{{font-size:17px;color:var(--head);border-bottom:1px solid var(--line);padding-bottom:6px}}
+ .blurb{{color:var(--muted);font-size:13px;margin:6px 0 12px}}
  .grid{{display:flex;flex-wrap:wrap;gap:16px}}
- .card{{display:block;width:340px;background:#fff;border:1px solid #e3e6ea;border-radius:10px;
-   padding:14px 16px;text-decoration:none;color:inherit;box-shadow:0 1px 3px rgba(0,0,0,.05);
-   transition:box-shadow .15s,transform .15s}}
- .card:hover{{box-shadow:0 4px 14px rgba(0,0,0,.10);transform:translateY(-1px)}}
- .ct{{font-weight:600;font-size:15px;color:#1971c2}} .cd{{font-size:13px;color:#444;margin:6px 0;line-height:1.5}}
- .cl{{font-size:11px;color:#999;font-family:ui-monospace,Menlo,monospace}}
- .badge{{font-size:10px;background:#1565c0;color:#fff;border-radius:4px;padding:2px 6px;margin-left:8px;
-   text-transform:uppercase;letter-spacing:.04em}}
- footer{{padding:0 32px 32px;color:#999;font-size:12px}}
+ .card{{display:block;width:340px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+   padding:14px 16px;text-decoration:none;color:inherit;box-shadow:0 1px 4px rgba(0,0,0,.25);
+   transition:box-shadow .15s,transform .15s,border-color .15s}}
+ .card:hover{{box-shadow:0 6px 18px rgba(0,0,0,.35);transform:translateY(-1px);border-color:var(--accent)}}
+ .ct{{font-weight:600;font-size:15px;color:var(--accent)}}
+ .cd{{font-size:13px;color:#c0c8d6;margin:6px 0;line-height:1.55}}
+ .cl{{font-size:11px;color:var(--muted);font-family:ui-monospace,Menlo,monospace}}
+ .badge{{font-size:10px;background:var(--accent);color:#0a0f1c;border-radius:4px;padding:2px 6px;margin-left:8px;
+   text-transform:uppercase;letter-spacing:.04em;font-weight:700}}
+ footer{{padding:0 32px 32px;color:var(--muted);font-size:12px}}
 </style>
 <header>
  <h1>Extracellular space preservation — Chemical vs Rapid HPF</h1>

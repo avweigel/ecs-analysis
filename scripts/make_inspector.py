@@ -45,27 +45,35 @@ def write_colormaps() -> None:
 INSPECTOR_HTML = r"""<!doctype html><html><head><meta charset=utf-8>
 <title>ECS membrane inspector</title>
 <style>
- html,body{margin:0;height:100%;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1d21}
+ :root{--bg:#0f1420;--card:#1a2030;--card2:#222b3e;--ink:#e8ecf3;--muted:#8a93a6;
+   --line:#2a3346;--accent:#5b9cff;--head:#cfe0ff}
+ html,body{margin:0;height:100%;font-family:'Segoe UI',Tahoma,sans-serif;color:var(--ink);background:var(--bg)}
  #app{display:flex;height:100vh}
- #side{width:300px;overflow:auto;border-right:1px solid #e3e6ea;padding:12px;box-sizing:border-box;background:#fafbfc}
- #side h1{font-size:16px;margin:0 0 4px} #side p{font-size:12px;color:#666;margin:4px 0 12px}
- #side a{color:#1971c2}
- .grp{font-size:12px;font-weight:600;color:#1565c0;margin:12px 0 4px}
- .crop{display:block;width:100%;text-align:left;border:1px solid #cdd3da;background:#fff;border-radius:5px;
-   padding:5px 8px;margin:3px 0;cursor:pointer;font-size:12px}
- .crop:hover{background:#eef4fc} .crop.active{background:#1565c0;color:#fff;border-color:#1565c0}
- .chem{color:#d9480f} .hpf{color:#1971c2} .crop.active .chem,.crop.active .hpf{color:#fff}
- #main{flex:1;position:relative;background:#fff} #view{width:100%;height:100%;display:block}
- #ctrl{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.94);border:1px solid #e3e6ea;
-   border-radius:8px;padding:12px;width:280px;box-shadow:0 2px 8px rgba(0,0,0,.08);font-size:13px}
- #ctrl select{width:100%;padding:4px;margin:4px 0 10px} #ctrl label{font-size:12px;color:#555}
+ #side{width:300px;overflow:auto;border-right:1px solid var(--line);padding:14px;box-sizing:border-box;background:var(--card)}
+ #side h1{font-size:16px;margin:0 0 4px;color:var(--ink)}
+ #side p{font-size:12px;color:var(--muted);margin:4px 0 12px}
+ #side a{color:var(--accent)}
+ .grp{font-size:12px;font-weight:600;color:var(--head);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.04em}
+ .crop{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--card2);
+   color:var(--ink);border-radius:5px;padding:5px 8px;margin:3px 0;cursor:pointer;font-size:12px}
+ .crop:hover{background:#283250} .crop.active{background:var(--accent);color:#0a0f1c;border-color:var(--accent)}
+ .chem{color:#ff8b4a} .hpf{color:#7ec0ff}
+ .crop.active .chem,.crop.active .hpf{color:#0a0f1c;font-weight:700}
+ #main{flex:1;position:relative;background:radial-gradient(circle at 50% 40%,var(--card2),#0a0f1c)}
+ #view{width:100%;height:100%;display:block}
+ #ctrl{position:absolute;top:12px;right:12px;background:rgba(26,32,48,.94);border:1px solid var(--line);
+   border-radius:10px;padding:12px;width:280px;box-shadow:0 4px 12px rgba(0,0,0,.4);font-size:13px;color:var(--ink)}
+ #ctrl select{width:100%;padding:4px;margin:4px 0 10px;background:var(--card2);color:var(--ink);
+   border:1px solid var(--line);border-radius:4px;font-family:inherit}
+ #ctrl label{font-size:12px;color:var(--muted)}
  .row{display:flex;align-items:center;gap:6px;margin:3px 0} .row input[type=range]{flex:1}
- .row input[type=number]{width:74px;font-size:12px;padding:2px}
- #bar{width:100%;height:16px;border:1px solid #ccc;border-radius:3px;margin-top:8px}
- #barlab{display:flex;justify-content:space-between;font-size:11px;color:#555}
- #title{position:absolute;top:12px;left:12px;background:rgba(255,255,255,.9);padding:6px 10px;
-   border-radius:6px;font-size:13px;border:1px solid #e3e6ea}
- #hint{position:absolute;bottom:10px;left:12px;font-size:11px;color:#888}
+ .row input[type=number]{width:74px;font-size:12px;padding:2px;background:var(--card2);color:var(--ink);
+   border:1px solid var(--line);border-radius:3px;font-family:inherit}
+ #bar{width:100%;height:16px;border:1px solid var(--line);border-radius:3px;margin-top:8px}
+ #barlab{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+ #title{position:absolute;top:12px;left:12px;background:rgba(26,32,48,.9);padding:6px 10px;
+   border-radius:6px;font-size:13px;border:1px solid var(--line);color:var(--ink)}
+ #hint{position:absolute;bottom:10px;left:12px;font-size:11px;color:var(--muted)}
 </style></head><body>
 <div id=app>
  <div id=side>
@@ -107,9 +115,9 @@ let scene,camera,renderer,controls;
 
 function initGL(){
   const cv=document.getElementById('view');
-  renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+  renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
   renderer.setPixelRatio(window.devicePixelRatio);
-  scene=new THREE.Scene(); scene.background=new THREE.Color(0xffffff);
+  scene=new THREE.Scene(); scene.background=null; // CSS gradient bleeds through
   camera=new THREE.PerspectiveCamera(45,1,1,1e6);
   controls=new THREE.OrbitControls(camera,renderer.domElement);
   scene.add(new THREE.AmbientLight(0xffffff,0.6));

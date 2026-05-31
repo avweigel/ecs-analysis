@@ -102,24 +102,34 @@ def build_html(records: list[dict]) -> str:
     parts = ["""<!doctype html><meta charset=utf-8>
 <title>ECS membrane patches</title>
 <style>
- body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;margin:24px;background:#f7f8fa;color:#1a1d21}
- h1{font-size:20px} h2{margin-top:32px;border-bottom:1px solid #d7dbe0;padding-bottom:4px}
- h3{color:#1565c0;margin:18px 0 8px} .grid{display:flex;flex-wrap:wrap;gap:18px}
- .card{background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:10px;width:560px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
- .card img{width:100%;border-radius:4px;background:#fff;cursor:zoom-in}
- .meta{font-size:12px;color:#555b63;margin-top:6px;line-height:1.5}
- .tag{display:inline-block;background:#eef1f5;border-radius:4px;padding:1px 6px;margin-right:4px}
- .chem{color:#d9480f;font-weight:600} .hpf{color:#1971c2;font-weight:600}
- .bd-clip{display:inline-block;background:#fff3cd;color:#7a5400;border:1px solid #f0d97a;
-   border-radius:4px;padding:0 5px;font-size:11px;font-weight:600;margin-right:4px}
- .bd-clip.high{background:#ffd6a8;color:#7a3a00;border-color:#f0a060}
- .outlier{display:inline-block;background:#fde2e2;color:#9b1c1c;border:1px solid #f4a8a8;
+ :root{--bg:#0f1420;--card:#1a2030;--card2:#222b3e;--ink:#e8ecf3;--muted:#8a93a6;
+   --line:#2a3346;--accent:#5b9cff;--head:#cfe0ff}
+ *{box-sizing:border-box}
+ body{font-family:'Segoe UI',Tahoma,sans-serif;margin:24px;background:var(--bg);color:var(--ink);line-height:1.5}
+ h1{font-size:22px;margin:0 0 6px}
+ h2{margin-top:32px;border-bottom:1px solid var(--line);padding-bottom:4px;color:var(--head);font-size:19px}
+ h3{color:var(--accent);margin:18px 0 8px;font-size:15px}
+ .grid{display:flex;flex-wrap:wrap;gap:18px}
+ .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;width:560px;
+   box-shadow:0 1px 4px rgba(0,0,0,.25)}
+ .card img{width:100%;border-radius:8px;background:#0a0f1c;cursor:zoom-in}
+ .meta{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+ .tag{display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:4px;
+   padding:1px 7px;margin-right:4px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#cdd5e2}
+ .chem{color:#ff8b4a;font-weight:600} .hpf{color:#7ec0ff;font-weight:600}
+ .bd-clip{display:inline-block;background:#3d3424;color:#f0c870;border:1px solid #6b5a30;
+   border-radius:4px;padding:0 6px;font-size:11px;font-weight:600;margin-right:4px}
+ .bd-clip.high{background:#4d2e1c;color:#ffa46e;border-color:#7a4628}
+ .outlier{display:inline-block;background:#3a1e1e;color:#ff8585;border:1px solid #6b3030;
    border-radius:4px;padding:0 6px;font-size:11px;font-weight:700;margin-right:4px;cursor:help}
- .err{color:#c92a2a} a{color:#1971c2}
- .methods{background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:10px 16px;margin:14px 0;max-width:920px}
- .methods summary{font-weight:600;cursor:pointer;color:#1565c0;font-size:14px}
- .methods p{font-size:13px;color:#333;line-height:1.55} .methods ul{margin:8px 0 0;padding-left:18px}
- .methods li{font-size:13px;color:#333;line-height:1.6;margin:4px 0}
+ .err{color:#ff8585} a{color:var(--accent)}
+ .methods{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:14px 0;max-width:980px}
+ .methods summary{font-weight:600;cursor:pointer;color:var(--head);font-size:14px}
+ .methods p{font-size:13px;color:#c0c8d6;line-height:1.6}
+ .methods ul{margin:8px 0 0;padding-left:18px}
+ .methods li{font-size:13px;color:#c0c8d6;line-height:1.65;margin:5px 0}
+ .methods code{background:var(--card2);color:#d6deea;border-radius:3px;padding:1px 5px;
+   font-family:ui-monospace,Menlo,monospace;font-size:12px}
 </style>
 <h1>ECS-facing membrane patches — all crops</h1>
 <p><a href="../home.html">&larr; project home</a> ·

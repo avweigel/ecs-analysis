@@ -234,60 +234,71 @@ def build_html(records: list[dict]) -> str:
 <title>ECS membrane patches — interactive 3D</title>
 <script type="module" src="model-viewer.min.js"></script>
 <style>
- body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;margin:24px;background:#f7f8fa;color:#1a1d21}
- h1{font-size:20px;margin:0 0 4px} h2{margin-top:32px;border-bottom:1px solid #d7dbe0;padding-bottom:4px}
- h3{color:#1565c0;margin:18px 0 8px}
+ :root{--bg:#0f1420;--card:#1a2030;--card2:#222b3e;--ink:#e8ecf3;--muted:#8a93a6;
+   --line:#2a3346;--accent:#5b9cff;--head:#cfe0ff}
+ *{box-sizing:border-box}
+ body{font-family:'Segoe UI',Tahoma,sans-serif;margin:24px;background:var(--bg);color:var(--ink);line-height:1.5}
+ h1{font-size:22px;margin:0 0 4px;color:var(--ink)}
+ h2{margin-top:32px;border-bottom:1px solid var(--line);padding-bottom:4px;color:var(--head);font-size:19px}
+ h3{color:var(--accent);margin:18px 0 8px;font-size:15px}
  /* 3-column grid; collapses to 2 then 1 when the viewport gets narrow. */
  .grid{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:18px}
  @media (max-width:1180px){ .grid{grid-template-columns:repeat(2, minmax(0, 1fr))} }
  @media (max-width: 760px){ .grid{grid-template-columns:1fr} }
  /* Cards fill their grid cell; flex column keeps the action row at the bottom. */
- .card{background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:10px;
-   width:auto;min-width:0;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.06)}
- model-viewer{width:100%;height:380px;background:#fff;border-radius:4px;--poster-color:#fff}
- .meta{font-size:12px;color:#555b63;margin-top:6px;line-height:1.45;
+ .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;
+   width:auto;min-width:0;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+ model-viewer{width:100%;height:380px;border-radius:8px;
+   background:radial-gradient(circle at 50% 40%,var(--card2),#141a28);--poster-color:transparent}
+ .meta{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.45;
    display:flex;flex-direction:column;gap:3px}
  .meta-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
- .meta-row.id{font-size:12.5px}
- .meta-row.stats{color:#6b727a;font-variant-numeric:tabular-nums}
- .meta-row.anat{color:#1a1d21;font-style:italic}
- .tag{display:inline-block;background:#eef1f5;border-radius:4px;padding:1px 6px;
-   font-family:ui-monospace,Menlo,monospace;font-size:11.5px}
+ .meta-row.id{font-size:12.5px;color:var(--ink)}
+ .meta-row.stats{color:var(--muted);font-variant-numeric:tabular-nums}
+ .meta-row.anat{color:var(--ink);font-style:italic}
+ .tag{display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:4px;padding:1px 7px;
+   font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#cdd5e2}
  .prep-tag{color:#fff;font-weight:600;border-radius:4px;padding:1px 7px;
    text-transform:uppercase;letter-spacing:.04em;font-size:10.5px}
  .prep-tag.chem{background:#d9480f} .prep-tag.hpf{background:#1971c2}
- .bd-clip{background:#fff3cd;color:#7a5400;border:1px solid #f0d97a;border-radius:4px;
-   padding:0 5px;font-size:10.5px;font-weight:600}
- .bd-clip.high{background:#ffd6a8;color:#7a3a00;border-color:#f0a060}
+ .bd-clip{background:#3d3424;color:#f0c870;border:1px solid #6b5a30;border-radius:4px;
+   padding:0 6px;font-size:10.5px;font-weight:600}
+ .bd-clip.high{background:#4d2e1c;color:#ffa46e;border-color:#7a4628}
  /* Within-region outlier badge — surfaces crops whose |H| or |d| sits far
-    from their annotated peer group's median. Click reveals the reason. */
- .outlier{background:#fde2e2;color:#9b1c1c;border:1px solid #f4a8a8;
+    from their annotated peer group's median. Hover reveals the reason. */
+ .outlier{background:#3a1e1e;color:#ff8585;border:1px solid #6b3030;
    border-radius:4px;padding:0 6px;font-size:10.5px;font-weight:700;
    cursor:help;letter-spacing:.02em}
  .btns{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
- .btns button{font-size:12px;border:1px solid #cdd3da;background:#fff;
+ .btns button{font-size:12px;border:1px solid var(--line);background:var(--card2);color:var(--ink);
    border-radius:4px;padding:3px 8px;cursor:pointer;font-family:inherit}
- .btns button.active{background:#1565c0;color:#fff;border-color:#1565c0}
- .actions{margin-top:6px;display:flex;flex-wrap:wrap;gap:8px;font-size:12px;align-items:center}
+ .btns button:hover{background:#283250}
+ .btns button.active{background:var(--accent);color:#0a0f1c;border-color:var(--accent)}
+ .actions{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;font-size:12px;align-items:center}
  .actions a.ng{display:inline-block;background:#0d9488;color:#fff;padding:3px 9px;
    border-radius:4px;text-decoration:none;font-weight:600}
  .actions a.ng:hover{background:#0b7a70}
- .actions a.maps{color:#1971c2;text-decoration:none} .actions a.maps:hover{text-decoration:underline}
- .methods{background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:10px 16px;margin:14px 0;max-width:920px}
- .methods summary{font-weight:600;cursor:pointer;color:#1565c0;font-size:14px}
- .methods p{font-size:13px;color:#333;line-height:1.55} .methods ul{margin:8px 0 0;padding-left:18px}
- .methods li{font-size:13px;color:#333;line-height:1.6;margin:4px 0}
- a{color:#1971c2}
+ .actions a.maps{color:var(--accent);text-decoration:none}
+ .actions a.maps:hover{text-decoration:underline}
+ .methods{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:14px 0;max-width:980px}
+ .methods summary{font-weight:600;cursor:pointer;color:var(--head);font-size:14px}
+ .methods p{font-size:13px;color:#c0c8d6;line-height:1.6}
+ .methods ul{margin:8px 0 0;padding-left:18px}
+ .methods li{font-size:13px;color:#c0c8d6;line-height:1.65;margin:5px 0}
+ .methods code{background:var(--card2);color:#d6deea;border-radius:3px;padding:1px 5px;
+   font-family:ui-monospace,Menlo,monospace;font-size:12px}
+ a{color:var(--accent)}
  /* Sticky global-control strip so the scalar switcher stays available while
     scrolling through 50+ cards. */
- .global{position:sticky;top:0;z-index:10;background:rgba(247,248,250,.96);
+ .global{position:sticky;top:0;z-index:10;background:rgba(15,20,32,.93);
    backdrop-filter:saturate(140%) blur(6px);padding:10px 0;margin:10px 0 6px;
-   border-bottom:1px solid #d7dbe0;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
- .global label{font-size:13px;color:#3a4148;font-weight:600}
- .global button{font-size:13px;border:1px solid #1565c0;background:#fff;
-   color:#1565c0;border-radius:5px;padding:4px 12px;cursor:pointer;font-family:inherit;font-weight:600}
- .global button.active{background:#1565c0;color:#fff}
- .global .hint{color:#6b727a;font-weight:400;font-size:12px;margin-left:auto}
+   border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+ .global label{font-size:13px;color:var(--head);font-weight:600}
+ .global button{font-size:13px;border:1px solid var(--accent);background:transparent;
+   color:var(--accent);border-radius:5px;padding:4px 12px;cursor:pointer;font-family:inherit;font-weight:600}
+ .global button:hover{background:rgba(91,156,255,.12)}
+ .global button.active{background:var(--accent);color:#0a0f1c}
+ .global .hint{color:var(--muted);font-weight:400;font-size:12px;margin-left:auto}
 </style>
 <h1>ECS-facing membrane patches — interactive 3D</h1>
 <p><a href="../home.html">&larr; project home</a> ·
