@@ -49,3 +49,25 @@ Liver & Hepatocyte lateral & 6\,/\,6 & 0.00234 [0.00139, 0.00337] & 0.00162 [0.0
 \hline
 \end{tabular}
 \end{table}
+
+\begin{table}[h]
+\centering
+\scriptsize
+\caption{Sensitivity of the Chem-vs-HPF comparison to the candidate
+outliers identified in Table~\ref{tab:membrane-topology-region}.
+Each entry is the ratio of the per-crop median Chemical value to the
+per-crop median HPF value, computed with all crops in the group ("all")
+and with the candidate outliers excluded ("clean"). Only region groups
+that lost at least one crop are shown. n is reported as Chem/HPF crop
+count.}
+\label{tab:membrane-topology-sensitivity}
+\begin{tabular}{ll cccc cccc}
+\hline
+& & \multicolumn{4}{c}{All crops}
+   & \multicolumn{4}{c}{Outliers excluded} \\
+Tissue & Region group & n & H & d & g & n & H & d & g \\
+\hline
+Liver & Hepatocyte lateral & 6\,/\,6 & 1.44 & 1.58 & 0.84 & 3\,/\,5 & 1.56 & 1.87 & 1.00 \\
+\hline
+\end{tabular}
+\end{table}

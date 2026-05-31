@@ -311,6 +311,93 @@ Tissue & Region group & n & Chem & HPF & Chem & HPF & Chem & HPF \\
 \end{table}"""
 
 
+def chem_hpf_comparison(by_region: list[dict]) -> list[dict]:
+    """For each (tissue, region_group) with both Chem and HPF aggregate rows,
+    emit one row carrying both prep arms side-by-side. Lets a downstream
+    renderer show a direct ratio without re-joining."""
+    pair: dict[tuple[str, str], dict[str, dict]] = defaultdict(dict)
+    for r in by_region:
+        if not r["region_group"]:
+            continue
+        pair[(r["tissue"], r["region_group"])][r["prep"]] = r
+    out = []
+    for (tissue, region), arms in sorted(pair.items()):
+        chem, hpf = arms.get("Chemical"), arms.get("Rapid HPF")
+        if not (chem and hpf):
+            continue
+        row = {"tissue": tissue, "region_group": region,
+               "n_chem": chem["n_crops"], "n_hpf": hpf["n_crops"]}
+        for col, short in (("abs_curvature_p50_nm-1", "H"),
+                           ("abs_deviation_p50_nm", "d"),
+                           ("gap_p50_nm", "g")):
+            ch_med = chem.get(col + "_median")
+            hp_med = hpf.get(col + "_median")
+            row[f"{short}_chem"] = ch_med
+            row[f"{short}_hpf"] = hp_med
+            if (ch_med is not None and hp_med is not None
+                    and np.isfinite(ch_med) and np.isfinite(hp_med)
+                    and hp_med > 0):
+                row[f"{short}_ratio_chem_over_hpf"] = ch_med / hp_med
+            else:
+                row[f"{short}_ratio_chem_over_hpf"] = float("nan")
+        out.append(row)
+    return out
+
+
+def latex_table_sensitivity(cmp_combined: list[dict], outliers: dict) -> str:
+    """Side-by-side Chem-vs-HPF ratio table, with and without outliers.
+    Only emits rows whose n actually changed when outliers were excluded so
+    the reader sees the regions where the sensitivity test matters."""
+    rows = []
+    affected_regions = {(o["tissue"], o["region_group"]) for o in outliers.values()}
+    for r in cmp_combined:
+        key = (r["tissue"], r["region_group"])
+        if key not in affected_regions:
+            continue
+        n_all_chem = r["n_chem"]; n_all_hpf = r["n_hpf"]
+        n_clean_chem = r.get("n_chem_no_outliers", n_all_chem)
+        n_clean_hpf  = r.get("n_hpf_no_outliers", n_all_hpf)
+
+        def _r(v):
+            if v is None or (isinstance(v, float) and not np.isfinite(v)):
+                return "---"
+            return format(v, ".2f")
+        rows.append(" & ".join([
+            r["tissue"], r["region_group"],
+            f"{n_all_chem}\\,/\\,{n_all_hpf}",
+            _r(r.get("H_ratio_chem_over_hpf")),
+            _r(r.get("d_ratio_chem_over_hpf")),
+            _r(r.get("g_ratio_chem_over_hpf")),
+            f"{n_clean_chem}\\,/\\,{n_clean_hpf}",
+            _r(r.get("H_ratio_chem_over_hpf_no_outliers")),
+            _r(r.get("d_ratio_chem_over_hpf_no_outliers")),
+            _r(r.get("g_ratio_chem_over_hpf_no_outliers")),
+        ]) + r" \\")
+    if not rows:
+        return ""
+    return r"""\begin{table}[h]
+\centering
+\scriptsize
+\caption{Sensitivity of the Chem-vs-HPF comparison to the candidate
+outliers identified in Table~\ref{tab:membrane-topology-region}.
+Each entry is the ratio of the per-crop median Chemical value to the
+per-crop median HPF value, computed with all crops in the group ("all")
+and with the candidate outliers excluded ("clean"). Only region groups
+that lost at least one crop are shown. n is reported as Chem/HPF crop
+count.}
+\label{tab:membrane-topology-sensitivity}
+\begin{tabular}{ll cccc cccc}
+\hline
+& & \multicolumn{4}{c}{All crops}
+   & \multicolumn{4}{c}{Outliers excluded} \\
+Tissue & Region group & n & H & d & g & n & H & d & g \\
+\hline
+""" + "\n".join(rows) + r"""
+\hline
+\end{tabular}
+\end{table}"""
+
+
 def main() -> None:
     manifest = json.loads(MANIFEST.read_text())
     rows = [per_crop_stats(r) for r in manifest if "bin" in r]
@@ -320,11 +407,41 @@ def main() -> None:
     by_region = aggregate(rows, ("tissue", "region_group", "prep"))
 
     outliers = flag_outliers(rows)
+    # Sensitivity pass: recompute every aggregate without the flagged crops.
+    # All four current candidates land in one region group, so the most
+    # meaningful change is concentrated there — but emitting the full
+    # exclusive aggregate keeps the comparison auditable across the board.
+    flagged = set(outliers.keys())
+    clean = [r for r in rows if r["crop"] not in flagged]
+    by_tissue_no_outliers = aggregate(clean, ("tissue", "prep"))
+    by_region_no_outliers = aggregate(clean, ("tissue", "region_group", "prep"))
+
+    # Side-by-side Chem-vs-HPF comparison rows, both with and without
+    # outliers, for the manuscript + methods-page sensitivity table.
+    compare_all   = chem_hpf_comparison(by_region)
+    compare_clean = chem_hpf_comparison(by_region_no_outliers)
+    # Join so each region carries (all, clean) arms in one row.
+    cmp_clean_idx = {(r["tissue"], r["region_group"]): r for r in compare_clean}
+    cmp_combined = []
+    for r in compare_all:
+        c = cmp_clean_idx.get((r["tissue"], r["region_group"]), {})
+        out = {**r}
+        for k, v in c.items():
+            if k in ("tissue", "region_group"):
+                continue
+            out[k + "_no_outliers"] = v
+        cmp_combined.append(out)
 
     RESULTS_DIR.mkdir(exist_ok=True)
     write_csv(rows, RESULTS_DIR / "membrane_topology_per_crop.csv")
     write_csv(by_tissue, RESULTS_DIR / "membrane_topology_by_tissue.csv")
     write_csv(by_region, RESULTS_DIR / "membrane_topology_by_region.csv")
+    write_csv(by_tissue_no_outliers,
+              RESULTS_DIR / "membrane_topology_by_tissue_no_outliers.csv")
+    write_csv(by_region_no_outliers,
+              RESULTS_DIR / "membrane_topology_by_region_no_outliers.csv")
+    write_csv(cmp_combined,
+              RESULTS_DIR / "membrane_topology_chem_vs_hpf.csv")
     (RESULTS_DIR / "topology_outliers.json").write_text(
         json.dumps(outliers, indent=1))
 
@@ -332,13 +449,21 @@ def main() -> None:
     tex_path.write_text(
         "% Auto-generated by scripts/aggregate_topology_stats.py — do not edit.\n\n"
         + latex_table_tissue(by_tissue) + "\n\n"
-        + latex_table_region(by_region) + "\n"
+        + latex_table_region(by_region) + "\n\n"
+        + latex_table_sensitivity(cmp_combined, outliers) + "\n"
     )
     print(f"wrote: {tex_path}")
     # Also emit json for the HTML methods page to consume.
     (RESULTS_DIR / "membrane_topology_aggregates.json").write_text(
-        json.dumps({"per_crop": rows, "by_tissue": by_tissue,
-                    "by_region": by_region}, indent=1, default=str))
+        json.dumps({
+            "per_crop": rows,
+            "by_tissue": by_tissue,
+            "by_region": by_region,
+            "by_tissue_no_outliers": by_tissue_no_outliers,
+            "by_region_no_outliers": by_region_no_outliers,
+            "chem_vs_hpf": cmp_combined,
+            "outliers": outliers,
+        }, indent=1, default=str))
 
 
 if __name__ == "__main__":

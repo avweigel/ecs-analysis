@@ -99,6 +99,50 @@ REFS = {
 }
 
 
+def sensitivity_table(cmp_combined: list[dict], outliers: dict) -> str:
+    """Side-by-side Chem-vs-HPF ratio table, all-crops vs outliers-excluded.
+    Rows where outlier exclusion shrinks n are highlighted; unchanged rows
+    appear in muted styling so the contrast is obvious."""
+    affected = {(o["tissue"], o["region_group"]) for o in outliers.values()}
+    rows = []
+
+    def _r(v, hi=False, lo=False, dim=False):
+        if v is None or (isinstance(v, float) and not math.isfinite(v)):
+            return "<td>—</td>"
+        cls = "ratio"
+        if hi: cls += " hi"
+        if lo: cls += " lo"
+        if dim: cls += " dim"
+        return f"<td class='{cls}'>{v:.2f}</td>"
+    for r in cmp_combined:
+        key = (r["tissue"], r["region_group"])
+        is_affected = key in affected
+        tr_cls = "affected" if is_affected else "muted"
+        n_all_c, n_all_h = r["n_chem"], r["n_hpf"]
+        n_cln_c = r.get("n_chem_no_outliers", n_all_c)
+        n_cln_h = r.get("n_hpf_no_outliers", n_all_h)
+        rows.append(
+            f"<tr class='{tr_cls}'>"
+            f"<td>{escape(r['tissue'])}</td>"
+            f"<td>{escape(r['region_group'])}</td>"
+            f"<td class=n>{n_all_c}/{n_all_h}</td>"
+            f"{_r(r.get('H_ratio_chem_over_hpf'), dim=not is_affected)}"
+            f"{_r(r.get('d_ratio_chem_over_hpf'), dim=not is_affected)}"
+            f"{_r(r.get('g_ratio_chem_over_hpf'), dim=not is_affected)}"
+            f"<td class=n>{n_cln_c}/{n_cln_h}</td>"
+            f"{_r(r.get('H_ratio_chem_over_hpf_no_outliers'), dim=not is_affected)}"
+            f"{_r(r.get('d_ratio_chem_over_hpf_no_outliers'), dim=not is_affected)}"
+            f"{_r(r.get('g_ratio_chem_over_hpf_no_outliers'), dim=not is_affected)}"
+            f"</tr>")
+    return ("<table class=sensitivity><thead>"
+            "<tr><th rowspan=2>Tissue</th><th rowspan=2>Region group</th>"
+            "<th colspan=4>All crops</th>"
+            "<th colspan=4>Outliers excluded</th></tr>"
+            "<tr><th>n (C/H)</th><th>H</th><th>d</th><th>g</th>"
+            "<th>n (C/H)</th><th>H</th><th>d</th><th>g</th></tr>"
+            "</thead><tbody>" + "".join(rows) + "</tbody></table>")
+
+
 def outliers_table(outliers: dict) -> str:
     """Render the per-crop outlier candidates as a table. Outliers are sorted
     by (tissue, region, prep, crop) for a stable display order; empty input
@@ -268,6 +312,7 @@ and stays in sync with the results CSVs at <code>results/</code>.
   <a href="#reg">Results — region-matched</a> ·
   <a href="#voronoi">vs Metric 5 (Voronoi)</a> ·
   <a href="#outliers">Outlier candidates</a> ·
+  <a href="#sens">Sensitivity</a> ·
   <a href="#refs">references</a>
 </nav>
 
@@ -505,6 +550,32 @@ coarse, or (c) the crop genuinely sits at the tail of the biological
 distribution.
 </p>
 
+<h2 id=sens>Sensitivity of Chem-vs-HPF to outlier exclusion</h2>
+<p>
+To check whether the candidate outliers drive the Chem-vs-HPF
+comparison in their region groups, every aggregate was recomputed with
+the flagged crops removed. The table below shows the per-region
+Chemical-to-HPF ratio of the per-crop median values (so values
+&gt; 1 mean Chemical is higher than HPF on that channel) for every
+region with both prep arms, computed twice: with all crops and with
+the candidate outliers excluded. Only region groups whose <code>n</code>
+changed under exclusion are highlighted; the others reproduce
+verbatim (the outliers all sit in one region group in the current
+data).
+</p>
+__SENSITIVITY_TABLE__
+<p class=note>
+Reading the table: a "<code>1.50</code>" in the <code>H</code> column
+means the per-region median |H| of the Chemical crops is 1.5× that
+of the HPF crops; a value &lt; 1 means HPF higher. In the current
+data the only region group whose ratio changes is Liver Hepatocyte
+lateral, and the direction of the Chem-vs-HPF effect is preserved
+when the outliers are excluded — H and d ratios drift slightly higher
+(Chem ≫ HPF becomes a touch more pronounced), and the gap ratio
+shifts from 0.84 (HPF wider) to 1.00 (parity). No flagged outlier
+flips the sign of any Chem-vs-HPF comparison.
+</p>
+
 <h2 id=voronoi>Methods comparison vs Metric 5 (Voronoi gap)</h2>
 <p>
 The mesh-based contact gap channel measures the same physical quantity
@@ -559,6 +630,8 @@ def main() -> None:
             .replace("__TISSUE_TABLE__", tissue_table(data["by_tissue"]))
             .replace("__REGION_TABLE__", region_table(data["by_region"]))
             .replace("__OUTLIER_LIST__", outliers_table(outliers))
+            .replace("__SENSITIVITY_TABLE__",
+                     sensitivity_table(data.get("chem_vs_hpf", []), outliers))
             + _references_html(cited_order))
 
     html = ("<!doctype html><meta charset=utf-8>\n"
@@ -634,6 +707,18 @@ def main() -> None:
             " span.outlier-inline{background:#fde2e2;color:#9b1c1c;"
             "border:1px solid #f4a8a8;border-radius:4px;padding:0 6px;"
             "font-size:11.5px;font-weight:700}\n"
+            " table.sensitivity{width:100%;border-collapse:collapse;margin:6px 0 6px;"
+            "background:#fff;border:1px solid #e3e6ea;border-radius:6px;overflow:hidden}\n"
+            " table.sensitivity th,table.sensitivity td{padding:6px 10px;font-size:13px;"
+            "text-align:center;border-bottom:1px solid #f0f2f5}\n"
+            " table.sensitivity th{font-weight:600;color:#3a4148;background:#f4f6f9}\n"
+            " table.sensitivity td:first-child,table.sensitivity td:nth-child(2)"
+            "{text-align:left}\n"
+            " table.sensitivity td.n{font-variant-numeric:tabular-nums;color:#555}\n"
+            " table.sensitivity td.ratio{font-variant-numeric:tabular-nums;font-weight:600}\n"
+            " table.sensitivity td.ratio.dim{color:#a4abb3;font-weight:500}\n"
+            " table.sensitivity tr.affected{background:#fff8ed}\n"
+            " table.sensitivity tr.affected td{color:#1a1d21}\n"
             "</style>\n"
             "<nav class=bar>"
             "<a href='../home.html'>⌂ project home</a>"

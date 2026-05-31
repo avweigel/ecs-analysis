@@ -280,6 +280,35 @@ The full machine-readable per-crop table is at
 tables at \texttt{results/membrane\_topology\_by\_tissue.csv} and
 \texttt{results/membrane\_topology\_by\_region.csv}.
 
+\subsection*{Sensitivity to candidate outliers}
+
+To check whether the Chemical-vs-HPF comparison is driven by a small
+number of outlier crops within each annotated region group, per-crop
+$|H|_{p50}$ and $|d|_{p50}$ were screened within every (tissue, region
+group, prep) cell with $n \geq 3$ crops. Any crop whose ratio to the
+within-group median exceeded $1.7\times$ or fell below $0.6\times$ on
+either channel was flagged as a candidate outlier. Four crops are
+flagged in the current 52-crop set, all in the Liver Hepatocyte lateral
+group: crop1044 (Chemical, $|H|$ 2.6$\times$, $|d|$ 2.7$\times$ the
+group median), crop1071 (Rapid HPF, 2.4$\times$, 2.8$\times$), crop1118
+(Chemical, $|d|$ 0.59$\times$), and crop1121 (Chemical, $|H|$
+0.45$\times$, $|d|$ 0.38$\times$). The flagged list is at
+\texttt{results/topology\_outliers.json} and is surfaced on each
+gallery card as a ``$\triangle$ outlier'' badge so annotators
+(KP, WP) can decide whether to re-annotate, split the region group,
+or accept the spread as genuine biology.
+
+The aggregate is reproduced excluding the flagged crops as the
+``Outliers excluded'' columns in
+Table~\ref{tab:membrane-topology-sensitivity}. Only Liver Hepatocyte
+lateral is affected --- the other six matched region groups reproduce
+verbatim because their $n$ does not change. Within Hepatocyte lateral
+the direction of every Chem-vs-HPF effect is preserved when outliers
+are removed: the Chem/HPF $|H|$ ratio drifts from 1.44 to 1.56, $|d|$
+from 1.58 to 1.87, and gap from 0.84 to 1.00 (HPF wider $\rightarrow$
+parity). No outlier exclusion flips the sign of any Chem-vs-HPF
+comparison in the matched-region set.
+
 \subsection*{Methods comparison vs Metric 5 (Voronoi gap)}
 \label{sec:membrane-vs-voronoi}
 
