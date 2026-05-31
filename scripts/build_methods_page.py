@@ -310,9 +310,10 @@ and stays in sync with the results CSVs at <code>results/</code>.
   <a href="#viz">Visualisation</a> ·
   <a href="#res">Results — overall</a> ·
   <a href="#reg">Results — region-matched</a> ·
-  <a href="#voronoi">vs Metric 5 (Voronoi)</a> ·
+  <a href="#headline">Headline observations</a> ·
   <a href="#outliers">Outlier candidates</a> ·
   <a href="#sens">Sensitivity</a> ·
+  <a href="#voronoi">vs Metric 5 (Voronoi)</a> ·
   <a href="#refs">references</a>
 </nav>
 
@@ -520,6 +521,71 @@ microvilli that Chemical collapses.</li>
 off the per-crop CSV rather than the aggregate.</li>
 </ul>
 __REGION_TABLE__
+
+<h2 id=headline>Headline observations</h2>
+<p>
+Reading these as observations from the 52-crop set, not yet biological
+conclusions:
+</p>
+<ol class=findings>
+<li>
+<b>Chemical fixation has opposite effects on two microvillar
+interfaces.</b> Liver Bile canaliculus is sharper and more
+protrusive under Chemical than under HPF (|H| ratio 2.11×, |d| ratio
+2.24×) — consistent with chemical fixation rigidifying or
+over-resolving the canalicular brush border. Heart Intercalated disc
+runs the other way: HPF is sharper than Chemical (|H| ratio 0.74,
+|d| ratio 0.75) — consistent with chemical fixation collapsing the
+interdigitating microvilli at the disc. <i>The same fixation
+condition produces opposite topology changes at two microvillar
+interfaces.</i> A single &ldquo;Chemical smooths&rdquo; / &ldquo;Chemical sharpens&rdquo;
+narrative doesn't fit the data.
+</li>
+<li>
+<b>Kidney Glomerular: HPF preserves a substantially larger
+interstitial gap.</b> Median <code>g</code> = 144&nbsp;nm under HPF
+vs 87&nbsp;nm under Chemical — a 1.66× preservation. HPF also shows
+higher curvature and protrusion (1.27× each), tracking the genuine
+podocyte / endothelium / basal-membrane morphology that chemical
+fixation collapses into a flatter, narrower interface.
+</li>
+<li>
+<b>Liver Hepatocyte lateral is the calmest baseline, but also the
+noisiest peer group.</b> Median values (|H| 0.0023 vs 0.0016,
+<code>g</code> 25 vs 30&nbsp;nm) suggest a real tight apposition
+with weak fixation effect. <i>But all four outlier candidates land
+in this group</i>: crop1044 (Chemical) and crop1071 (HPF) both at
+&gt;2× the group median on |H| and |d|. The peer-group label may
+be too coarse (Kupffer / sinusoidal interfaces likely confounded
+with hepatocyte–hepatocyte appositions), or the cell-selection
+heuristic may have picked a non-representative cell. The flagged
+crops are linked on the gallery for review.
+</li>
+<li>
+<b>Cortex Chemical patches are tightly packed.</b> Median
+<code>g</code> = 16&nbsp;nm — the smallest in the dataset —
+with median <code>bd-clip</code> = 0.00 across the 7-crop pool,
+indicating the reading is data-driven, not boundary-affected.
+Consistent with the historically reported severe ECS reduction in
+chemically-fixed cortex (Korogod et&nbsp;al.&nbsp;2015 territory).
+</li>
+<li>
+<b>Outlier exclusion does not flip any Chem-vs-HPF conclusion.</b>
+Excluding the 4 candidate outliers from Hepatocyte lateral leaves
+every direction unchanged; the Chemical/HPF |H| and |d| ratios
+actually shift slightly more extreme (1.44 → 1.56 on H, 1.58 → 1.87
+on d). The matched-region story does not depend on the suspicious
+crops.
+</li>
+<li>
+<b>The Bile-canaliculus vs Intercalated-disc divergence is a finding
+the Voronoi-only gap metric (Metric&nbsp;5) cannot see.</b> Metric 5
+reports gap and only gap; it cannot distinguish &ldquo;sharpened brush
+border&rdquo; from &ldquo;collapsed brush border&rdquo; if their gap distributions
+happen to look similar. The shape channels in Metric&nbsp;8 are what
+make observation&nbsp;1 visible.
+</li>
+</ol>
 
 <h2 id=outliers>Outlier candidates within annotated peer groups</h2>
 <p>
@@ -732,6 +798,16 @@ def main() -> None:
             " table.sensitivity td.ratio.dim{color:var(--muted);font-weight:500}\n"
             " table.sensitivity tr.affected{background:#2b2412}\n"
             " table.sensitivity tr.affected td{color:var(--ink)}\n"
+            " ol.findings{counter-reset:f;list-style:none;padding:0;margin:8px 0 14px}\n"
+            " ol.findings>li{counter-increment:f;background:var(--card);border:1px solid var(--line);"
+            "border-left:4px solid var(--accent);border-radius:8px;padding:12px 16px 12px 56px;"
+            "margin:10px 0;position:relative;font-size:14px;color:#c0c8d6;line-height:1.6}\n"
+            " ol.findings>li::before{content:counter(f);position:absolute;left:16px;top:13px;"
+            "width:28px;height:28px;line-height:28px;text-align:center;background:var(--accent);"
+            "color:#0a0f1c;border-radius:999px;font-weight:700;font-size:13px;"
+            "font-variant-numeric:tabular-nums}\n"
+            " ol.findings>li b{color:var(--head)}\n"
+            " ol.findings>li i{color:#aeb6c4}\n"
             "</style>\n"
             "<nav class=bar>"
             "<a href='../home.html'>⌂ project home</a>"

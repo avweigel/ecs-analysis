@@ -280,6 +280,68 @@ The full machine-readable per-crop table is at
 tables at \texttt{results/membrane\_topology\_by\_tissue.csv} and
 \texttt{results/membrane\_topology\_by\_region.csv}.
 
+\subsection*{Headline observations}
+\label{sec:membrane-headline}
+
+Reading the per-region results table as observations rather than
+biological conclusions, six points stand out:
+
+\begin{enumerate}[nosep, leftmargin=*]
+\item \textbf{Chemical fixation has opposite effects on two
+microvillar interfaces.} Liver Bile canaliculus is sharper and more
+protrusive under Chemical than under HPF ($|H|$ ratio 2.11$\times$,
+$|d|$ ratio 2.24$\times$) --- consistent with Chemical rigidifying or
+over-resolving the canalicular brush border. Heart Intercalated disc
+runs the other direction: HPF is sharper than Chemical ($|H|$ ratio
+0.74, $|d|$ ratio 0.75) --- consistent with Chemical collapsing the
+interdigitating microvilli at the disc. The same fixation produces
+opposite topology changes on two microvillar interfaces; a single
+``Chemical smooths'' / ``Chemical sharpens'' narrative does not fit
+the data.
+
+\item \textbf{Kidney Glomerular --- HPF preserves a substantially
+larger interstitial gap.} Median gap $g = 144$\,nm under HPF vs
+$g = 87$\,nm under Chemical (1.66$\times$). HPF also shows higher
+curvature and protrusion ($\sim 1.27\times$ each), tracking the
+genuine podocyte / endothelium / basal-membrane morphology that
+Chemical collapses into a flatter, narrower interface.
+
+\item \textbf{Liver Hepatocyte lateral is the calmest baseline, but
+also the noisiest peer group.} Median values ($|H|$ 0.0023 vs 0.0016,
+$g$ 25 vs 30\,nm) suggest a real tight apposition with weak
+fixation effect. However, all four candidate outliers
+(Sec.~``Sensitivity to candidate outliers'') land in this group ---
+crop1044 and crop1071 both at $> 2\times$ the group median on $|H|$
+and $|d|$. The peer-group label may be too coarse (Kupffer /
+sinusoidal interfaces likely confounded with hepatocyte--hepatocyte
+appositions), or the cell-selection heuristic may have picked a
+non-representative cell. The flagged crops are linked from the public
+gallery (Sec.~``Visualization'') for review.
+
+\item \textbf{Cortex Chemical patches are tightly packed.} Median
+$g = 16$\,nm --- the smallest in the dataset --- with median
+\texttt{bd-clip} $= 0.00$ across the 7-crop pool, indicating the
+reading is data-driven and not boundary-affected. Consistent with
+the historically reported severe ECS reduction in chemically-fixed
+cortex \cite{Korogod2015}.
+
+\item \textbf{Outlier exclusion does not flip any Chem-vs-HPF
+conclusion.} Excluding the four candidate outliers from Liver
+Hepatocyte lateral leaves every direction unchanged; the Chemical/HPF
+$|H|$ and $|d|$ ratios actually shift slightly more extreme (1.44
+$\to$ 1.56 and 1.58 $\to$ 1.87 respectively) and the gap ratio
+shifts from 0.84 to 1.00 (HPF wider $\to$ parity). The
+matched-region story does not depend on the suspicious crops.
+
+\item \textbf{The Bile-canaliculus vs Intercalated-disc divergence
+(point 1) is invisible to the Voronoi-only gap metric
+(Metric~5).} Metric~5 reports gap and only gap; it cannot
+distinguish ``sharpened brush border'' from ``collapsed brush
+border'' if their gap distributions happen to look similar. The
+curvature and protrusion channels in Metric~8 are what make point~1
+observable.
+\end{enumerate}
+
 \subsection*{Sensitivity to candidate outliers}
 
 To check whether the Chemical-vs-HPF comparison is driven by a small
