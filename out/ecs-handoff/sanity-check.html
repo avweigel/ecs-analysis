@@ -4,70 +4,75 @@
 <meta charset="utf-8">
 <title>ECS sanity check — Chem vs HPF, matched regions</title>
 <style>
-  :root { --bg: #fafafa; --card: white; --border: #e5e7eb; --text: #1f2937; --muted: #6b7280; }
+  :root {
+    --bg: #0f1420; --card: #1a2030; --card2: #222b3e;
+    --border: #2a3346; --text: #e8ecf3; --muted: #8a93a6;
+    --accent: #5b9cff; --head: #cfe0ff;
+  }
   * { box-sizing: border-box; }
-  body { background: var(--bg); margin: 0; color: var(--text); font-family: -apple-system, system-ui, sans-serif; line-height: 1.5; }
+  body { background: var(--bg); margin: 0; color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; line-height: 1.5; }
   .container { max-width: 1500px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
-  h1 { font-size: 1.6rem; margin: 0 0 0.3rem; letter-spacing: -0.01em; }
+  h1 { font-size: 1.6rem; margin: 0 0 0.3rem; letter-spacing: -0.01em; color: var(--text); }
   .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 1.25rem; }
-  .back { display: inline-block; margin-bottom: 1rem; color: #2563eb; text-decoration: none; font-size: 0.9rem; }
+  .back { display: inline-block; margin-bottom: 1rem; color: var(--accent); text-decoration: none; font-size: 0.9rem; }
   .back:hover { text-decoration: underline; }
 
   .legend {
-    background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px;
+    background: #15212f; border: 1px solid var(--border); border-radius: 10px;
     padding: 0.9rem 1.1rem; margin-bottom: 1.5rem; font-size: 0.9rem;
-    display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center;
+    display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; color: #c0c8d6;
   }
+  .legend strong { color: var(--text); }
   .legend .swatch {
     display: inline-block; width: 12px; height: 12px; border-radius: 50%;
     margin-right: 0.4rem; vertical-align: middle;
   }
 
   section.group {
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-    margin-bottom: 1.8rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    margin-bottom: 1.8rem; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.25);
   }
   .group-header {
     padding: 0.95rem 1.2rem; border-bottom: 1px solid var(--border);
-    background: linear-gradient(to right, #f9fafb, white 60%);
+    background: linear-gradient(to right, #13182a, var(--card) 60%);
     display: flex; justify-content: space-between; align-items: center; gap: 1rem;
   }
-  .group-header h2 { margin: 0; font-size: 1.15rem; }
+  .group-header h2 { margin: 0; font-size: 1.15rem; color: var(--head); }
   .group-sub { color: var(--muted); font-size: 0.86rem; margin-top: 0.15rem; }
   .group-note {
-    background: #fef3c7; border-left: 4px solid #f59e0b;
-    padding: 0.55rem 1rem; font-size: 0.85rem; color: #78350f;
+    background: #3d3424; border-left: 4px solid #f0c870;
+    padding: 0.55rem 1rem; font-size: 0.85rem; color: #f0c870;
     border-bottom: 1px solid var(--border);
   }
   .all-in-one {
-    background: #1f2937; color: white; padding: 0.45rem 0.85rem; border-radius: 6px;
-    text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap;
+    background: var(--accent); color: #0a0f1c; padding: 0.45rem 0.85rem; border-radius: 6px;
+    text-decoration: none; font-size: 0.85rem; font-weight: 700; white-space: nowrap;
   }
-  .all-in-one:hover { background: #111827; }
+  .all-in-one:hover { background: #7eb0ff; }
 
   /* Summary panel */
   .summary-row {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 0.75rem; padding: 1rem 1.2rem; background: #f9fafb;
+    gap: 0.75rem; padding: 1rem 1.2rem; background: #13182a;
     border-bottom: 1px solid var(--border);
   }
   .metric-summary {
-    background: white; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--card2); border: 1px solid var(--border); border-radius: 8px;
     padding: 0.6rem 0.7rem;
   }
   .ms-name { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
   .ms-medians { display: flex; align-items: baseline; gap: 0.4rem; flex-wrap: wrap; font-size: 0.85rem; margin: 0.25rem 0 0.25rem; }
-  .med-chem { color: #f97316; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .med-hpf  { color: #0ea5e9; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .med-chem { color: #ff8b4a; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .med-hpf  { color: #7ec0ff; font-weight: 700; font-variant-numeric: tabular-nums; }
   .med-arrow { font-size: 0.78rem; font-weight: 600; }
-  .med-ratio { margin-left: auto; color: #4b5563; font-weight: 600; }
+  .med-ratio { margin-left: auto; color: #cdd5e2; font-weight: 600; }
   .dot-plot { display: block; margin: 0.1rem 0; }
   .ms-note { color: var(--muted); font-size: 0.75rem; }
 
   /* Paired-row layout: [rank label] [Chem card] [vs] [HPF card] */
   .pair-header {
     display: grid; grid-template-columns: 5rem 1fr 2.5rem 1fr; gap: 0.8rem;
-    padding: 0.7rem 1.2rem; background: #f3f4f6; border-bottom: 1px solid var(--border);
+    padding: 0.7rem 1.2rem; background: var(--card2); border-bottom: 1px solid var(--border);
     font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 700;
   }
   .ph-label { color: var(--muted); }
@@ -75,7 +80,7 @@
   .pair-row {
     display: grid; grid-template-columns: 5rem 1fr 2.5rem 1fr; gap: 0.8rem;
     padding: 0.85rem 1.2rem; align-items: stretch;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border);
   }
   .pair-row:last-child { border-bottom: none; }
   .pair-label {
@@ -86,26 +91,26 @@
   .pair-side .crop-card { flex: 1; margin-bottom: 0; }
   .pair-vs {
     display: flex; align-items: center; justify-content: center;
-    color: #94a3b8; font-weight: 700; font-size: 0.95rem;
+    color: var(--muted); font-weight: 700; font-size: 0.95rem;
   }
   .empty-card {
     flex: 1; min-height: 200px;
-    background: #f9fafb; border: 1px dashed #d1d5db; border-left: 3px dashed var(--prep);
-    border-radius: 6px;
+    background: #13182a; border: 1px dashed var(--border); border-left: 3px dashed var(--prep);
+    border-radius: 8px;
     display: flex; align-items: center; justify-content: center; padding: 1rem;
   }
-  .empty-msg { color: #9ca3af; font-size: 0.85rem; text-align: center; line-height: 1.4; }
+  .empty-msg { color: var(--muted); font-size: 0.85rem; text-align: center; line-height: 1.4; }
 
   /* Crop card */
   .crop-card {
-    background: white; border: 1px solid var(--border); border-left: 3px solid var(--prep);
-    border-radius: 6px; padding: 0; margin-bottom: 0.8rem; overflow: hidden;
+    background: var(--card2); border: 1px solid var(--border); border-left: 3px solid var(--prep);
+    border-radius: 8px; padding: 0; margin-bottom: 0.8rem; overflow: hidden;
   }
-  .thumb-link { display: block; position: relative; text-decoration: none; background: #111; aspect-ratio: 1; }
+  .thumb-link { display: block; position: relative; text-decoration: none; background: #0a0f1c; aspect-ratio: 1; }
   .thumb { width: 100%; height: 100%; display: block; object-fit: cover; }
   .thumb-placeholder {
     display: none; position: absolute; inset: 0; align-items: center; justify-content: center;
-    background: #f3f4f6; color: var(--muted); font-size: 0.8rem; text-align: center; padding: 1rem;
+    background: #13182a; color: var(--muted); font-size: 0.8rem; text-align: center; padding: 1rem;
   }
   .thumb-overlay {
     position: absolute; bottom: 0.4rem; left: 0.4rem;
@@ -119,7 +124,7 @@
   .crop-metrics {
     display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; padding: 0.45rem 0.7rem 0.6rem;
   }
-  .crop-metric { font-size: 0.8rem; line-height: 1.2; }
+  .crop-metric { font-size: 0.8rem; line-height: 1.2; color: var(--text); }
   .cm-name { color: var(--muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; }
   .cm-value { font-weight: 700; font-variant-numeric: tabular-nums; }
   .cm-dot { height: 18px; }
@@ -133,11 +138,11 @@
 
   /* Overview tables */
   section.overview {
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
     padding: 1.2rem 1.4rem 1.3rem; margin-bottom: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
   }
-  section.overview h2 { margin: 0 0 0.3rem; font-size: 1.25rem; }
+  section.overview h2 { margin: 0 0 0.3rem; font-size: 1.25rem; color: var(--head); }
   section.overview h3 {
     margin: 1.2rem 0 0.5rem; font-size: 0.9rem;
     color: var(--text); font-weight: 700;
@@ -148,29 +153,31 @@
     display: inline-block; padding: 0.05rem 0.5rem; border-radius: 4px;
     font-size: 0.78rem; font-weight: 700; margin-left: 0.3rem;
   }
-  .legend-pill.chem-dir { background: #fed7aa; color: #9a3412; }
-  .legend-pill.hpf-dir  { background: #bae6fd; color: #075985; }
+  .legend-pill.chem-dir { background: #3a2a18; color: #ff8b4a; }
+  .legend-pill.hpf-dir  { background: #1a2d3f; color: #7ec0ff; }
   .overview-tbl {
     width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 0.7rem;
+    background: var(--card2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
   }
   .overview-tbl th {
     text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em;
-    color: var(--muted); padding: 0.45rem 0.7rem; border-bottom: 1px solid var(--border);
-    background: #f9fafb;
+    color: var(--head); padding: 0.45rem 0.7rem; border-bottom: 1px solid var(--border);
+    background: var(--card);
   }
   .overview-tbl td {
-    padding: 0.5rem 0.7rem; border-bottom: 1px solid #f1f3f5;
+    padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--border); color: #c0c8d6;
   }
   .overview-tbl tr:last-child td { border-bottom: none; }
-  .overview-tbl tr.chem-dir td { background: #fff7ed; }
-  .overview-tbl tr.hpf-dir  td { background: #f0f9ff; }
-  .overview-tbl td.rg { font-weight: 600; }
+  .overview-tbl tr.chem-dir td { background: #231e15; }
+  .overview-tbl tr.hpf-dir  td { background: #15212f; }
+  .overview-tbl td.rg { font-weight: 600; color: var(--text); }
   .overview-tbl td.num { font-variant-numeric: tabular-nums; }
   .takeaway {
-    background: #f3f4f6; border-left: 4px solid #6b7280;
+    background: var(--card2); border-left: 4px solid var(--muted);
     padding: 0.7rem 1rem; margin-top: 1rem; border-radius: 6px;
-    font-size: 0.92rem; line-height: 1.6;
+    font-size: 0.92rem; line-height: 1.6; color: #c0c8d6;
   }
+  .takeaway strong { color: var(--text); }
 </style>
 </head>
 <body>

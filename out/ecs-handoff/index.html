@@ -5,59 +5,62 @@
 <title>ECS analysis crops — Neuroglancer links</title>
 <style>
   :root {
-    --bg: #fafafa;
-    --card: #ffffff;
-    --border: #e5e7eb;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --accent: #2563eb;
+    --bg: #0f1420;
+    --card: #1a2030;
+    --card2: #222b3e;
+    --border: #2a3346;
+    --text: #e8ecf3;
+    --muted: #8a93a6;
+    --accent: #5b9cff;
+    --head: #cfe0ff;
   }
   * { box-sizing: border-box; }
   html, body { background: var(--bg); margin: 0; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
     color: var(--text);
     line-height: 1.5;
   }
   .container { max-width: 1280px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 
   header.page-header { margin-bottom: 1.5rem; }
-  header.page-header h1 { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.35rem; letter-spacing: -0.01em; }
-  .subtitle { color: var(--muted); font-size: 0.95rem; }
+  header.page-header h1 { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.35rem; letter-spacing: -0.01em; color: var(--text); }
+  .subtitle { color: #c4ccda; font-size: 0.95rem; }
 
   .summary-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 0.75rem; margin: 1.25rem 0 1.5rem;
   }
   .summary-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
-    padding: 0.65rem 0.9rem;
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.7rem 0.95rem;
   }
-  .summary-card .num { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+  .summary-card .num { font-size: 1.5rem; font-weight: 700; line-height: 1; color: var(--text); }
   .summary-card .lbl { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.2rem; }
 
   .controls {
-    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
-    padding: 0.7rem 1rem; margin-bottom: 1.5rem;
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.75rem 1rem; margin-bottom: 1.5rem;
     display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
   }
   .controls label { font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 0.45rem; }
   .controls select {
     padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 5px;
-    background: white; font-size: 0.9rem; font-family: inherit;
+    background: var(--card2); color: var(--text); font-size: 0.9rem; font-family: inherit;
   }
   .controls .checkbox { display: flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+  .controls input[type=checkbox] { accent-color: var(--accent); }
 
   section.dataset {
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
     overflow: hidden; margin-bottom: 1.25rem;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
   }
   .dataset-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0.75rem 1rem;
+    padding: 0.85rem 1rem;
     border-left: 4px solid var(--tissue);
-    background: linear-gradient(to right, color-mix(in srgb, var(--tissue) 8%, white), white 60%);
+    background: linear-gradient(to right, color-mix(in srgb, var(--tissue) 14%, var(--card)), var(--card) 60%);
     border-bottom: 1px solid var(--border);
   }
   .dataset-title { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
@@ -71,91 +74,90 @@
   .voxel-chip  { background: #475569; }
   .dataset-id  { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.82rem; color: var(--muted); }
   .dataset-count { color: var(--muted); font-size: 0.85rem; }
-  .needs-count { color: #b45309; font-weight: 600; }
+  .needs-count { color: #f0c870; font-weight: 600; }
 
   table.crops-table { width: 100%; border-collapse: collapse; }
   table.crops-table th {
-    text-align: left; padding: 0.55rem 1rem; background: #f9fafb;
+    text-align: left; padding: 0.55rem 1rem; background: var(--card2);
     font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
-    color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border);
+    color: var(--head); font-weight: 600; border-bottom: 1px solid var(--border);
   }
   table.crops-table td {
-    padding: 0.55rem 1rem; border-bottom: 1px solid #f1f3f5;
-    font-size: 0.9rem; vertical-align: top;
+    padding: 0.55rem 1rem; border-bottom: 1px solid var(--border);
+    font-size: 0.9rem; vertical-align: top; color: #c0c8d6;
   }
   table.crops-table tr:last-child td { border-bottom: none; }
-  table.crops-table tr:hover td { background: #f9fafb; }
+  table.crops-table tr:hover td { background: #13182a; }
 
   td.crop { width: 9rem; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.88rem; }
   td.crop a { color: var(--accent); text-decoration: none; font-weight: 600; }
   td.crop a:hover { text-decoration: underline; }
-  td.region { width: 18rem; font-weight: 500; }
+  td.region { width: 18rem; font-weight: 500; color: var(--text); }
   td.region-group { width: 11rem; color: var(--muted); font-size: 0.85rem; }
-  td.desc { color: #374151; }
+  td.desc { color: #c0c8d6; }
 
   .missing {
-    display: inline-block; color: #b45309; font-style: italic;
+    display: inline-block; color: #f0c870; font-style: italic;
     font-weight: 600; font-size: 0.82rem;
   }
   .missing::before { content: "✎ needs annotation"; }
 
-  /* Row-level "needs annotation" highlighting. The class is added in
-     server-rendered HTML when the original anatomical_region is empty,
-     and removed by JS once the user fills it in. */
+  /* Row-level "needs annotation" highlighting. */
   tr.needs-annotation td.crop { position: relative; }
   tr.needs-annotation td.crop::before {
     content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-    background: #f59e0b;
+    background: #f0c870;
   }
-  tr.needs-annotation td { background: #fffbeb; }
-  tr.needs-annotation:hover td { background: #fef3c7; }
+  tr.needs-annotation td { background: #2b2412; }
+  tr.needs-annotation:hover td { background: #3d3424; }
 
   /* Editable cells */
   td.editable { cursor: text; position: relative; }
-  td.editable:hover { background: #f0f9ff; }
+  td.editable:hover { background: #15212f; }
   td.editable:hover::after {
     content: "✎"; position: absolute; top: 0.4rem; right: 0.5rem;
-    font-size: 0.75rem; color: #94a3b8;
+    font-size: 0.75rem; color: var(--muted);
   }
-  td.editable.edited { background: #fef3c7; }
+  td.editable.edited { background: #3d3424; }
   td.editable.edited::before {
     content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-    background: #f59e0b;
+    background: #f0c870;
   }
   td.editable textarea {
     width: 100%; min-height: 2.2rem; padding: 0.35rem 0.5rem;
-    border: 1px solid #94a3b8; border-radius: 4px;
+    border: 1px solid var(--border); border-radius: 4px;
     font-family: inherit; font-size: 0.88rem; line-height: 1.4;
-    background: white; resize: vertical;
+    background: var(--card2); color: var(--text); resize: vertical;
   }
-  td.editable textarea:focus { outline: 2px solid #2563eb; outline-offset: -1px; border-color: #2563eb; }
+  td.editable textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
 
-  /* Editor toolbar */
+  /* Editor toolbar — dark green tones */
   .editor-bar {
-    background: linear-gradient(to right, #ecfdf5, #f0fdf4);
-    border: 1px solid #a7f3d0; border-radius: 8px;
-    padding: 0.7rem 1rem; margin-bottom: 1.25rem;
+    background: linear-gradient(to right, #0e2a22, #102e25);
+    border: 1px solid #1a4d3a; border-radius: 10px;
+    padding: 0.75rem 1rem; margin-bottom: 1.25rem;
     display: flex; flex-wrap: wrap; align-items: center; gap: 0.9rem;
+    color: #b6e8c8;
   }
-  .editor-bar .note { flex: 1 1 14rem; color: #047857; font-size: 0.86rem; }
+  .editor-bar .note { flex: 1 1 14rem; color: #7adcaa; font-size: 0.86rem; }
   .editor-bar input[type=text] {
-    padding: 0.3rem 0.55rem; border: 1px solid #cbd5e1; border-radius: 5px;
-    font-size: 0.9rem; font-family: inherit; min-width: 12rem; background: white;
+    padding: 0.3rem 0.55rem; border: 1px solid var(--border); border-radius: 5px;
+    font-size: 0.9rem; font-family: inherit; min-width: 12rem; background: var(--card2); color: var(--text);
   }
   .editor-bar button {
     padding: 0.4rem 0.85rem; border-radius: 6px; font-size: 0.88rem; font-weight: 600;
-    border: 1px solid #059669; background: #10b981; color: white; cursor: pointer;
+    border: 1px solid #15a36b; background: #10b981; color: #0a0f1c; cursor: pointer;
     font-family: inherit;
   }
-  .editor-bar button:disabled { background: #cbd5e1; border-color: #94a3b8; cursor: not-allowed; }
-  .editor-bar button:hover:not(:disabled) { background: #059669; }
-  .editor-bar button.secondary { background: white; color: #047857; border-color: #6ee7b7; }
-  .editor-bar button.secondary:hover { background: #ecfdf5; }
-  .editor-bar .pending-count { font-weight: 700; color: #047857; }
+  .editor-bar button:disabled { background: #2a3346; border-color: #2a3346; color: var(--muted); cursor: not-allowed; }
+  .editor-bar button:hover:not(:disabled) { background: #34d399; }
+  .editor-bar button.secondary { background: transparent; color: #7adcaa; border-color: #1a4d3a; }
+  .editor-bar button.secondary:hover { background: #102e25; }
+  .editor-bar .pending-count { font-weight: 700; color: #7adcaa; }
 
   /* How-to-use panel */
   .howto {
-    background: #fffbeb; border: 2px solid #fbbf24; border-radius: 10px;
+    background: #2b2412; border: 2px solid #6b5a30; border-radius: 12px;
     padding: 1.1rem 1.4rem; margin-bottom: 1.5rem;
   }
   .howto-header {
@@ -163,48 +165,51 @@
     cursor: pointer; user-select: none;
   }
   .howto h2 {
-    margin: 0; font-size: 1.1rem; color: #78350f;
+    margin: 0; font-size: 1.1rem; color: #f0c870;
     display: flex; align-items: center; gap: 0.5rem;
   }
   .howto h2::before { content: "👋"; }
   .howto-toggle {
-    background: transparent; border: 1px solid #d97706; color: #78350f;
+    background: transparent; border: 1px solid #f0c870; color: #f0c870;
     padding: 0.2rem 0.6rem; border-radius: 5px;
     font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit;
   }
-  .howto-body { margin-top: 1rem; }
+  .howto-body { margin-top: 1rem; color: #d6c89b; }
   .howto.collapsed .howto-body { display: none; }
   .howto p { margin: 0.4rem 0 0.7rem; line-height: 1.6; }
+  .howto strong { color: #f0c870; }
   .howto .step-list { list-style: none; padding: 0; margin: 0.8rem 0; counter-reset: stp; }
   .howto .step-list > li {
     counter-increment: stp; padding: 0.6rem 0 0.6rem 2.6rem;
-    position: relative; border-top: 1px dashed #fde68a;
+    position: relative; border-top: 1px dashed #6b5a30;
   }
   .howto .step-list > li:first-child { border-top: none; }
   .howto .step-list > li::before {
     content: counter(stp); position: absolute; left: 0; top: 0.55rem;
     width: 1.8rem; height: 1.8rem; line-height: 1.8rem; text-align: center;
-    background: #f59e0b; color: white; border-radius: 999px;
+    background: #f0c870; color: #2b2412; border-radius: 999px;
     font-weight: 700; font-size: 0.95rem;
   }
-  .howto .step-title { font-weight: 700; color: #78350f; display: block; margin-bottom: 0.2rem; }
+  .howto .step-title { font-weight: 700; color: #ffd98a; display: block; margin-bottom: 0.2rem; }
   .howto kbd {
-    background: white; border: 1px solid #d97706; border-bottom-width: 2px;
+    background: var(--card2); border: 1px solid #6b5a30; border-bottom-width: 2px;
     border-radius: 3px; padding: 0.05rem 0.4rem; font-size: 0.82rem;
-    font-family: ui-monospace, monospace; color: #78350f;
+    font-family: ui-monospace, monospace; color: #f0c870;
   }
   .howto .warn {
-    background: #fef2f2; border-left: 4px solid #ef4444;
-    padding: 0.7rem 1rem; margin-top: 1rem; border-radius: 6px;
+    background: #3a1e1e; border-left: 4px solid #ff5555;
+    padding: 0.7rem 1rem; margin-top: 1rem; border-radius: 6px; color: #ff8585;
   }
-  .howto .warn strong { color: #991b1b; }
+  .howto .warn strong { color: #ff8585; }
   .howto .demo-pill {
-    display: inline-block; background: #fef3c7; border: 1px solid #fcd34d;
+    display: inline-block; background: #3d3424; border: 1px solid #6b5a30; color: #f0c870;
     padding: 0.05rem 0.45rem; border-radius: 4px; font-size: 0.82rem;
+    font-family: ui-monospace, monospace;
   }
 
   footer { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; }
-  footer code { background: #f3f4f6; padding: 0.05rem 0.3rem; border-radius: 3px; font-size: 0.8rem; }
+  footer strong { color: #f0c870; }
+  footer code { background: var(--card2); color: #d6deea; padding: 0.05rem 0.3rem; border-radius: 3px; font-size: 0.8rem; }
 
   @media (max-width: 720px) {
     .container { padding: 1.25rem 1rem 3rem; }
