@@ -32,7 +32,7 @@ from scipy.ndimage import distance_transform_edt
 
 from ecs import config as cfg
 from ecs import io
-from ecs.geometry import (CellMesh, classify_ecs_facing_vertices,
+from ecs.geometry import (CellMesh, classify_ecs_facing_vertices, pca_camera,
                           count_cell_boundary_faces, signed_mean_curvature,
                           smoothed_surface_deviation)
 
@@ -409,7 +409,10 @@ def render_membrane(crop, out_path: Path, cell: int | None = None,
                                          position_x=0.2, position_y=0.03))
         pl.add_text(name.split(" (")[0], font_size=11, position="upper_edge")
     pl.link_views()
-    pl.view_isometric()
+    # Face-on to the patch: look straight down its surface normal (PCA minor
+    # axis) so the scalar maps read as flat maps rather than edge-on slivers.
+    pl.camera_position = pca_camera(p["Vp"])
+    pl.reset_camera()
     pl.camera.zoom(1.4)
     pl.subplot(0, 0)
     pl.add_text(f"{crop.tissue} {crop.region_group} — {crop.prep} ({crop.crop})",

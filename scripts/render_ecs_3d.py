@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from ecs import config as cfg
+from ecs.geometry import pca_view_init
 from ecs import io
 from ecs.geometry import CellMesh
 
@@ -124,7 +125,8 @@ def main() -> None:
         ax.set_title(f"{crop.tissue} {crop.region_group}\n{crop.prep} ({crop.crop})\n"
                      f"ECS frac {frac:.3f}", fontsize=10)
         ax.set_axis_off()
-        ax.view_init(elev=18, azim=-60)
+        elev, azim = pca_view_init(v)
+        ax.view_init(elev=elev, azim=azim)
 
     fig.suptitle("Extracellular space — 3D (volume-matched)", fontsize=13, y=0.99)
     fig.tight_layout()

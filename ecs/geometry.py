@@ -510,3 +510,42 @@ def sphere_sign_check(radius_nm: float = 400.0,
         "measured_radius_nm": measured_R,
         "convex_positive": med > 0,
     }
+
+
+# ---------- camera orientation helpers (for 3D renders) ----------
+
+def pca_axes(verts: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return (major, mid, minor) principal axes of a vertex cloud, ordered by
+    descending spread. `minor` is the surface-normal direction for a roughly
+    planar patch; the (major, mid) plane is the broad face."""
+    c = np.asarray(verts, float)
+    c = c - c.mean(0)
+    _, vecs = np.linalg.eigh(np.cov(c.T))   # columns ascending eigenvalue
+    minor, mid, major = vecs[:, 0], vecs[:, 1], vecs[:, 2]
+    return major, mid, minor
+
+
+def pca_view_init(verts: np.ndarray, tilt_deg: float = 22.0) -> tuple[float, float]:
+    """matplotlib (elev, azim) that faces the broad PCA plane with a slight tilt
+    so closed 3D shapes still read with depth. Picks the view that maximizes the
+    projected footprint, then tilts `tilt_deg` toward the mid axis."""
+    _, mid, minor = pca_axes(verts)
+    t = np.radians(tilt_deg)
+    d = minor * np.cos(t) + mid * np.sin(t)   # view direction
+    if d[2] < 0:
+        d = -d
+    d = d / (np.linalg.norm(d) + 1e-12)
+    elev = float(np.degrees(np.arcsin(np.clip(d[2], -1.0, 1.0))))
+    azim = float(np.degrees(np.arctan2(d[1], d[0])))
+    return elev, azim
+
+
+def pca_camera(verts: np.ndarray, dist_mult: float = 2.4) -> list:
+    """pyvista camera_position [position, focal_point, up] viewing a patch
+    face-on (camera along the minor/normal axis, longest axis vertical)."""
+    major, _, minor = pca_axes(verts)
+    v = np.asarray(verts, float)
+    centroid = v.mean(0)
+    ext = float(np.ptp(v, axis=0).max())
+    pos = centroid + minor * ext * dist_mult
+    return [tuple(pos), tuple(centroid), tuple(major)]

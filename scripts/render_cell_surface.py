@@ -34,7 +34,7 @@ from scipy.ndimage import find_objects
 
 from ecs import config as cfg
 from ecs import io
-from ecs.geometry import (CellMesh, classify_ecs_facing_vertices,
+from ecs.geometry import (CellMesh, classify_ecs_facing_vertices, pca_view_init,
                           count_cell_boundary_faces, signed_mean_curvature,
                           smoothed_surface_deviation)
 
@@ -168,7 +168,9 @@ def main() -> None:
         tri.set_facecolors(fc)
         for sl, m in zip((ax.set_xlim, ax.set_ylim, ax.set_zlim), mid):
             sl(m - ext / 2, m + ext / 2)
-        ax.set_axis_off(); ax.view_init(elev=18, azim=-60)
+        ax.set_axis_off()
+        _elev, _azim = pca_view_init(V)
+        ax.view_init(elev=_elev, azim=_azim)
         ax.set_title(title, fontsize=10)
         m = cm.ScalarMappable(norm=norm, cmap=cmap); m.set_array([])
         cb = fig.colorbar(m, ax=ax, fraction=0.03, pad=0.02)
