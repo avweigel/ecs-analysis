@@ -11,6 +11,7 @@ out/ecs-handoff/figures/ so the page is self-contained for deployment.
 from __future__ import annotations
 
 import datetime as _dt
+import hashlib
 import shutil
 from pathlib import Path
 
@@ -75,9 +76,13 @@ def main() -> None:
                 missing.append(fname)
                 continue
             shutil.copy2(src, IMG_DIR / fname)
+            # Content-hash query string so browsers re-fetch when a render
+            # changes (filenames are stable, so without this the old image
+            # stays cached).
+            ver = hashlib.md5(src.read_bytes()).hexdigest()[:8]
             figs.append(
-                f"<figure><a href='figures/{fname}' target=_blank>"
-                f"<img src='figures/{fname}' loading=lazy alt='{caption}'></a>"
+                f"<figure><a href='figures/{fname}?v={ver}' target=_blank>"
+                f"<img src='figures/{fname}?v={ver}' loading=lazy alt='{caption}'></a>"
                 f"<figcaption>{caption}</figcaption></figure>")
         if figs:
             sections_html.append(

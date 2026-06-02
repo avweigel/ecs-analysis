@@ -844,11 +844,15 @@ def main() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     # Copy the embedded figures next to methods.html so the relative <img>
     # paths resolve both locally and on the deployed site (membranes/).
+    # Append a content-hash query string so browsers re-fetch on change.
+    import hashlib
     for fname in ("fig2_effect_matrix.png", "native_topology.png",
                   "native_anatomy_matched.png"):
         src = REPO_ROOT / "figures" / fname
         if src.exists():
             shutil.copy2(src, OUT.parent / fname)
+            ver = hashlib.md5(src.read_bytes()).hexdigest()[:8]
+            html = html.replace(f'"{fname}"', f'"{fname}?v={ver}"')
     OUT.write_text(html)
     print(f"wrote {OUT} ({len(html):,} bytes)")
 
