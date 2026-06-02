@@ -1,0 +1,105 @@
+FIB-SEM Anatomy Annotation for ECS of Multi-Tissues
+(Final update from Wei-Ping / Kayvon — plaintext extract of "2nd_FIB-SEM Annotation_KP.rtf",
+ received 2026-06-02. Only change vs the earlier .docx: the Cortex / Rapid HPF block,
+ previously blank, is now filled in.)
+
+Kidney:
+
+Chemical:
+crop1026: The interstitial space among fenestrated endothelium, podocyte and basal membrane.
+crop1027: The interstitial space among fenestrated endothelium, podocyte and basal membrane.
+crop1028: The microvilli at PCT brush border.
+crop1029: The microvilli at PCT brush border.
+crop1030: The base of the epithelium (striping) in a DCT, basement lamina, basal space between DCT.
+crop1031: The lateral space between two the apical epitheliums of PCT.
+crop1032: The base of the epithelium (striping) in a PCT, basement lamina, basal space between PCT.
+
+Rapid HPF
+crop1134: The interstitial space among fenestrated endothelium, podocyte and basal membrane.
+crop1135: The interstitial space among capillary endothelial cell, basal lamina and podocyte.
+crop1136: The base of the epithelium (striping) in a DCT, connecting tubule and ECS between them.
+crop1137: The base of the epithelium (striping) in a DCT, basal lamina, endothelium of blood vessel and interstitial space.
+crop1138: The lateral space between two the apical epithelium of PCT.
+crop1144: The base of the epithelium (striping) in a DCT.
+
+Heart:
+
+Chemical:
+crop1145: The interstitial space among one blood vessel and two cardiac cells.
+crop1146: The interstitial space among one blood vessel, one fibrocyte and two cardiac cells.
+crop1147: The portion is the intercalated disc space and other portion is interstitial space between two cardiac cells
+crop1148: The intercalated disc, sarcolemma and interstitial space between two cardiac cells.
+
+Rapid HPF
+crop1149: The interstitial space between the endothelium of blood vessel and a cardiac muscle cell.
+crop1150: The interstitial network among one blood vessel and two cardiac cells.
+crop1151: The intercalated disc between two cardiac cells.
+crop1152: The intercalated disc, sarcolemma and interstitial space among three cardiac cells.
+
+Liver:
+
+Chemical:
+crop1038: The space of Disse between the hepatocyte and the endothelium of the sinusoid.
+crop1039: The area of the bile canaliculus among three hepatocytes.
+crop1040: The bile canaliculus between two hepatocytes.
+crop1041: The space of Disse between the hepatocyte and the endothelium of the sinusoid.
+crop1042: The bile canaliculus between two hepatocytes.
+crop1043: The space of Disse near to two hepatocyte tight junction area.
+crop1044: The intercellular space between the hepatocyte and the Kupffer cell.
+crop1118: The interstitial space between two hepatocytes lateral membranes and neat to their apical area.
+crop1119: The interstitial space between two hepatocytes lateral membranes and neat to their apical area.
+crop1120: The interstitial space between two hepatocytes lateral membranes.
+crop1121: The interstitial space between two hepatocytes lateral membranes.
+crop1122: The interstitial space between two hepatocytes lateral membranes and neat to their apical area.
+
+Rapid HPF
+crop1123: The tight junction between two hepatocytes near the bile canaliculus.
+crop1124: The interstitial space between two hepatocytes lateral membranes.
+crop1125: The interstitial space between three hepatocytes lateral membranes.
+crop1126: The tight junction and the interstitial space between two hepatocytes lateral membranes.
+crop1127: The interstitial space between three hepatocytes lateral membranes.
+crop1071: The intercellular space among two hepatocytes and the Kupffer cell.
+crop1072: The bile canaliculus between two hepatocytes.
+crop1073: The bile canaliculus among three hepatocytes.
+crop1074: The bile canaliculus among three hepatocytes.
+crop1075: The bile canaliculus and the lateral space between two hepatocytes.
+
+Cortex:
+
+Chemical:
+Crop1033: Intercellular space among the unmyelinated nerve fibers.
+Crop1034: Intercellular space in the neuropil including one synaptic cleft.
+Crop1035: Intercellular space between two neuron cell processes.
+Crop1036: Intercellular space between one glial cell and several neuron cells including 3 synaptic clefts.
+Crop1037: Intercellular space among the neurovascular endothelium, glial cell and neuron cells.
+Crop1045: Intercellular space among the neurovascular endothelium, glial cell, myelinated and unmyelinated nerve fibers.
+Crop1046: Intercellular space among the neurovascular endothelium, myelinated and unmyelinated nerve fibers.
+
+Rapid HPF:
+Crop1116: Intercellular space among several myelinated and unmyelinated axonal and dendritic fibers including several synaptic clefts.
+Crop1117 (yellow frame): Intercellular space among one myelinated and many unmyelinated axonal or dendritic fibers including several synaptic clefts.
+Crop1139: Brain capillary lumen. Intercellular space among the endothelial cells, pericyte, basal membrane, astrocyte and unmyelinated neuron fibers.
+Crop1140: Intercellular space among the unmyelinated axonal or dendritic fibers including several synaptic clefts.
+Crop1041: Intercellular space between one glial cell and several unmyelinated nerve fibers including synaptic clefts.
+Crop1042: Intercellular space among the unmyelinated nerve fibers including synaptic clefts.
+Crop1043: Intercellular space among the unmyelinated nerve fibers including synaptic clefts.
+
+References:
+Bloom and Fawcett <<Histology>>
+Urban & Schwarzenberg <<Cell and Tissue Biology and Histology>>
+Holger Jastrow: http://www.drjastrow.de/WAI/EM/EMHerzE.html
+
+----------------------------------------------------------------------
+CURATION NOTE (applied to crop_annotations.csv, 2026-06-02):
+The Cortex / Rapid HPF crop IDs in the doc map to the zarr / config crops as:
+  Crop1116 -> crop1116        (cortex-2; in config, active)
+  Crop1117 -> crop1117        (cortex-2; in config, EXCLUDED — no ECS/cell labels)
+  Crop1139 -> crop1139        (cortex-4; in config, EXCLUDED — capillary lumen)
+  Crop1140 -> crop1140        (cortex-4; NOT in config — directory only)
+  Crop1041 -> crop1141        (cortex-4; in config, active)  [doc hundreds-digit typo 10->11]
+  Crop1042 -> crop1142        (cortex-4; NOT in config — directory only) [typo]
+  Crop1043 -> crop1143        (cortex-4; NOT in config — directory only) [typo]
+The jrc_mus-cortex-4 zarr was verified to contain five distinct crops
+(crop1139..crop1143), so crop1140 and crop1141 are SEPARATE crops — the earlier
+"1140<->1141 transposition" reading was incorrect. crop1041/1042/1043 are the
+Liver Chemical IDs reused by typo for the cortex crops 1141/1142/1143.

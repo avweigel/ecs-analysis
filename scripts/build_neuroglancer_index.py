@@ -109,9 +109,6 @@ NEW_CROPS: list[tuple[str, str, str, str]] = [
     ("jrc_mus-liver",    "crop1120", "Liver",  "Chemical"),
     ("jrc_mus-liver",    "crop1121", "Liver",  "Chemical"),
     ("jrc_mus-liver",    "crop1122", "Liver",  "Chemical"),
-    ("jrc_mus-cortex-4", "crop1140", "Cortex", "Rapid HPF"),
-    ("jrc_mus-cortex-4", "crop1142", "Cortex", "Rapid HPF"),
-    ("jrc_mus-cortex-4", "crop1143", "Cortex", "Rapid HPF"),
 ]
 
 

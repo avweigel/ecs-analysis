@@ -49,3 +49,10 @@ crop1119,Liver,Chemical,Hepatocyte lateral,Hepatocyte lateral,The interstitial s
 crop1120,Liver,Chemical,Hepatocyte lateral,Hepatocyte lateral,The interstitial space between two hepatocytes lateral membranes.
 crop1121,Liver,Chemical,Hepatocyte lateral,Hepatocyte lateral,The interstitial space between two hepatocytes lateral membranes.
 crop1122,Liver,Chemical,Hepatocyte lateral,Hepatocyte lateral,The interstitial space between two hepatocytes lateral membranes and neat to their apical area.
+crop1116,Cortex,Rapid HPF,Neuropil (mixed nerve fibers),,Intercellular space among several myelinated and unmyelinated axonal and dendritic fibers including several synaptic clefts.
+crop1117,Cortex,Rapid HPF,Neuropil (mixed nerve fibers),,Intercellular space among one myelinated and many unmyelinated axonal or dendritic fibers including several synaptic clefts.
+crop1139,Cortex,Rapid HPF,Cortex vessel (capillary lumen),,"Brain capillary lumen. Intercellular space among the endothelial cells, pericyte, basal membrane, astrocyte and unmyelinated neuron fibers."
+crop1141,Cortex,Rapid HPF,Glial-neuronal (synaptic clefts),,Intercellular space between one glial cell and several unmyelinated nerve fibers including synaptic clefts.
+crop1140,Cortex,Rapid HPF,Neuropil (unmyelinated fibers),,Intercellular space among the unmyelinated axonal or dendritic fibers including several synaptic clefts.
+crop1142,Cortex,Rapid HPF,Unmyelinated nerve fibers,,Intercellular space among the unmyelinated nerve fibers including synaptic clefts.
+crop1143,Cortex,Rapid HPF,Unmyelinated nerve fibers,,Intercellular space among the unmyelinated nerve fibers including synaptic clefts.

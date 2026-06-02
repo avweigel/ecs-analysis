@@ -146,7 +146,8 @@ _DATASET_TABLE: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
     ("jrc_mus-cortex-3", "Cortex", "Chemical",
      ("crop1033", "crop1034", "crop1035", "crop1036", "crop1037",
       "crop1045", "crop1046")),
-    ("jrc_mus-cortex-4", "Cortex", "Rapid HPF", ("crop1139", "crop1141")),
+    ("jrc_mus-cortex-4", "Cortex", "Rapid HPF",
+     ("crop1139", "crop1140", "crop1141", "crop1142", "crop1143")),
 )
 
 # Known bad crops. crop1117 has no ECS/cell labels (confirmed empty in zarr).
