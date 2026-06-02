@@ -22,6 +22,9 @@ SECTIONS = [
         ("sanity-check.html", "Matched-region sanity check",
          "Per-region and tissue-level ECS% summary tables, plus matched-region "
          "thumbnail grids with Chemical-vs-HPF dot plots.", ""),
+        ("figures.html", "Figures gallery",
+         "Every quantitative graph: per-metric Chemical-vs-HPF strip plots (native and "
+         "resolution-matched), the Fig 2 effect-size matrix, region vignettes, and 3D renders.", ""),
     ]),
     ("Membrane topology — 3D", "The ECS-facing membrane of one representative cell per crop, "
      "characterized by curvature, protrusion/indentation, and contact gap.", [

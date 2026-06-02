@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import math
+import shutil
 from html import escape
 from pathlib import Path
 
@@ -310,6 +311,7 @@ and stays in sync with the results CSVs at <code>results/</code>.
   <a href="#viz">Visualisation</a> ·
   <a href="#res">Results — overall</a> ·
   <a href="#reg">Results — region-matched</a> ·
+  <a href="#figs">Figures</a> ·
   <a href="#headline">Headline observations</a> ·
   <a href="#outliers">Outlier candidates</a> ·
   <a href="#sens">Sensitivity</a> ·
@@ -522,9 +524,28 @@ off the per-crop CSV rather than the aggregate.</li>
 </ul>
 __REGION_TABLE__
 
+<h2 id=figs>Figures</h2>
+<p>
+The membrane-topology and effect-size graphs are shown below. The full set of
+per-metric Chemical-vs-HPF plots (volume fraction, ECS width, Voronoi gap, SA:V,
+both native and resolution-matched) plus region vignettes and 3D renders is in
+the <a href="../figures.html">figures gallery</a>.
+</p>
+<figure class=fig><a href="fig2_effect_matrix.png" target=_blank>
+<img src="fig2_effect_matrix.png" alt="Cliff's delta effect-size matrix"></a>
+<figcaption>Cliff's δ effect-size matrix across the region-matched comparisons
+(warm = Chemical&nbsp;&gt;&nbsp;HPF, cool = HPF&nbsp;&gt;&nbsp;Chemical).</figcaption></figure>
+<figure class=fig><a href="native_topology.png" target=_blank>
+<img src="native_topology.png" alt="membrane topology strip plots"></a>
+<figcaption>Membrane topology per tissue at native resolution — signed curvature,
+roughness, and protrusion/indentation density (Chemical vs Rapid HPF, one dot per crop).</figcaption></figure>
+<figure class=fig><a href="native_anatomy_matched.png" target=_blank>
+<img src="native_anatomy_matched.png" alt="region-matched metric panel"></a>
+<figcaption>Region-matched Chemical-vs-HPF comparison across the full metric suite.</figcaption></figure>
+
 <h2 id=headline>Headline observations</h2>
 <p>
-Reading these as observations from the 52-crop set, not yet biological
+Reading these as observations from the 55-crop set, not yet biological
 conclusions:
 </p>
 <ol class=findings>
@@ -808,6 +829,10 @@ def main() -> None:
             "font-variant-numeric:tabular-nums}\n"
             " ol.findings>li b{color:var(--head)}\n"
             " ol.findings>li i{color:#aeb6c4}\n"
+            " figure.fig{margin:14px 0;background:var(--card);border:1px solid var(--line);"
+            "border-radius:10px;padding:12px;max-width:760px}\n"
+            " figure.fig img{width:100%;height:auto;border-radius:8px;background:#fff;display:block}\n"
+            " figure.fig figcaption{font-size:12.5px;color:#aeb6c4;margin-top:9px;line-height:1.5}\n"
             "</style>\n"
             "<nav class=bar>"
             "<a href='../home.html'>⌂ project home</a>"
@@ -817,6 +842,13 @@ def main() -> None:
             "</nav>\n"
             "<div class=container>" + body + "</div>\n")
     OUT.parent.mkdir(parents=True, exist_ok=True)
+    # Copy the embedded figures next to methods.html so the relative <img>
+    # paths resolve both locally and on the deployed site (membranes/).
+    for fname in ("fig2_effect_matrix.png", "native_topology.png",
+                  "native_anatomy_matched.png"):
+        src = REPO_ROOT / "figures" / fname
+        if src.exists():
+            shutil.copy2(src, OUT.parent / fname)
     OUT.write_text(html)
     print(f"wrote {OUT} ({len(html):,} bytes)")
 
