@@ -106,8 +106,10 @@ def main() -> None:
             ax.axhline(i - 0.5, color="black", lw=1.5)
 
     ax.set_title("Fig 2 showcase — Cliff's δ (Chem vs HPF) across the metric suite\n"
-                 "red = Chem>HPF, blue = HPF>Chem;  * p<0.05, † p<0.1",
-                 fontsize=10)
+                 "red = Chem>HPF, blue = HPF>Chem;  * exact p<0.05, † p<0.1\n"
+                 "small n per matched region floors the exact p (≥0.057 at n=3v4, "
+                 "≥0.333 at 2v2) — read δ (effect size), not p",
+                 fontsize=9)
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.02)
     cbar.set_label("Cliff's δ", fontsize=9)
     fig.tight_layout()

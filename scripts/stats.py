@@ -19,6 +19,7 @@ from __future__ import annotations
 import csv
 import math
 import sys
+import warnings
 from collections import defaultdict
 from pathlib import Path
 
@@ -148,14 +149,26 @@ def compare_groups(rows: list[dict], group_key: str, group_values: list[str],
         if chem.size < 2 or hpf.size < 2:
             continue
 
-        # Mann-Whitney U (two-sided)
+        # Mann-Whitney U (two-sided). At the small n of the matched-region
+        # groups (2-6 per arm) the exact null distribution is the correct
+        # reference: its p has a hard floor (0.057 at n=3v4, 0.333 at 2v2),
+        # so it can't be beaten regardless of effect size. The asymptotic
+        # (normal-approx) p ignores that floor and dips below it whenever a
+        # tie flips scipy off the exact test — which is what produced the
+        # spurious one-below-0.05 cell. We report `mw_p` = exact (primary)
+        # and keep `mw_p_asymptotic` alongside for comparison.
         try:
-            mw = sps.mannwhitneyu(chem, hpf, alternative="two-sided")
-            mw_u = float(mw.statistic)
-            mw_p = float(mw.pvalue)
+            mw_u = float(sps.mannwhitneyu(chem, hpf, alternative="two-sided").statistic)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")  # exact-with-ties warning
+                mw_p = float(sps.mannwhitneyu(chem, hpf, alternative="two-sided",
+                                              method="exact").pvalue)
+            mw_p_asymptotic = float(sps.mannwhitneyu(chem, hpf, alternative="two-sided",
+                                                     method="asymptotic").pvalue)
         except ValueError:
             mw_u = float("nan")
             mw_p = float("nan")
+            mw_p_asymptotic = float("nan")
 
         delta = cliffs_delta(chem, hpf)
 
@@ -182,6 +195,7 @@ def compare_groups(rows: list[dict], group_key: str, group_values: list[str],
             "diff_ci_hi": diff_hi,
             "mw_u": mw_u,
             "mw_p": mw_p,
+            "mw_p_asymptotic": mw_p_asymptotic,
             "cliff_delta": delta,
             "direction": direction(delta),
         })
@@ -230,7 +244,7 @@ def main():
         "chem_median", "chem_ci_lo", "chem_ci_hi",
         "hpf_median", "hpf_ci_lo", "hpf_ci_hi",
         "diff_median", "diff_ci_lo", "diff_ci_hi",
-        "mw_u", "mw_p", "cliff_delta", "direction",
+        "mw_u", "mw_p", "mw_p_asymptotic", "cliff_delta", "direction",
     ]
     with open(out_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
