@@ -1,0 +1,61 @@
+crop,tissue,prep,dataset,voxel_size,in_analysis,label_export_pending,label_path,anatomical_region,region_group
+crop1033,Cortex,Chemical,jrc_mus-cortex-3,4nm,yes,no,/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1033,Unmyelinated nerve fibers,
+crop1034,Cortex,Chemical,jrc_mus-cortex-3,4nm,yes,no,/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1034,Neuropil (synaptic cleft),
+crop1035,Cortex,Chemical,jrc_mus-cortex-3,4nm,yes,no,/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1035,Neuronal cell processes,
+crop1036,Cortex,Chemical,jrc_mus-cortex-3,4nm,yes,no,/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1036,Glial-neuronal (synaptic clefts),
+crop1037,Cortex,Chemical,jrc_mus-cortex-3,4nm,yes,no,/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1037,Neurovascular (endothelium/glia/neurons),
+crop1045,Cortex,Chemical,jrc_mus-cortex-3,4nm,yes,no,/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1045,Neurovascular (mixed nerve fibers),
+crop1046,Cortex,Chemical,jrc_mus-cortex-3,4nm,yes,no,/nrs/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1046,Neurovascular (myelinated/unmyelinated fibers),
+crop1113,Cortex,Rapid HPF,jrc_mus-cortex-2,8nm,no,yes,\\prfs \annotations\amira\jrc_mus-cortex-2\crop1113\crop1113.zarr\MB_Working_02,(excluded from active analysis set),
+crop1114,Cortex,Rapid HPF,jrc_mus-cortex-2,8nm,no,yes,\\prfs \annotations\amira\jrc_mus-cortex-2\crop1114\crop1114.zarr\crop1114_DZRv1,(excluded from active analysis set),
+crop1115,Cortex,Rapid HPF,jrc_mus-cortex-2,8nm,no,yes,\\prfs \annotations\amira\jrc_mus-cortex-2\crop1115\crop1115.zarr\crop1115_DZRv2,(excluded from active analysis set),
+crop1116,Cortex,Rapid HPF,jrc_mus-cortex-2,8nm,yes,no,/nrs/data/jrc_mus-cortex-2/jrc_mus-cortex-2.zarr/recon-1/labels/groundtruth/crop1116,Neuropil (mixed nerve fibres),
+crop1117,Cortex,Rapid HPF,jrc_mus-cortex-2,8nm,yes,no,/nrs/data/jrc_mus-cortex-2/jrc_mus-cortex-2.zarr/recon-1/labels/groundtruth/crop1117,Neuropil (mixed nerve fibers),
+crop1139,Cortex,Rapid HPF,jrc_mus-cortex-4,8nm,yes,no,/nrs/data/jrc_mus-cortex-4/jrc_mus-cortex-4.zarr/recon-1/labels/groundtruth/crop1139,Cortex vessel (capillary lumen),
+crop1140,Cortex,Rapid HPF,jrc_mus-cortex-4,8nm,yes,yes,\\prfs\annotations\amira\jrc_mus-cortex-4\crop1140\crop1140.zarr (final export dir TBD),Neuropil (unmyelinated fibers),
+crop1141,Cortex,Rapid HPF,jrc_mus-cortex-4,8nm,yes,no,/nrs/data/jrc_mus-cortex-4/jrc_mus-cortex-4.zarr/recon-1/labels/groundtruth/crop1141,Glial-neuronal (synaptic clefts),
+crop1142,Cortex,Rapid HPF,jrc_mus-cortex-4,8nm,yes,yes,\\prfs\annotations\amira\jrc_mus-cortex-4\crop1142\crop1142.zarr (final export dir TBD),Unmyelinated nerve fibres,
+crop1143,Cortex,Rapid HPF,jrc_mus-cortex-4,8nm,yes,yes,\\prfs\annotations\amira\jrc_mus-cortex-4\crop1143\crop1143.zarr (final export dir TBD),Unmyelinated nerve fibres,
+crop1145,Heart,Chemical,jrc_mus-heart-6,8nm,yes,no,/nrs/data/jrc_mus-heart-6/jrc_mus-heart-6.zarr/recon-1/labels/groundtruth/crop1145,Interstitial,Cardiac interstitial
+crop1146,Heart,Chemical,jrc_mus-heart-6,8nm,yes,no,/nrs/data/jrc_mus-heart-6/jrc_mus-heart-6.zarr/recon-1/labels/groundtruth/crop1146,Interstitial,Cardiac interstitial
+crop1147,Heart,Chemical,jrc_mus-heart-6,8nm,yes,no,/nrs/data/jrc_mus-heart-6/jrc_mus-heart-6.zarr/recon-1/labels/groundtruth/crop1147,Intercalated disc,Intercalated disc
+crop1148,Heart,Chemical,jrc_mus-heart-6,8nm,yes,yes,\\prfs \annotations\amira\jrc_mus-heart-6\crop1148\crop1148.zarr\crop1148_GPv4,Intercalated disc,Intercalated disc
+crop1149,Heart,Rapid HPF,jrc_mus-heart-4,8nm,yes,yes,\\prfs \annotations\amira\jrc_mus-heart-4\crop1149\crop1149.zarr\recon-1-em-fibsem-uint16-s0.labels,Interstitial,Cardiac interstitial
+crop1150,Heart,Rapid HPF,jrc_mus-heart-4,8nm,yes,yes,\\prfs \annotations\amira\jrc_mus-heart-4\crop1150\crop1150.zarr\crop1150_AIPv1,Interstitial,Cardiac interstitial
+crop1151,Heart,Rapid HPF,jrc_mus-heart-4,8nm,yes,yes,\\prfs \annotations\amira\jrc_mus-heart-4\crop1151\crop1151.zarr\crop1151_DZRv1,Intercalated disc,Intercalated disc
+crop1152,Heart,Rapid HPF,jrc_mus-heart-4,8nm,yes,yes,\\prfs \annotations\amira\jrc_mus-heart-4\crop1152\crop1152.zarr\crop1152_MBv2,Intercalated disc,Intercalated disc
+crop1026,Kidney,Chemical,jrc_mus-kidney,8nm,yes,no,/nrs/data/jrc_mus-kidney/jrc_mus-kidney.zarr/recon-1/labels/groundtruth/crop1026,Glomerular interstitium,Glomerular
+crop1027,Kidney,Chemical,jrc_mus-kidney,8nm,yes,no,/nrs/data/jrc_mus-kidney/jrc_mus-kidney.zarr/recon-1/labels/groundtruth/crop1027,Glomerular interstitium,Glomerular
+crop1028,Kidney,Chemical,jrc_mus-kidney,8nm,yes,no,/nrs/data/jrc_mus-kidney/jrc_mus-kidney.zarr/recon-1/labels/groundtruth/crop1028,PCT brush border,PCT brush border
+crop1029,Kidney,Chemical,jrc_mus-kidney,8nm,yes,no,/nrs/data/jrc_mus-kidney/jrc_mus-kidney.zarr/recon-1/labels/groundtruth/crop1029,PCT brush border,PCT brush border
+crop1030,Kidney,Chemical,jrc_mus-kidney,8nm,yes,no,/nrs/data/jrc_mus-kidney/jrc_mus-kidney.zarr/recon-1/labels/groundtruth/crop1030,DCT base,DCT base
+crop1031,Kidney,Chemical,jrc_mus-kidney,8nm,yes,no,/nrs/data/jrc_mus-kidney/jrc_mus-kidney.zarr/recon-1/labels/groundtruth/crop1031,PCT lateral,PCT lateral
+crop1032,Kidney,Chemical,jrc_mus-kidney,8nm,yes,no,/nrs/data/jrc_mus-kidney/jrc_mus-kidney.zarr/recon-1/labels/groundtruth/crop1032,PCT base,PCT base
+crop1134,Kidney,Rapid HPF,jrc_mus-kidney-4,8nm,yes,no,/nrs/data/jrc_mus-kidney-4/jrc_mus-kidney-4.zarr/recon-1/labels/groundtruth/crop1134,Glomerular interstitium,Glomerular
+crop1135,Kidney,Rapid HPF,jrc_mus-kidney-4,8nm,yes,yes,\\prfs \annotations\amira\jrc_mus-kidney-4\crop1135\crop1135.zarr\crop1135_DZRv1,Glomerular interstitium,Glomerular
+crop1136,Kidney,Rapid HPF,jrc_mus-kidney-4,8nm,yes,no,/nrs/data/jrc_mus-kidney-4/jrc_mus-kidney-4.zarr/recon-1/labels/groundtruth/crop1136,DCT base,DCT base
+crop1137,Kidney,Rapid HPF,jrc_mus-kidney-4,8nm,yes,no,/nrs/data/jrc_mus-kidney-4/jrc_mus-kidney-4.zarr/recon-1/labels/groundtruth/crop1137,DCT base,DCT base
+crop1138,Kidney,Rapid HPF,jrc_mus-kidney-4,8nm,yes,yes,\\prfs \annotations\amira\jrc_mus-kidney-4\crop1138\crop1138.zarr\Cells,PCT lateral,PCT lateral
+crop1144,Kidney,Rapid HPF,jrc_mus-kidney-4,8nm,yes,no,/nrs/data/jrc_mus-kidney-4/jrc_mus-kidney-4.zarr/recon-1/labels/groundtruth/crop1144,DCT base,DCT base
+crop1038,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1038,Space of Disse,Space of Disse
+crop1039,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1039,Bile canaliculus,Bile canaliculus
+crop1040,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1040,Bile canaliculus,Bile canaliculus
+crop1041,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1041,Space of Disse,Space of Disse
+crop1042,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1042,Bile canaliculus,Bile canaliculus
+crop1043,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1043,Space of Disse,Space of Disse
+crop1044,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1044,Hepatocyte lateral,Hepatocyte lateral
+crop1118,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1118,Hepatocyte lateral,Hepatocyte lateral
+crop1119,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1119,Hepatocyte lateral,Hepatocyte lateral
+crop1120,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1120,Hepatocyte lateral,Hepatocyte lateral
+crop1121,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1121,Hepatocyte lateral,Hepatocyte lateral
+crop1122,Liver,Chemical,jrc_mus-liver,8nm,yes,no,/nrs/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1122,Hepatocyte lateral,Hepatocyte lateral
+crop1071,Liver,Rapid HPF,jrc_mus-liver-8,8nm,yes,no,/nrs/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1071,Hepatocyte lateral,Hepatocyte lateral
+crop1072,Liver,Rapid HPF,jrc_mus-liver-8,8nm,yes,no,/nrs/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1072,Bile canaliculus,Bile canaliculus
+crop1073,Liver,Rapid HPF,jrc_mus-liver-8,8nm,yes,no,/nrs/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1073,Bile canaliculus,Bile canaliculus
+crop1074,Liver,Rapid HPF,jrc_mus-liver-8,8nm,yes,no,/nrs/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1074,Bile canaliculus,Bile canaliculus
+crop1075,Liver,Rapid HPF,jrc_mus-liver-8,8nm,yes,no,/nrs/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1075,Bile canaliculus,Bile canaliculus
+crop1123,Liver,Rapid HPF,jrc_mus-liver-8,8nm,yes,yes,/nrs/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1123,Tight junction,Hepatocyte lateral
+crop1124,Liver,Rapid HPF,jrc_mus-liver-8,8nm,yes,yes,/nrs/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1124,Hepatocyte lateral,Hepatocyte lateral
+crop1125,Liver,Rapid HPF,jrc_mus-liver-8,8nm,yes,yes,/nrs/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1125,Hepatocyte lateral,Hepatocyte lateral
+crop1126,Liver,Rapid HPF,jrc_mus-liver-8,8nm,yes,yes,/nrs/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1126,Tight junction,Hepatocyte lateral
+crop1127,Liver,Rapid HPF,jrc_mus-liver-8,8nm,yes,yes,/nrs/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1127,Hepatocyte lateral,Hepatocyte lateral
