@@ -33,6 +33,8 @@ REGIONS = [
     ("Heart", "Cardiac interstitial"),
     ("Heart", "Intercalated disc"),
     ("Kidney", "Glomerular"),
+    ("Kidney", "Tubule basal"),  # pooled DCT base + PCT base, see
+                                 # scripts/stats_add_pooled_regions.py
 ]
 
 # One representative column per analysis family, grouped by what it measures.

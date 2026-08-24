@@ -25,6 +25,14 @@ import matplotlib.pyplot as plt
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 RESULTS = REPO_ROOT / "results"
+
+# Pooled display regions: vignette name -> raw region_group values to include.
+# Keep in sync with scripts/stats_add_pooled_regions.py, which appends the
+# matching stats rows to stats_native.csv.
+REGION_ALIASES: dict[str, set[str]] = {
+    "Tubule basal": {"DCT base", "PCT base"},
+}
+
 PREP_ORDER = ["Chemical", "Rapid HPF"]
 PREP_COLOR = {"Chemical": "#d62728", "Rapid HPF": "#1f77b4"}
 
@@ -63,11 +71,12 @@ def median(vals: list[float]) -> float:
 def main() -> None:
     region = sys.argv[1] if len(sys.argv) > 1 else "Bile canaliculus"
     stats = stats_lookup()
+    accept = REGION_ALIASES.get(region, {region})
 
     tissue = ""
     fig, axes = plt.subplots(1, len(PANELS), figsize=(len(PANELS) * 2.0 + 0.5, 3.2))
     for ax, (metric, col, label) in zip(axes, PANELS):
-        rows = [r for r in read_rows(metric) if r.get("region_group") == region]
+        rows = [r for r in read_rows(metric) if r.get("region_group") in accept]
         if rows and not tissue:
             tissue = rows[0].get("tissue", "")
         for i, prep in enumerate(PREP_ORDER):
