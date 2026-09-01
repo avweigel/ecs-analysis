@@ -1,0 +1,485 @@
+[1/52] crop1026 OK (162,776 faces)
+[2/52] crop1027 OK (129,021 faces)
+[3/52] crop1028 OK (10,394 faces)
+[4/52] crop1029 OK (10,170 faces)
+[5/52] crop1030 OK (61,003 faces)
+[6/52] crop1031 OK (97,903 faces)
+[7/52] crop1032 OK (55,646 faces)
+[8/52] crop1134 OK (129,094 faces)
+[9/52] crop1135 OK (98,984 faces)
+[10/52] crop1136 OK (192,564 faces)
+[11/52] crop1137 OK (105,613 faces)
+[12/52] crop1138 OK (306,404 faces)
+[13/52] crop1144 OK (622,320 faces)
+[14/52] crop1145 OK (64,771 faces)
+[15/52] crop1146 OK (44,936 faces)
+[16/52] crop1147 OK (62,354 faces)
+[17/52] crop1148 OK (141,304 faces)
+[18/52] crop1149 OK (60,829 faces)
+[19/52] crop1150 OK (101,052 faces)
+[20/52] crop1151 OK (138,389 faces)
+[21/52] crop1152 OK (82,682 faces)
+[22/52] crop1038 OK (180,024 faces)
+[23/52] crop1039 OK (62,970 faces)
+[24/52] crop1040 OK (96,097 faces)
+[25/52] crop1041 FAILED: [Errno 60] Operation timed out
+Traceback (most recent call last):
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1093, in _fromfile
+    return f.read()
+OSError: [Errno 6] Device not configured
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 126, in load_crop
+    cell = np.asarray(z["cell"]["s0"][:])
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/core.py", line 800, in __getitem__
+    result = self.get_basic_selection(pure_selection, fields=fields)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/core.py", line 926, in get_basic_selection
+    return self._get_basic_selection_nd(selection=selection, out=out, fields=fields)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/core.py", line 968, in _get_basic_selection_nd
+    return self._get_selection(indexer=indexer, out=out, fields=fields)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/core.py", line 1343, in _get_selection
+    self._chunk_getitems(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/core.py", line 2179, in _chunk_getitems
+    cdatas = self.chunk_store.getitems(ckeys, contexts=contexts)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/_storage/store.py", line 179, in getitems
+    return {k: self[k] for k in keys if k in self}
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/_storage/store.py", line 179, in <dictcomp>
+    return {k: self[k] for k in keys if k in self}
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1093, in _fromfile
+    return f.read()
+TimeoutError: [Errno 60] Operation timed out
+[26/52] crop1042 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1042/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1042/.zgroup'
+[27/52] crop1043 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1043/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1043/.zgroup'
+[28/52] crop1044 FAILED: nothing found at path ''
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 137, in open
+    raise PathNotFoundError(path)
+zarr.errors.PathNotFoundError: nothing found at path ''
+[29/52] crop1118 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1118/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1118/.zgroup'
+[30/52] crop1119 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1119/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1119/.zgroup'
+[31/52] crop1120 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1120/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1120/.zgroup'
+[32/52] crop1121 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1121/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver/jrc_mus-liver.zarr/recon-1/labels/groundtruth/crop1121/.zgroup'
+[33/52] crop1122 FAILED: nothing found at path ''
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 137, in open
+    raise PathNotFoundError(path)
+zarr.errors.PathNotFoundError: nothing found at path ''
+[34/52] crop1071 FAILED: nothing found at path ''
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 137, in open
+    raise PathNotFoundError(path)
+zarr.errors.PathNotFoundError: nothing found at path ''
+[35/52] crop1072 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1072/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1072/.zgroup'
+[36/52] crop1073 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1073/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1073/.zgroup'
+[37/52] crop1074 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1074/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1074/.zgroup'
+[38/52] crop1075 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1075/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1075/.zgroup'
+[39/52] crop1123 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1123/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1123/.zgroup'
+[40/52] crop1124 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1124/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1124/.zgroup'
+[41/52] crop1125 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1125/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1125/.zgroup'
+[42/52] crop1126 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1126/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1126/.zgroup'
+[43/52] crop1127 FAILED: nothing found at path ''
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 137, in open
+    raise PathNotFoundError(path)
+zarr.errors.PathNotFoundError: nothing found at path ''
+[44/52] crop1116 FAILED: nothing found at path ''
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 137, in open
+    raise PathNotFoundError(path)
+zarr.errors.PathNotFoundError: nothing found at path ''
+[45/52] crop1033 FAILED: nothing found at path ''
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 137, in open
+    raise PathNotFoundError(path)
+zarr.errors.PathNotFoundError: nothing found at path ''
+[46/52] crop1034 FAILED: nothing found at path ''
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 137, in open
+    raise PathNotFoundError(path)
+zarr.errors.PathNotFoundError: nothing found at path ''
+[47/52] crop1035 FAILED: nothing found at path ''
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 137, in open
+    raise PathNotFoundError(path)
+zarr.errors.PathNotFoundError: nothing found at path ''
+[48/52] crop1036 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1036/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1036/.zgroup'
+[49/52] crop1037 FAILED: nothing found at path ''
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 137, in open
+    raise PathNotFoundError(path)
+zarr.errors.PathNotFoundError: nothing found at path ''
+[50/52] crop1045 FAILED: nothing found at path ''
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 137, in open
+    raise PathNotFoundError(path)
+zarr.errors.PathNotFoundError: nothing found at path ''
+[51/52] crop1046 FAILED: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1046/.zgroup'
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 135, in open
+    return open_group(_store, mode=mode, **kwargs)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 1600, in open_group
+    return Group(
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/hierarchy.py", line 189, in __init__
+    meta_bytes = store[mkey]
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1118, in __getitem__
+    return self._fromfile(filepath)
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/storage.py", line 1092, in _fromfile
+    with open(fn, "rb") as f:
+TimeoutError: [Errno 60] Operation timed out: '/Volumes/cellmap/data/jrc_mus-cortex-3/jrc_mus-cortex-3.zarr/recon-1/labels/groundtruth/crop1046/.zgroup'
+[52/52] crop1141 FAILED: nothing found at path ''
+Traceback (most recent call last):
+  File "/Users/weigela/workspace/ecs-analysis/scripts/regen_galleries.py", line 58, in main
+    p = build_patch(crop, voxel=args.voxel)            # once
+  File "/Users/weigela/workspace/ecs-analysis/scripts/render_membrane_patch.py", line 68, in build_patch
+    data = io.load_crop(crop)
+  File "/Users/weigela/workspace/ecs-analysis/ecs/io.py", line 115, in load_crop
+    z = zarr.open(str(crop.zarr_path), mode="r")
+  File "/Users/weigela/Library/Python/3.9/lib/python/site-packages/zarr/convenience.py", line 137, in open
+    raise PathNotFoundError(path)
+zarr.errors.PathNotFoundError: nothing found at path ''
+
+Done. /Users/weigela/workspace/ecs-analysis/figures/membranes/membranes_3d.html

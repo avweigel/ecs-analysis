@@ -1,0 +1,493 @@
+<!doctype html><meta charset=utf-8>
+<title>Methods — mesh-based membrane topology</title>
+<style>
+ :root{--bg:#0f1420;--card:#1a2030;--card2:#222b3e;--ink:#e8ecf3;--muted:#8a93a6;--line:#2a3346;--accent:#5b9cff;--head:#cfe0ff}
+ *{box-sizing:border-box}
+ body{font-family:'Segoe UI',Tahoma,sans-serif;margin:0;background:var(--bg);color:var(--ink);line-height:1.6}
+ .container{max-width:920px;margin:0 auto;padding:24px 32px 64px}
+ nav.bar{background:linear-gradient(135deg,#16243f,#1d3a33);border-bottom:1px solid var(--line);padding:12px 32px;font-size:13px;display:flex;gap:14px;color:var(--ink)}
+ nav.bar a{color:var(--accent);text-decoration:none;font-weight:600}
+ nav.bar a:hover{text-decoration:underline}
+ h1{font-size:26px;margin:14px 0 4px;color:var(--ink)}
+ h2{font-size:19px;color:var(--head);border-bottom:1px solid var(--line);padding-bottom:6px;margin-top:36px}
+ p.lead{color:#c4ccda;font-size:15px;max-width:760px}
+ p,li{font-size:14px;color:#c0c8d6}
+ p strong,li strong,p b,li b{color:var(--ink)}
+ code{background:var(--card2);color:#d6deea;border-radius:3px;padding:1px 5px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+ a{color:var(--accent)}
+ nav.toc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:12px 0 22px;font-size:12.5px;line-height:1.9;color:var(--muted)}
+ nav.toc a{color:var(--accent);text-decoration:none}
+ nav.toc a:hover{text-decoration:underline}
+ table.small{border-collapse:collapse;margin:8px 0 18px;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+ table.small th,table.small td{padding:6px 10px;font-size:13px;text-align:left;border-bottom:1px solid var(--line)}
+ table.small tr:last-child td{border-bottom:none}
+ table.small th{background:var(--card2);color:var(--head);font-weight:600}
+ table.small td{color:#c0c8d6}
+ table.stats{width:100%;border-collapse:collapse;margin:8px 0 6px;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+ table.stats th,table.stats td{padding:7px 10px;font-size:13px;text-align:left;border-bottom:1px solid var(--line)}
+ table.stats tbody tr:last-child td{border-bottom:none}
+ table.stats thead{background:var(--card2)}
+ table.stats th{font-weight:600;color:var(--head)}
+ table.stats td{color:#c0c8d6}
+ table.stats td.n{font-variant-numeric:tabular-nums;color:var(--muted)}
+ table.stats .iqr{color:var(--muted);font-size:11.5px}
+ table.stats th.chem{color:#ff8b4a}
+ table.stats th.hpf{color:#7ec0ff}
+ span.prep{font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em;color:#fff}
+ span.prep.chem{background:#d9480f}
+ span.prep.hpf{background:#1971c2}
+ p.note{color:var(--muted);font-size:12.5px;margin-top:4px}
+ table.cmp{width:100%;border-collapse:collapse;margin:10px 0 14px;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+ table.cmp th,table.cmp td{padding:8px 12px;font-size:13px;vertical-align:top;border-bottom:1px solid var(--line);color:#c0c8d6}
+ table.cmp tbody tr:last-child td{border-bottom:none}
+ table.cmp thead th{background:var(--card2);color:var(--head)}
+ table.cmp tbody th{background:#13182a;text-align:left;width:120px;color:var(--head);font-weight:600}
+ sup.cite{font-size:10.5px;color:var(--accent);font-weight:600;vertical-align:super;line-height:0}
+ sup.cite a{color:inherit;text-decoration:none}
+ sup.cite a:hover{text-decoration:underline}
+ ol.refs{list-style:none;padding:0;margin:8px 0 0;counter-reset:r}
+ ol.refs li{font-size:13px;color:#c0c8d6;margin:6px 0;padding:6px 10px 6px 38px;position:relative;border-bottom:1px solid var(--line)}
+ ol.refs li:target{background:#3a2e1c;border-radius:4px}
+ ol.refs .refn{position:absolute;left:8px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums}
+ table.outliers{width:100%;border-collapse:collapse;margin:6px 0 12px;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+ table.outliers th,table.outliers td{padding:7px 10px;font-size:13px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;color:#c0c8d6}
+ table.outliers tbody tr:last-child td{border-bottom:none}
+ table.outliers thead{background:#3a1e1e}
+ table.outliers th{font-weight:600;color:#ff8585}
+ table.outliers td.n{font-variant-numeric:tabular-nums;color:var(--muted)}
+ table.outliers td.reason{color:#aeb6c4;font-size:12.5px;max-width:340px}
+ table.outliers .ratio{font-variant-numeric:tabular-nums;font-weight:600;color:#c0c8d6}
+ table.outliers .ratio.hi{color:#ff8585}
+ table.outliers .ratio.lo{color:#7adcaa}
+ span.outlier-inline{background:#3a1e1e;color:#ff8585;border:1px solid #6b3030;border-radius:4px;padding:0 6px;font-size:11.5px;font-weight:700}
+ table.sensitivity{width:100%;border-collapse:collapse;margin:6px 0 6px;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+ table.sensitivity th,table.sensitivity td{padding:7px 10px;font-size:13px;text-align:center;border-bottom:1px solid var(--line);color:#c0c8d6}
+ table.sensitivity tbody tr:last-child td{border-bottom:none}
+ table.sensitivity th{font-weight:600;color:var(--head);background:var(--card2)}
+ table.sensitivity td:first-child,table.sensitivity td:nth-child(2){text-align:left;color:#c0c8d6}
+ table.sensitivity td.n{font-variant-numeric:tabular-nums;color:var(--muted)}
+ table.sensitivity td.ratio{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink)}
+ table.sensitivity td.ratio.dim{color:var(--muted);font-weight:500}
+ table.sensitivity tr.affected{background:#2b2412}
+ table.sensitivity tr.affected td{color:var(--ink)}
+ ol.findings{counter-reset:f;list-style:none;padding:0;margin:8px 0 14px}
+ ol.findings>li{counter-increment:f;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:12px 16px 12px 56px;margin:10px 0;position:relative;font-size:14px;color:#c0c8d6;line-height:1.6}
+ ol.findings>li::before{content:counter(f);position:absolute;left:16px;top:13px;width:28px;height:28px;line-height:28px;text-align:center;background:var(--accent);color:#0a0f1c;border-radius:999px;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+ ol.findings>li b{color:var(--head)}
+ ol.findings>li i{color:#aeb6c4}
+ figure.fig{margin:14px 0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;max-width:760px}
+ figure.fig img{width:100%;height:auto;border-radius:8px;background:#fff;display:block}
+ figure.fig figcaption{font-size:12.5px;color:#aeb6c4;margin-top:9px;line-height:1.5}
+</style>
+<nav class=bar><a href='../home.html'>⌂ project home</a><a href='membranes_3d.html'>interactive 3D gallery</a><a href='index.html'>static map gallery</a><a href='inspector.html'>adjustable-scale inspector</a></nav>
+<div class=container>
+<h1>Methods — mesh-based membrane topology</h1>
+<p class=lead>
+This page documents the per-crop pipeline that produces the curvature,
+protrusion/indentation, and contact-gap channels rendered in the
+<a href="membranes_3d.html">interactive 3D gallery</a> and the
+<a href="index.html">static maps</a>. It is the web companion to the
+manuscript draft at <code>paper/methods_membrane_topology.tex</code>
+and stays in sync with the results CSVs at <code>results/</code>.
+</p>
+
+<nav class=toc>
+  <a href="#wha">What was done</a> ·
+  <a href="#curv">Curvature</a> ·
+  <a href="#prot">Protrusion</a> ·
+  <a href="#gap">Contact gap</a> ·
+  <a href="#bd">Boundary handling</a> ·
+  <a href="#stats">Per-crop stats</a> ·
+  <a href="#viz">Visualisation</a> ·
+  <a href="#res">Results — overall</a> ·
+  <a href="#reg">Results — region-matched</a> ·
+  <a href="#figs">Figures</a> ·
+  <a href="#headline">Headline observations</a> ·
+  <a href="#outliers">Outlier candidates</a> ·
+  <a href="#sens">Sensitivity</a> ·
+  <a href="#voronoi">vs Metric 5 (Voronoi)</a> ·
+  <a href="#refs">references</a>
+</nav>
+
+<h2 id=wha>What was done</h2>
+<p>
+For each crop a single membrane-rich cell was selected as the cell with
+the greatest area of cell–ECS interface (counted as the number of cell
+faces sharing a boundary with an ECS voxel; ties broken by cell index).
+Crops with finer-than-16&nbsp;nm native voxel size were box-downsampled
+to 16&nbsp;nm isotropic prior to meshing, so all crops feed an identical
+analysis grid regardless of acquisition resolution.
+</p>
+<p>
+The cell's binary mask was smoothed with a 3D Gaussian of physical width
+<code>σ = 1.5·v<sub>x</sub></code> nm (= 24&nbsp;nm at the 16&nbsp;nm
+working voxel), then surfaced by marching cubes <sup class=cite>[<a class=cite href='#ref-Lorensen1987'>1</a>]</sup> at
+iso-level 0.5 (<code>scikit-image</code> implementation
+<sup class=cite>[<a class=cite href='#ref-vanderWalt2014'>2</a>]</sup>). Surface vertices are placed in nm coordinates
+accounting for both the cropping bounding-box offset and the smoothing
+pad. The sign convention is calibrated against a synthetic convex
+sphere of radius 400&nbsp;nm through the same pipeline; convex membranes
+return positive curvature.
+</p>
+
+<h2 id=curv>Signed mean curvature <code>H</code> (1/nm)</h2>
+<p>
+Computed from the <b>cotangent Laplacian</b>
+<sup class=cite>[<a class=cite href='#ref-Pinkall1993'>3</a>,<a class=cite href='#ref-Meyer2003'>4</a>]</sup>, a strictly <i>local</i> 1-ring quantity. For
+each interior edge of the mesh, cotangent weights
+of the two opposite angles enter a sparse Laplacian operator
+<code>L</code>; the mean-curvature normal vector at vertex <i>i</i> is
+<code>H<sub>i</sub>·n<sub>i</sub> = (LV)<sub>i</sub> / (2A<sub>i</sub>)</code>,
+where <code>A<sub>i</sub></code> is the barycentric vertex area. The
+magnitude is the unsigned curvature; the sign is taken from
+<code>sgn(H<sub>i</sub> · n<sub>i</sub><sup>trimesh</sup>)</code>,
+calibrated so convex (membrane-into-ECS) surfaces are positive.
+</p>
+<p>
+The radius of curvature is <code>R = 1/|H|</code>. Representative
+values:
+</p>
+<table class=small>
+<thead><tr><th>H (1/nm)</th><th>R</th><th>Feature</th></tr></thead>
+<tbody>
+<tr><td>0.001</td><td>1000 nm</td><td>essentially flat</td></tr>
+<tr><td>0.005</td><td>200 nm</td><td>gentle membrane bend</td></tr>
+<tr><td>0.010</td><td>100 nm</td><td>cell-body curvature</td></tr>
+<tr><td>0.020</td><td>50 nm</td><td>microvillus shaft</td></tr>
+<tr><td>0.050</td><td>20 nm</td><td>sharp microvillus tip</td></tr>
+<tr><td>0.100</td><td>10 nm</td><td>very sharp spike</td></tr>
+</tbody></table>
+
+<h2 id=prot>Protrusion / indentation <code>d</code> (nm)</h2>
+<p>
+Per-vertex signed normal-projected displacement of each vertex from a
+smoothed reference surface generated from the same mesh. The reference
+is produced by random-walk Laplacian iteration on vertex coordinates
+(<code>v<sub>new</sub> = v − λ&nbsp;D<sup>−1</sup>&nbsp;L&nbsp;v</code>,
+<code>λ&nbsp;=&nbsp;0.5</code>) <sup class=cite>[<a class=cite href='#ref-Desbrun1999'>5</a>]</sup> with the iteration count
+chosen so the
+effective smoothing scale is <code>σ&nbsp;=&nbsp;60&nbsp;nm</code> given
+the mesh's mean edge length:
+<code>N&nbsp;≈&nbsp;σ²/(2h²λ)</code>. The signed deviation is the
+inward-normal projection of the original-minus-smoothed displacement,
+so <code>d&nbsp;&gt;&nbsp;0</code> = vertex protrudes outward into ECS,
+<code>d&nbsp;&lt;&nbsp;0</code> = indentation.
+</p>
+<p>
+<b>Scale-aware where curvature isn't.</b> Curvature answers
+<i>"is the surface bent here, and which way?"</i>; protrusion
+answers <i>"does this point stick out (or in) compared to its
+~60&nbsp;nm neighbourhood?"</i>. A gentle 100&nbsp;nm-tall ridge gives
+large positive <code>d</code> but small <code>|H|</code>; a 5&nbsp;nm
+bump on flat membrane gives small <code>d</code> but large
+<code>|H|</code>. The two channels agree at microvillar features
+(sharp tip + reaching shaft) and diverge over gently undulating
+surfaces.
+</p>
+
+<h2 id=gap>Local contact gap <code>g</code> (nm)</h2>
+<p>
+3D Euclidean distance transform (EDT) <sup class=cite>[<a class=cite href='#ref-Maurer2003'>6</a>,<a class=cite href='#ref-Virtanen2020'>7</a>]</sup> of the
+"not-other-cell" indicator field, sampled at the rounded voxel
+coordinate of each mesh vertex.
+<code>g<sub>i</sub></code> is therefore the distance from vertex
+<code>i</code> to the nearest voxel belonging to any cell other than
+the one being analysed. A membrane patch was isolated by retaining
+only vertices within one voxel (max-norm) of an ECS-labelled voxel;
+the per-vertex test was dilated by two ring-neighbour iterations on
+the mesh edge graph to close scattered single-vertex dropouts.
+Faces with ≥&nbsp;50% ECS-facing vertices were included in the patch.
+Faces within two voxels of any volume face were dropped from the
+patch to avoid marching-cubes cap-face artifacts.
+</p>
+
+<h2 id=bd>Volume-boundary handling</h2>
+<p>
+Two boundary effects are corrected in the per-channel rendering and
+summary statistics.
+</p>
+<p>
+<b>(i) Gap channel.</b> The in-volume EDT overestimates the gap
+whenever the nearest neighbouring cell lies <i>outside</i> the crop.
+Formally, for every vertex
+<code>g<sub>i</sub><sup>true</sup>&nbsp;≤&nbsp;min(g<sub>i</sub><sup>EDT</sup>,&nbsp;d<sub>i</sub><sup>wall</sup>)</code>
+where <code>d<sub>i</sub><sup>wall</sup></code> is the L∞ distance from
+vertex <code>i</code> to the nearest of the six volume faces.
+Vertices satisfying
+<code>g<sub>i</sub><sup>EDT</sup>&nbsp;&gt;&nbsp;d<sub>i</sub><sup>wall</sup></code>
+are flagged as <b>boundary-uncertain</b> and dropped from the gap
+channel (rather than silently clipped — clipping just paints a
+low-value rim, swapping one artifact for another). The per-patch
+boundary-uncertain fraction (<code>bd-clip</code>, shown on each
+gallery card) is the quality indicator.
+</p>
+<p>
+<b>(ii) Curvature + protrusion channels.</b> The cotangent Laplacian
+and the 60&nbsp;nm smoothing kernel both <i>reach beyond</i> the patch
+rim into the marching-cubes cap face at the volume boundary, biasing
+values inward and painting an artificial protrusion stripe along the
+edge of every patch. Faces whose vertices lie within
+<code>σ&nbsp;=&nbsp;60&nbsp;nm</code> of any volume face are therefore
+dropped from the curvature + protrusion render. Patch geometry and
+per-cell statistics (face counts, ECS-facing area fraction) are
+reported on the unfiltered patch, so the boundary trims affect
+rendering and per-channel summaries but not the geometric denominator.
+</p>
+
+<h2 id=stats>Per-crop statistics emitted</h2>
+<p>
+For each crop's patch the manifest records: patch face count, full-cell
+mesh face count, ECS-facing fraction, gap-channel face count,
+boundary-uncertain fraction, dataset and cell id, adaptive gap
+colormap range, and per-channel signed/unsigned percentile statistics
+(<code>p10/p50/p90</code> of <code>H</code>, <code>d</code>,
+<code>g</code>; <code>|H|</code> and <code>|d|</code> at the same
+percentiles; convex/concave and protrusion/indent fractions). See
+<code>results/membrane_topology_per_crop.csv</code> for the full
+per-crop table.
+</p>
+
+<h2 id=viz>Visualisation</h2>
+<p>
+The interactive 3D gallery exports each per-vertex scalar as a
+vertex-coloured glTF&nbsp;2.0 (<code>.glb</code>) mesh via
+<code>trimesh</code> <sup class=cite>[<a class=cite href='#ref-DawsonHaggerty2019'>8</a>]</sup> coloured with the
+<code>matplotlib</code> <code>RdBu_r</code> (curvature, protrusion) and
+<code>viridis</code> (gap) colormaps; meshes are rendered in the
+browser by the <code>&lt;model-viewer&gt;</code> web component
+<sup class=cite>[<a class=cite href='#ref-ModelViewer'>9</a>]</sup>. Each gallery card also exposes a Neuroglancer
+<sup class=cite>[<a class=cite href='#ref-Neuroglancer'>10</a>]</sup> link wired to the underlying crop with the EM, ECS
+silhouette mesh, and all cell meshes pre-loaded for visual
+verification against the raw FIB-SEM EM. The volumes themselves are
+hosted by the CellMap project <sup class=cite>[<a class=cite href='#ref-Heinrich2021'>11</a>,<a class=cite href='#ref-Xu2021'>12</a>]</sup>. The numerical
+pipeline runs on top of NumPy <sup class=cite>[<a class=cite href='#ref-Harris2020'>13</a>]</sup> and SciPy <sup class=cite>[<a class=cite href='#ref-Virtanen2020'>7</a>]</sup>.
+</p>
+
+<h2 id=res>Results — overall</h2>
+<p>
+The Liver Chemical pool shows the largest membrane topology magnitudes
+(median <code>|H|&nbsp;=&nbsp;0.0048&nbsp;1/nm</code>,
+<code>R&nbsp;≈&nbsp;208&nbsp;nm</code>; median
+<code>|d|&nbsp;=&nbsp;3.2&nbsp;nm</code>) and the largest Chem–HPF gap
+(Liver HPF: <code>|H|&nbsp;=&nbsp;0.0024&nbsp;1/nm</code>,
+<code>|d|&nbsp;=&nbsp;1.4&nbsp;nm</code>). Heart and Kidney show
+smaller fixation differences. The contact-gap median on the
+ECS-facing patch is 25–90&nbsp;nm across tissues; Cortex Chemical is
+the tightest (<code>g&nbsp;=&nbsp;16&nbsp;nm</code>) and Heart HPF the
+widest (<code>g&nbsp;=&nbsp;88&nbsp;nm</code>).
+<code>bd-clip</code> is below 0.21 in every (tissue, prep) cell,
+indicating the gap channel is data-driven for almost all crops.
+</p>
+<table class=stats><thead><tr><th>Tissue</th><th>Fixation</th><th>n</th><th>|H| (1/nm)</th><th>|d| (nm)</th><th>g (nm)</th><th>bd-clip</th></tr></thead><tbody><tr><td>Cortex</td><td><span class='prep chem'>Chemical</span></td><td class=n>7</td><td>0.0026 <span class=iqr>[0.0018, 0.0037]</span></td><td>1.87 <span class=iqr>[1.08, 2.22]</span></td><td>16.0 <span class=iqr>[16.0, 35.8]</span></td><td>0.00</td></tr><tr><td>Cortex</td><td><span class='prep hpf'>Rapid HPF</span></td><td class=n>5</td><td>0.0025 <span class=iqr>[0.0019, 0.0036]</span></td><td>1.70 <span class=iqr>[1.18, 2.59]</span></td><td>27.7 <span class=iqr>[22.6, 27.7]</span></td><td>0.01</td></tr><tr><td>Heart</td><td><span class='prep chem'>Chemical</span></td><td class=n>4</td><td>0.0029 <span class=iqr>[0.0023, 0.0059]</span></td><td>1.81 <span class=iqr>[1.47, 3.04]</span></td><td>69.3 <span class=iqr>[29.0, 91.6]</span></td><td>0.14</td></tr><tr><td>Heart</td><td><span class='prep hpf'>Rapid HPF</span></td><td class=n>4</td><td>0.0032 <span class=iqr>[0.0028, 0.0038]</span></td><td>1.91 <span class=iqr>[1.72, 2.42]</span></td><td>88.1 <span class=iqr>[44.4, 165.7]</span></td><td>0.18</td></tr><tr><td>Kidney</td><td><span class='prep chem'>Chemical</span></td><td class=n>7</td><td>0.0031 <span class=iqr>[0.0021, 0.0038]</span></td><td>2.30 <span class=iqr>[1.20, 2.54]</span></td><td>48.0 <span class=iqr>[22.6, 73.3]</span></td><td>0.18</td></tr><tr><td>Kidney</td><td><span class='prep hpf'>Rapid HPF</span></td><td class=n>6</td><td>0.0034 <span class=iqr>[0.0024, 0.0057]</span></td><td>2.19 <span class=iqr>[1.36, 3.74]</span></td><td>51.5 <span class=iqr>[36.3, 129.8]</span></td><td>0.21</td></tr><tr><td>Liver</td><td><span class='prep chem'>Chemical</span></td><td class=n>12</td><td>0.0048 <span class=iqr>[0.0023, 0.0063]</span></td><td>3.18 <span class=iqr>[1.29, 4.12]</span></td><td>42.5 <span class=iqr>[23.9, 99.0]</span></td><td>0.11</td></tr><tr><td>Liver</td><td><span class='prep hpf'>Rapid HPF</span></td><td class=n>10</td><td>0.0024 <span class=iqr>[0.0015, 0.0038]</span></td><td>1.44 <span class=iqr>[0.74, 2.07]</span></td><td>41.9 <span class=iqr>[27.7, 58.6]</span></td><td>0.04</td></tr></tbody></table>
+<p class=note>
+Each cell reports the <b>median across crops</b> of the per-crop median
+of the absolute scalar value, with [Q1, Q3] across crops. <code>n</code>
+is the number of crops in that (tissue, prep) cell.
+</p>
+
+<h2 id=reg>Results — region-matched</h2>
+<p>
+Eight region groups have both Chemical and HPF representation in the
+crop set. Within these matched pools:
+</p>
+<ul>
+<li><b>Liver Hepatocyte lateral</b> — Chemical ≈ HPF. Both report a
+tight, smooth interface (Chem <code>|H|&nbsp;=&nbsp;0.0023</code> vs
+HPF <code>0.0016</code>; <code>|d|&nbsp;=&nbsp;1.3</code> vs
+<code>0.8&nbsp;nm</code>; <code>g&nbsp;=&nbsp;25</code> vs
+<code>30&nbsp;nm</code>).</li>
+<li><b>Liver Bile canaliculus</b> — Chemical shows substantially
+sharper, more protrusive membranes than HPF
+(Chem <code>|H|&nbsp;=&nbsp;0.0075</code>, <code>|d|&nbsp;=&nbsp;4.4&nbsp;nm</code>
+vs HPF <code>0.0035</code>, <code>2.0&nbsp;nm</code>). Chemical fixation
+appears to over-resolve / sharpen the microvillar brush border.</li>
+<li><b>Heart Intercalated disc</b> — <i>HPF</i> higher than Chemical
+(HPF <code>|H|&nbsp;=&nbsp;0.0034</code>, <code>|d|&nbsp;=&nbsp;2.2</code>
+vs Chem <code>0.0026</code>, <code>1.7</code>) — opposite of the Bile
+canaliculus trend. Consistent with HPF preserving the interdigitating
+microvilli that Chemical collapses.</li>
+<li><b>Kidney Glomerular</b> — HPF higher than Chemical
+(<code>|H|&nbsp;=&nbsp;0.0047</code> vs <code>0.0037</code>;
+<code>g&nbsp;=&nbsp;144</code> vs <code>87&nbsp;nm</code>).</li>
+<li>Other region groups have small <code>n</code> per prep — read trends
+off the per-crop CSV rather than the aggregate.</li>
+</ul>
+<table class=stats><thead><tr><th rowspan=2>Tissue</th><th rowspan=2>Region group</th><th rowspan=2>n (Chem/HPF)</th><th colspan=2>|H| (1/nm)</th><th colspan=2>|d| (nm)</th><th colspan=2>g (nm)</th></tr><tr><th class=chem>Chem</th><th class=hpf>HPF</th><th class=chem>Chem</th><th class=hpf>HPF</th><th class=chem>Chem</th><th class=hpf>HPF</th></tr></thead><tbody><tr><td>Heart</td><td>Cardiac interstitial</td><td class=n>2/2</td><td>0.0049 <span class=iqr>[0.0029, 0.0068]</span></td><td>0.0031 <span class=iqr>[0.0028, 0.0033]</span></td><td>2.54 <span class=iqr>[1.68, 3.40]</span></td><td>1.82 <span class=iqr>[1.67, 1.96]</span></td><td>91.2 <span class=iqr>[90.5, 91.9]</span></td><td>88.1 <span class=iqr>[81.6, 94.7]</span></td></tr><tr><td>Heart</td><td>Intercalated disc</td><td class=n>2/2</td><td>0.0026 <span class=iqr>[0.0021, 0.0030]</span></td><td>0.0034 <span class=iqr>[0.0030, 0.0039]</span></td><td>1.67 <span class=iqr>[1.39, 1.94]</span></td><td>2.22 <span class=iqr>[1.86, 2.58]</span></td><td>35.3 <span class=iqr>[22.6, 48.0]</span></td><td>110.7 <span class=iqr>[32.0, 189.3]</span></td></tr><tr><td>Kidney</td><td>DCT base</td><td class=n>1/3</td><td>0.0021 <span class=iqr>[0.0021, 0.0021]</span></td><td>0.0025 <span class=iqr>[0.0022, 0.0029]</span></td><td>1.20 <span class=iqr>[1.20, 1.20]</span></td><td>1.41 <span class=iqr>[1.19, 1.77]</span></td><td>22.6 <span class=iqr>[22.6, 22.6]</span></td><td>39.2 <span class=iqr>[27.7, 45.3]</span></td></tr><tr><td>Kidney</td><td>Glomerular</td><td class=n>2/2</td><td>0.0037 <span class=iqr>[0.0036, 0.0038]</span></td><td>0.0047 <span class=iqr>[0.0039, 0.0055]</span></td><td>2.50 <span class=iqr>[2.46, 2.54]</span></td><td>3.14 <span class=iqr>[2.60, 3.68]</span></td><td>87.3 <span class=iqr>[73.3, 101.2]</span></td><td>144.5 <span class=iqr>[57.7, 231.3]</span></td></tr><tr><td>Kidney</td><td>PCT lateral</td><td class=n>1/1</td><td>0.0016 <span class=iqr>[0.0016, 0.0016]</span></td><td>0.0063 <span class=iqr>[0.0063, 0.0063]</span></td><td>0.78 <span class=iqr>[0.78, 0.78]</span></td><td>3.92 <span class=iqr>[3.92, 3.92]</span></td><td>22.6 <span class=iqr>[22.6, 22.6]</span></td><td>96.0 <span class=iqr>[96.0, 96.0]</span></td></tr><tr><td>Liver</td><td>Bile canaliculus</td><td class=n>3/4</td><td>0.0075 <span class=iqr>[0.0053, 0.0078]</span></td><td>0.0035 <span class=iqr>[0.0031, 0.0042]</span></td><td>4.41 <span class=iqr>[3.28, 4.54]</span></td><td>1.97 <span class=iqr>[1.84, 2.16]</span></td><td>53.1 <span class=iqr>[32.0, 59.9]</span></td><td>51.8 <span class=iqr>[48.6, 69.6]</span></td></tr><tr><td>Liver</td><td>Hepatocyte lateral</td><td class=n>6/6</td><td>0.0023 <span class=iqr>[0.0014, 0.0034]</span></td><td>0.0016 <span class=iqr>[0.0014, 0.0023]</span></td><td>1.33 <span class=iqr>[0.72, 2.00]</span></td><td>0.84 <span class=iqr>[0.66, 1.39]</span></td><td>25.2 <span class=iqr>[22.6, 49.9]</span></td><td>29.9 <span class=iqr>[26.4, 51.2]</span></td></tr></tbody></table>
+
+<h2 id=figs>Figures</h2>
+<p>
+The membrane-topology and effect-size graphs are shown below. The full set of
+per-metric Chemical-vs-HPF plots (volume fraction, ECS width, Voronoi gap, SA:V,
+both native and resolution-matched) plus region vignettes and 3D renders is in
+the <a href="../figures.html">figures gallery</a>.
+</p>
+<figure class=fig><a href="fig2_effect_matrix.png?v=7e1e3d4e" target=_blank>
+<img src="fig2_effect_matrix.png?v=7e1e3d4e" alt="Cliff's delta effect-size matrix"></a>
+<figcaption>Cliff's δ effect-size matrix across the region-matched comparisons
+(warm = Chemical&nbsp;&gt;&nbsp;HPF, cool = HPF&nbsp;&gt;&nbsp;Chemical).</figcaption></figure>
+<figure class=fig><a href="native_topology.png?v=805dbc8b" target=_blank>
+<img src="native_topology.png?v=805dbc8b" alt="membrane topology strip plots"></a>
+<figcaption>Membrane topology per tissue at native resolution — signed curvature,
+roughness, and protrusion/indentation density (Chemical vs Rapid HPF, one dot per crop).</figcaption></figure>
+<figure class=fig><a href="native_anatomy_matched.png?v=3c542c9b" target=_blank>
+<img src="native_anatomy_matched.png?v=3c542c9b" alt="region-matched metric panel"></a>
+<figcaption>Region-matched Chemical-vs-HPF comparison across the full metric suite.</figcaption></figure>
+
+<h2 id=headline>Headline observations</h2>
+<p>
+Reading these as observations from the 55-crop set, not yet biological
+conclusions:
+</p>
+<ol class=findings>
+<li>
+<b>Chemical fixation has opposite effects on two microvillar
+interfaces.</b> Liver Bile canaliculus is sharper and more
+protrusive under Chemical than under HPF (|H| ratio 2.11×, |d| ratio
+2.24×) — consistent with chemical fixation rigidifying or
+over-resolving the canalicular brush border. Heart Intercalated disc
+runs the other way: HPF is sharper than Chemical (|H| ratio 0.74,
+|d| ratio 0.75) — consistent with chemical fixation collapsing the
+interdigitating microvilli at the disc. <i>The same fixation
+condition produces opposite topology changes at two microvillar
+interfaces.</i> A single &ldquo;Chemical smooths&rdquo; / &ldquo;Chemical sharpens&rdquo;
+narrative doesn't fit the data.
+</li>
+<li>
+<b>Kidney Glomerular: HPF preserves a substantially larger
+interstitial gap.</b> Median <code>g</code> = 144&nbsp;nm under HPF
+vs 87&nbsp;nm under Chemical — a 1.66× preservation. HPF also shows
+higher curvature and protrusion (1.27× each), tracking the genuine
+podocyte / endothelium / basal-membrane morphology that chemical
+fixation collapses into a flatter, narrower interface.
+</li>
+<li>
+<b>Liver Hepatocyte lateral is the calmest baseline, but also the
+noisiest peer group.</b> Median values (|H| 0.0023 vs 0.0016,
+<code>g</code> 25 vs 30&nbsp;nm) suggest a real tight apposition
+with weak fixation effect. <i>But all four outlier candidates land
+in this group</i>: crop1044 (Chemical) and crop1071 (HPF) both at
+&gt;2× the group median on |H| and |d|. The peer-group label may
+be too coarse (Kupffer / sinusoidal interfaces likely confounded
+with hepatocyte–hepatocyte appositions), or the cell-selection
+heuristic may have picked a non-representative cell. The flagged
+crops are linked on the gallery for review.
+</li>
+<li>
+<b>Cortex Chemical patches are tightly packed.</b> Median
+<code>g</code> = 16&nbsp;nm — the smallest in the dataset —
+with median <code>bd-clip</code> = 0.00 across the 7-crop pool,
+indicating the reading is data-driven, not boundary-affected.
+Consistent with the historically reported severe ECS reduction in
+chemically-fixed cortex (Korogod et&nbsp;al.&nbsp;2015 territory).
+</li>
+<li>
+<b>Outlier exclusion does not flip any Chem-vs-HPF conclusion.</b>
+Excluding the 4 candidate outliers from Hepatocyte lateral leaves
+every direction unchanged; the Chemical/HPF |H| and |d| ratios
+actually shift slightly more extreme (1.44 → 1.56 on H, 1.58 → 1.87
+on d). The matched-region story does not depend on the suspicious
+crops.
+</li>
+<li>
+<b>The Bile-canaliculus vs Intercalated-disc divergence is a finding
+the Voronoi-only gap metric (Metric&nbsp;5) cannot see.</b> Metric 5
+reports gap and only gap; it cannot distinguish &ldquo;sharpened brush
+border&rdquo; from &ldquo;collapsed brush border&rdquo; if their gap distributions
+happen to look similar. The shape channels in Metric&nbsp;8 are what
+make observation&nbsp;1 visible.
+</li>
+</ol>
+
+<h2 id=outliers>Outlier candidates within annotated peer groups</h2>
+<p>
+For each annotation group ((tissue, region group, fixation) with n&nbsp;≥&nbsp;3
+crops), the per-crop median curvature |H| and median protrusion |d| are
+compared against the within-group median. Any crop whose ratio to the
+group median exceeds <code>1.7×</code> or falls below <code>0.6×</code>
+on either metric is flagged. Singleton and n=2 groups are skipped (the
+median is ill-defined for a peer of one or two). These are <i>candidates
+for re-annotation or sub-grouping</i>, not automatic rejections — the
+gallery cards surface a <span class=outlier-inline>⚠ outlier</span>
+badge so the candidates aren't forgotten. Re-annotation decisions
+belong to the annotator (Kayvon, Wei-Ping). The flagged list:
+</p>
+<table class=outliers><thead><tr><th>Crop</th><th>Tissue</th><th>Region group</th><th>Prep</th><th>n</th><th>|H| vs group</th><th>|d| vs group</th><th>Reason</th></tr></thead><tbody><tr><td><code>crop1044</code></td><td>Liver</td><td>Hepatocyte lateral</td><td><span class='prep chem'>Chemical</span></td><td class=n>6</td><td><span class='ratio hi'>2.60×</span></td><td><span class='ratio hi'>2.70×</span></td><td class=reason>|H| 0.0061 is 2.60× the Hepatocyte lateral Chemical median (0.0023, n=6); |d| 3.60 nm is 2.70× the Hepatocyte lateral Chemical median (1.33 nm, n=6)</td></tr><tr><td><code>crop1118</code></td><td>Liver</td><td>Hepatocyte lateral</td><td><span class='prep chem'>Chemical</span></td><td class=n>6</td><td><span class='ratio '>0.64×</span></td><td><span class='ratio lo'>0.59×</span></td><td class=reason>|d| 0.79 nm is 0.59× the Hepatocyte lateral Chemical median (1.33 nm, n=6)</td></tr><tr><td><code>crop1121</code></td><td>Liver</td><td>Hepatocyte lateral</td><td><span class='prep chem'>Chemical</span></td><td class=n>6</td><td><span class='ratio lo'>0.45×</span></td><td><span class='ratio lo'>0.38×</span></td><td class=reason>|H| 0.0011 is 0.45× the Hepatocyte lateral Chemical median (0.0023, n=6); |d| 0.50 nm is 0.38× the Hepatocyte lateral Chemical median (1.33 nm, n=6)</td></tr><tr><td><code>crop1071</code></td><td>Liver</td><td>Hepatocyte lateral</td><td><span class='prep hpf'>Rapid HPF</span></td><td class=n>6</td><td><span class='ratio hi'>2.35×</span></td><td><span class='ratio hi'>2.81×</span></td><td class=reason>|H| 0.0038 is 2.35× the Hepatocyte lateral Rapid HPF median (0.0016, n=6); |d| 2.36 nm is 2.81× the Hepatocyte lateral Rapid HPF median (0.84 nm, n=6)</td></tr></tbody></table>
+<p class=note>
+Heuristic rationale: within a correctly-annotated region group the
+per-crop topology should cluster (the membrane biology should be the
+same modulo crop-level variation). A &gt;1.7× or &lt;0.6× spread on
+either |H| or |d| is well outside the typical within-group MAD
+observed across the other 6 groups, so an outlier here usually
+indicates either (a) the cell selected by the most-ECS-facing-surface
+heuristic happens to capture a non-representative part of the tissue
+(e.g.~a Kupffer cell rather than a hepatocyte in the
+<i>Hepatocyte lateral</i> pool), (b) the underlying anatomical
+substructure is heterogeneous and the region group label is too
+coarse, or (c) the crop genuinely sits at the tail of the biological
+distribution.
+</p>
+
+<h2 id=sens>Sensitivity of Chem-vs-HPF to outlier exclusion</h2>
+<p>
+To check whether the candidate outliers drive the Chem-vs-HPF
+comparison in their region groups, every aggregate was recomputed with
+the flagged crops removed. The table below shows the per-region
+Chemical-to-HPF ratio of the per-crop median values (so values
+&gt; 1 mean Chemical is higher than HPF on that channel) for every
+region with both prep arms, computed twice: with all crops and with
+the candidate outliers excluded. Only region groups whose <code>n</code>
+changed under exclusion are highlighted; the others reproduce
+verbatim (the outliers all sit in one region group in the current
+data).
+</p>
+<table class=sensitivity><thead><tr><th rowspan=2>Tissue</th><th rowspan=2>Region group</th><th colspan=4>All crops</th><th colspan=4>Outliers excluded</th></tr><tr><th>n (C/H)</th><th>H</th><th>d</th><th>g</th><th>n (C/H)</th><th>H</th><th>d</th><th>g</th></tr></thead><tbody><tr class='muted'><td>Heart</td><td>Cardiac interstitial</td><td class=n>2/2</td><td class='ratio dim'>1.59</td><td class='ratio dim'>1.40</td><td class='ratio dim'>1.04</td><td class=n>2/2</td><td class='ratio dim'>1.59</td><td class='ratio dim'>1.40</td><td class='ratio dim'>1.04</td></tr><tr class='muted'><td>Heart</td><td>Intercalated disc</td><td class=n>2/2</td><td class='ratio dim'>0.74</td><td class='ratio dim'>0.75</td><td class='ratio dim'>0.32</td><td class=n>2/2</td><td class='ratio dim'>0.74</td><td class='ratio dim'>0.75</td><td class='ratio dim'>0.32</td></tr><tr class='muted'><td>Kidney</td><td>DCT base</td><td class=n>1/3</td><td class='ratio dim'>0.82</td><td class='ratio dim'>0.85</td><td class='ratio dim'>0.58</td><td class=n>1/3</td><td class='ratio dim'>0.82</td><td class='ratio dim'>0.85</td><td class='ratio dim'>0.58</td></tr><tr class='muted'><td>Kidney</td><td>Glomerular</td><td class=n>2/2</td><td class='ratio dim'>0.79</td><td class='ratio dim'>0.80</td><td class='ratio dim'>0.60</td><td class=n>2/2</td><td class='ratio dim'>0.79</td><td class='ratio dim'>0.80</td><td class='ratio dim'>0.60</td></tr><tr class='muted'><td>Kidney</td><td>PCT lateral</td><td class=n>1/1</td><td class='ratio dim'>0.26</td><td class='ratio dim'>0.20</td><td class='ratio dim'>0.24</td><td class=n>1/1</td><td class='ratio dim'>0.26</td><td class='ratio dim'>0.20</td><td class='ratio dim'>0.24</td></tr><tr class='muted'><td>Liver</td><td>Bile canaliculus</td><td class=n>3/4</td><td class='ratio dim'>2.11</td><td class='ratio dim'>2.24</td><td class='ratio dim'>1.02</td><td class=n>3/4</td><td class='ratio dim'>2.11</td><td class='ratio dim'>2.24</td><td class='ratio dim'>1.02</td></tr><tr class='affected'><td>Liver</td><td>Hepatocyte lateral</td><td class=n>6/6</td><td class='ratio'>1.44</td><td class='ratio'>1.58</td><td class='ratio'>0.84</td><td class=n>3/5</td><td class='ratio'>1.56</td><td class='ratio'>1.87</td><td class='ratio'>1.00</td></tr></tbody></table>
+<p class=note>
+Reading the table: a "<code>1.50</code>" in the <code>H</code> column
+means the per-region median |H| of the Chemical crops is 1.5× that
+of the HPF crops; a value &lt; 1 means HPF higher. In the current
+data the only region group whose ratio changes is Liver Hepatocyte
+lateral, and the direction of the Chem-vs-HPF effect is preserved
+when the outliers are excluded — H and d ratios drift slightly higher
+(Chem ≫ HPF becomes a touch more pronounced), and the gap ratio
+shifts from 0.84 (HPF wider) to 1.00 (parity). No flagged outlier
+flips the sign of any Chem-vs-HPF comparison.
+</p>
+
+<h2 id=voronoi>Methods comparison vs Metric 5 (Voronoi gap)</h2>
+<p>
+The mesh-based contact gap channel measures the same physical quantity
+as the manuscript's Voronoi-tessellation Metric&nbsp;5, but the two
+operate on different supports and disagree in instructive ways.
+</p>
+<table class=cmp>
+<thead><tr><th></th>
+<th>Metric 5 — Voronoi gap</th>
+<th>Metric 8 — Mesh gap (this analysis)</th></tr></thead>
+<tbody>
+<tr><th>Support</th>
+<td>every ECS Voronoi-boundary voxel (population of all cell–cell appositions in the crop)</td>
+<td>vertices of one ECS-facing membrane patch (the most ECS-rich cell, per-vertex distribution)</td></tr>
+<tr><th>Voxel floor</th>
+<td>~14&nbsp;nm at 8&nbsp;nm voxels — drives a documented Chem-vs-HPF artifact at thresholds &lt; 20&nbsp;nm</td>
+<td>same EDT floor, but every crop downsamples to a uniform 16&nbsp;nm working voxel — floor is shared between Chem and HPF, eliminating the prep×voxel confound</td></tr>
+<tr><th>Open-space inflation</th>
+<td>large ECS pools (vessel lumen, bile canaliculus) widen the Voronoi boundary and inflate the population median</td>
+<td>EDT sampled at the membrane surface, so the reading is "distance from this membrane point to the nearest other cell" — open pools register as correctly high gap on the relevant patch vertices</td></tr>
+<tr><th>Boundary handling</th>
+<td>boundary overestimates absorbed into the crop-level median</td>
+<td>per-vertex boundary uncertainty made explicit and dropped from the gap channel; per-crop <code>bd-clip</code> quantifies the loss</td></tr>
+<tr><th>Co-located channels</th>
+<td>gap only</td>
+<td>gap colocated with curvature and protrusion on the same support — supports per-vertex queries like "what is the gap at the microvillus tip vs base"</td></tr>
+</tbody></table>
+<p>
+The two metrics answer complementary questions: Metric&nbsp;5
+characterises the population of cell–cell appositions per crop;
+Metric&nbsp;8 characterises the shape and contact landscape of one
+representative cell's ECS-facing surface. Consilience across both
+metrics (e.g. Liver Hepatocyte lateral Chem ≈ HPF, Heart Intercalated
+disc HPF-preserved, Liver Bile canaliculus Chem-sharpens) is taken
+as confirmation; disagreements are usually traceable to support /
+scale.
+</p>
+<h2 id=refs>References</h2><ol class=refs><li id='ref-Lorensen1987'><span class=refn>1.</span> Lorensen WE, Cline HE. Marching cubes: A high resolution 3D surface construction algorithm. Proc. SIGGRAPH '87, 163–169 (1987). doi:10.1145/37401.37422</li><li id='ref-vanderWalt2014'><span class=refn>2.</span> van der Walt S, Schönberger JL, Nunez-Iglesias J, et al. scikit-image: image processing in Python. PeerJ 2: e453 (2014). doi:10.7717/peerj.453</li><li id='ref-Pinkall1993'><span class=refn>3.</span> Pinkall U, Polthier K. Computing discrete minimal surfaces and their conjugates. Experimental Mathematics 2(1): 15–36 (1993). doi:10.1080/10586458.1993.10504266</li><li id='ref-Meyer2003'><span class=refn>4.</span> Meyer M, Desbrun M, Schröder P, Barr AH. Discrete differential-geometry operators for triangulated 2-manifolds. Visualization and Mathematics III, 35–57 (Springer, 2003). doi:10.1007/978-3-662-05105-4_2</li><li id='ref-Desbrun1999'><span class=refn>5.</span> Desbrun M, Meyer M, Schröder P, Barr AH. Implicit fairing of irregular meshes using diffusion and curvature flow. Proc. SIGGRAPH '99, 317–324 (1999). doi:10.1145/311535.311576</li><li id='ref-Maurer2003'><span class=refn>6.</span> Maurer CR, Qi R, Raghavan V. A linear time algorithm for computing exact Euclidean distance transforms of binary images in arbitrary dimensions. IEEE TPAMI 25(2): 265–270 (2003). doi:10.1109/TPAMI.2003.1177156</li><li id='ref-Virtanen2020'><span class=refn>7.</span> Virtanen P, Gommers R, Oliphant TE, et al. SciPy 1.0: fundamental algorithms for scientific computing in Python. Nature Methods 17: 261–272 (2020). doi:10.1038/s41592-019-0686-2</li><li id='ref-DawsonHaggerty2019'><span class=refn>8.</span> Dawson-Haggerty M et al. trimesh: Python library for triangular mesh processing. <a href='https://github.com/mikedh/trimesh'>github.com/mikedh/trimesh</a></li><li id='ref-ModelViewer'><span class=refn>9.</span> Google. &lt;model-viewer&gt;: easily display interactive 3D models on the web and in augmented reality. <a href='https://github.com/google/model-viewer'>github.com/google/model-viewer</a></li><li id='ref-Neuroglancer'><span class=refn>10.</span> Maitin-Shepard J et al. Neuroglancer: web-based volumetric data viewer. <a href='https://github.com/google/neuroglancer'>github.com/google/neuroglancer</a></li><li id='ref-Heinrich2021'><span class=refn>11.</span> Heinrich L, Bennett D, Ackerman D, et al. Whole-cell organelle segmentation in volume electron microscopy. Nature 599: 141–146 (2021). doi:10.1038/s41586-021-03977-3</li><li id='ref-Xu2021'><span class=refn>12.</span> Xu CS, et al. An open-access volume electron microscopy atlas of whole cells and tissues. Nature 599: 147–151 (2021). doi:10.1038/s41586-021-03992-4</li><li id='ref-Harris2020'><span class=refn>13.</span> Harris CR, Millman KJ, van der Walt SJ, et al. Array programming with NumPy. Nature 585: 357–362 (2020). doi:10.1038/s41586-020-2649-2</li></ol></div>
