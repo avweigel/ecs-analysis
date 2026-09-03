@@ -1,48 +1,4 @@
-#!/usr/bin/env python3
-"""
-Build the membrane-patch INSPECTOR: a three.js viewer that loads raw scalar
-values per crop and colormaps them client-side, with a scalar selector,
-real-time min/max sliders, and a live colorbar legend.
-
-Per crop it writes figures/membranes/inspect/<crop>.bin (geometry + raw
-curvature/deviation/gap), manifest_inspect.json, colormaps.js (LUTs generated
-from matplotlib so colors match the PNG/GLB galleries), and inspector.html.
-
-Usage:
-    python scripts/make_inspector.py                 # bile-canaliculus proof set
-    python scripts/make_inspector.py --all
-    python scripts/make_inspector.py --crops crop1039 crop1072
-"""
-from __future__ import annotations
-
-import argparse
-import json
-import sys
-import traceback
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-import matplotlib
-
-from ecs import config as cfg
-from scripts.render_membrane_patch import bin_from_patch, build_patch
-
-OUT_DIR = Path(__file__).resolve().parents[1] / "figures" / "membranes"
-INSPECT_DIR = OUT_DIR / "inspect"
-PROOF = ["crop1039", "crop1040", "crop1042", "crop1072", "crop1073", "crop1074", "crop1075"]
-
-
-def write_colormaps() -> None:
-    def lut(name, n=256):
-        cm = matplotlib.colormaps[name]
-        return [[round(float(v), 4) for v in cm(i / (n - 1))[:3]] for i in range(n)]
-    js = "window.CMAPS=" + json.dumps({"viridis": lut("viridis"),
-                                       "RdBu_r": lut("RdBu_r")}) + ";"
-    (OUT_DIR / "colormaps.js").write_text(js)
-
-
-INSPECTOR_HTML = r"""<!doctype html><html><head><meta charset=utf-8>
+<!doctype html><html><head><meta charset=utf-8>
 <title>ECS membrane inspector</title>
 <style>
  :root{--bg:#0f1420;--card:#1a2030;--card2:#222b3e;--ink:#e8ecf3;--muted:#8a93a6;
@@ -81,8 +37,8 @@ INSPECTOR_HTML = r"""<!doctype html><html><head><meta charset=utf-8>
  <div id=side>
    <h1>ECS membrane inspector</h1>
    <p>Pick a crop, choose a scalar, drag the min/max sliders to rescale the
-   colormap live. <a href="../home.html">project home</a> ·
-   <a href="membranes_3d.html">3D gallery</a> ·
+   colormap live. <a href="../index.html">project home</a> ·
+   3D gallery ·
    <a href="index.html">maps</a> ·
    <a href="methods.html">methods</a></p>
    <div id=list></div>
@@ -242,43 +198,3 @@ fetch('manifest_inspect.json').then(x=>x.json()).then(m=>{
   if(MAN.length) loadCrop(MAN[0]);
 });
 </script></body></html>
-"""
-
-
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--crops", nargs="*", default=None)
-    ap.add_argument("--all", action="store_true")
-    ap.add_argument("--voxel", type=float, default=16.0)
-    args = ap.parse_args()
-
-    INSPECT_DIR.mkdir(parents=True, exist_ok=True)
-    write_colormaps()
-    (OUT_DIR / "inspector.html").write_text(INSPECTOR_HTML)
-
-    crops = list(cfg.active_crops())
-    if not args.all:
-        wanted = set(args.crops) if args.crops else set(PROOF)
-        crops = [c for c in crops if c.crop in wanted]
-
-    records: list[dict] = []
-    for i, crop in enumerate(crops, 1):
-        try:
-            p = build_patch(crop, voxel=args.voxel)
-            meta = bin_from_patch(p, INSPECT_DIR / f"{crop.crop}.bin")
-            records.append(meta)
-            print(f"[{i}/{len(crops)}] {crop.crop} OK "
-                  f"({meta['nverts']:,} verts)", flush=True)
-        except Exception as e:  # noqa: BLE001
-            records.append({"crop": crop.crop, "tissue": crop.tissue,
-                            "prep": crop.prep, "region_group": crop.region_group,
-                            "error": f"{type(e).__name__}: {e}"})
-            print(f"[{i}/{len(crops)}] {crop.crop} FAILED: {e}", flush=True)
-            traceback.print_exc()
-        (OUT_DIR / "manifest_inspect.json").write_text(json.dumps(records, indent=1))
-
-    print(f"\nDone. Inspector: {OUT_DIR / 'inspector.html'}")
-
-
-if __name__ == "__main__":
-    main()

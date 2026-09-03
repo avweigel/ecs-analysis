@@ -27,6 +27,8 @@
    border:1px solid var(--line);border-radius:3px;font-family:inherit}
  #bar{width:100%;height:16px;border:1px solid var(--line);border-radius:3px;margin-top:8px}
  #barlab{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+ #nanleg{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:7px}
+ #nanleg i{width:11px;height:11px;border-radius:3px;background:rgb(77,79,89);flex:none}
  #title{position:absolute;top:12px;left:12px;background:rgba(26,32,48,.9);padding:6px 10px;
    border-radius:6px;font-size:13px;border:1px solid var(--line);color:var(--ink)}
  #hint{position:absolute;bottom:10px;left:12px;font-size:11px;color:var(--muted)}
@@ -53,6 +55,7 @@
        <input type=range id=hi><input type=number id=hin step=any></div>
      <canvas id=bar></canvas>
      <div id=barlab><span id=blo></span><span id=bhi></span></div>
+     <div id=nanleg><i></i>boundary&#8209;uncertain &mdash; not measured</div>
    </div>
    <div id=hint>drag = rotate · scroll = zoom · right-drag = pan</div>
  </div>
@@ -164,9 +167,10 @@ function applyColors(){
   const span=(hi-lo)||1e-9;
   for(let i=0;i<N;i++){
     const v=vals[i];
-    // NaN gap values mark boundary-uncertain vertices — render neutral grey
-    // so the rim doesn't get painted with the in-volume EDT's overestimate.
-    if(v!==v){ col[i*3]=0.87; col[i*3+1]=0.87; col[i*3+2]=0.87; continue; }
+    // NaN marks boundary-uncertain vertices. Render them a dark, desaturated
+    // grey that recedes against the scene: at 0.87 they lit up near-white and
+    // read as the loudest feature on screen while meaning "no data here".
+    if(v!==v){ col[i*3]=0.30; col[i*3+1]=0.31; col[i*3+2]=0.35; continue; }
     let t=(v-lo)/span; t=t<0?0:t>1?1:t;
     const c=lut[Math.round(t*n)];
     col[i*3]=c[0];col[i*3+1]=c[1];col[i*3+2]=c[2];

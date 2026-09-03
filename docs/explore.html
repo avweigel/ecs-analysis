@@ -1,0 +1,222 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Metric explorer — ECS preservation</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+  .strip{background:var(--surface-1);border:1px solid var(--line);border-radius:9px;padding:14px 16px 6px}
+  .row{display:grid;grid-template-columns:200px 1fr 96px;gap:12px;align-items:center;
+       padding:7px 0;border-bottom:1px solid var(--line-soft)}
+  .row:last-child{border-bottom:0}
+  .row .gname{font-size:13px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .gname small{color:var(--text-muted);display:block;font-size:11px}
+  .row .ns{font-size:11px;color:var(--text-muted);text-align:right;font-variant-numeric:tabular-nums}
+  .row .ns .thin{color:var(--chem);font-weight:700}
+  svg{display:block;width:100%;overflow:visible}
+  .axis text{font-size:11px;fill:var(--text-muted)}
+  .axis line{stroke:var(--line)}
+  .gl{stroke:var(--line-soft)}
+</style></head><body>
+<header class="top"><div class="wrap">
+  <span class="brand">ECS preservation</span>
+  <nav>
+    <a href="index.html">Overview</a>
+    <a href="explore.html" aria-current="page">Metric explorer</a>
+    <a href="crops.html">Crops</a>
+    <a href="figures.html">Figures</a>
+    <a href="membranes/views.html">3D views</a>
+    <a href="membranes/inspector.html">Membrane inspector</a>
+  </nav>
+</div></header>
+<main>
+  <h1>Metric explorer</h1>
+  <p class="lede">Every per-crop measurement the pipeline has produced, 94 metrics across
+  five families and three runs. Each dot is one crop. Vertical rule marks the group median.
+  Groups are stacked on a shared scale so they can be compared directly.</p>
+
+  <div class="controls">
+    <div class="ctl"><label for="run">Run</label><select id="run"></select></div>
+    <div class="ctl"><label for="fam">Metric family</label><select id="fam"></select></div>
+    <div class="ctl"><label for="met">Metric</label><select id="met" style="min-width:260px"></select></div>
+    <div class="ctl"><label for="grp">Group by</label><select id="grp">
+      <option value="region_group">Region</option>
+      <option value="tissue">Tissue</option>
+      <option value="anatomy">Anatomy</option>
+    </select></div>
+    <div class="ctl"><label for="tis">Tissue filter</label><select id="tis"></select></div>
+    <div class="ctl"><label for="vox">Analysis voxel</label><select id="vox"></select></div>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:var(--chem)"></i> Chemical</span>
+    <span><i class="sw" style="background:var(--hpf)"></i> Rapid HPF</span>
+    <span class="muted">— median</span>
+  </div>
+
+  <div class="strip" id="plot"><p class="muted" style="padding:20px 0">Loading…</p></div>
+  <p class="note" id="note"></p>
+
+  <h2>Table view</h2>
+  <div class="card scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+</main>
+<div id="tip"></div>
+<script>
+const TIP=document.getElementById('tip');
+const PREP={Chemical:'chem','Rapid HPF':'hpf'};
+let ROWS=[];
+
+function parseCSV(t){
+  const lines=t.split(/\r?\n/).filter(l=>l.length);
+  const head=lines[0].split(',');
+  return lines.slice(1).map(l=>{
+    // no quoted commas in this file, but guard anyway
+    const p=l.split(','); const o={};
+    head.forEach((h,i)=>o[h]=p[i]);
+    o.value=parseFloat(o.value);
+    o.analysis_voxel_nm=parseFloat(o.analysis_voxel_nm);
+    return o;
+  });
+}
+const uniq=(a)=>[...new Set(a)].filter(v=>v!==undefined&&v!=='');
+const fill=(sel,vals,cur)=>{sel.innerHTML=vals.map(v=>`<option${v===cur?' selected':''}>${v}</option>`).join('')};
+const med=a=>{if(!a.length)return NaN;const s=[...a].sort((x,y)=>x-y),m=s.length>>1;
+  return s.length%2?s[m]:(s[m-1]+s[m])/2};
+const fmt=v=>{const a=Math.abs(v);
+  if(a===0)return '0';
+  if(a<0.001||a>=1e6)return v.toExponential(2);
+  if(a<1)return v.toPrecision(3);
+  if(a<100)return v.toFixed(2);
+  return v.toLocaleString(undefined,{maximumFractionDigits:0})};
+
+const $=id=>document.getElementById(id);
+
+function currentSel(){
+  return {run:$('run').value, fam:$('fam').value, met:$('met').value,
+          grp:$('grp').value, tis:$('tis').value, vox:$('vox').value};
+}
+
+function refreshOptions(preserve){
+  const s=preserve||currentSel();
+  fill($('run'), uniq(ROWS.map(r=>r.run)).sort(), s.run);
+  const inRun=ROWS.filter(r=>r.run===$('run').value);
+  fill($('fam'), uniq(inRun.map(r=>r.metric_family)).sort(), s.fam);
+  const inFam=inRun.filter(r=>r.metric_family===$('fam').value);
+  fill($('met'), uniq(inFam.map(r=>r.metric)).sort(), s.met);
+  fill($('tis'), ['All tissues', ...uniq(ROWS.map(r=>r.tissue)).sort()], s.tis);
+  const vx=uniq(inFam.map(r=>r.analysis_voxel_nm)).sort((a,b)=>a-b);
+  fill($('vox'), ['All', ...vx.map(String)], s.vox);
+}
+
+function draw(){
+  const {met,grp,tis,vox}=currentSel();
+  let d=ROWS.filter(r=>r.run===$('run').value && r.metric_family===$('fam').value
+        && r.metric===met && Number.isFinite(r.value));
+  if(tis&&tis!=='All tissues') d=d.filter(r=>r.tissue===tis);
+  if(vox&&vox!=='All') d=d.filter(r=>String(r.analysis_voxel_nm)===vox);
+
+  const plot=$('plot');
+  if(!d.length){plot.innerHTML='<p class="muted" style="padding:20px 0">No data for this combination.</p>';
+    $('tbl').querySelector('thead').innerHTML='';$('tbl').querySelector('tbody').innerHTML='';return;}
+
+  // measure the plotting column once, so the SVG uses real pixels and dots stay round
+  plot.innerHTML='<div class="row"><div></div><div id="probe"></div><div class="ns"></div></div>';
+  const W=Math.max(240, Math.round($('probe').getBoundingClientRect().width));
+
+  const key=r=>(r[grp]||'(unassigned)');
+  const groups=uniq(d.map(key)).sort();
+  const vals=d.map(r=>r.value);
+  let lo=Math.min(...vals), hi=Math.max(...vals);
+  if(lo===hi){const e=Math.abs(lo||1)*0.05; lo-=e; hi+=e;}
+  const dmin=Math.min(...vals), dmax=Math.max(...vals);
+  const pad=(hi-lo)*0.06; lo-=pad; hi+=pad;
+  if(dmin>=0 && lo<0) lo=0;            // a count/fraction/length never goes negative
+  if(dmax<=0 && hi>0) hi=0;
+  const M=10;                                  // inset so edge dots are not clipped
+  const X=v=>M+((v-lo)/(hi-lo))*(W-2*M);
+
+  const H=32, R=4.5;
+  let html='';
+  const ticks=[lo,(lo+hi)/2,hi];
+  html+=`<div class="row" style="border-bottom:1px solid var(--line);padding-bottom:6px">
+    <div></div><div><svg width="${W}" height="15" viewBox="0 0 ${W} 15" class="axis">
+      ${ticks.map((t,i)=>{const x=X(t);
+        const anch=i===0?'start':(i===ticks.length-1?'end':'middle');
+        return `<text x="${x.toFixed(1)}" y="11" text-anchor="${anch}">${fmt(t)}</text>`}).join('')}
+    </svg></div>
+    <div class="ns">n chem / hpf</div></div>`;
+
+  for(const g of groups){
+    const gd=d.filter(r=>key(r)===g);
+    const byPrep={Chemical:gd.filter(r=>r.prep==='Chemical'),'Rapid HPF':gd.filter(r=>r.prep==='Rapid HPF')};
+    const tissue=uniq(gd.map(r=>r.tissue)).join(', ');
+    let marks='';
+    for(const prep of ['Chemical','Rapid HPF']){
+      const arr=byPrep[prep]; if(!arr.length) continue;
+      const col=`var(--${PREP[prep]})`;
+      const y = prep==='Chemical' ? H*0.33 : H*0.67;
+      arr.forEach(r=>{
+        marks+=`<circle cx="${X(r.value).toFixed(2)}" cy="${y.toFixed(1)}" r="${R}"
+          fill="${col}" fill-opacity="0.72" stroke="var(--surface-1)" stroke-width="2"
+          data-c="${r.crop}" data-p="${prep}" data-v="${r.value}" data-a="${r.anatomy||''}"
+          data-x="${r.analysis_voxel_nm||''}"></circle>`;
+      });
+      if(arr.length<2) continue;         // no median rule over a single crop
+      const m=med(arr.map(r=>r.value));
+      marks+=`<line x1="${X(m).toFixed(2)}" x2="${X(m).toFixed(2)}" y1="${(y-10).toFixed(1)}"
+        y2="${(y+10).toFixed(1)}" stroke="${col}" stroke-width="2.5" stroke-linecap="round"></line>`;
+    }
+    const nc=byPrep.Chemical.length, nh=byPrep['Rapid HPF'].length;
+    const thin=n=>n<=1?`<span class="thin">${n}</span>`:n;
+    html+=`<div class="row">
+      <div class="gname">${g}${grp==='tissue'?'':`<small>${tissue}</small>`}</div>
+      <div><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+        <line class="gl" x1="${M}" x2="${W-M}" y1="${H/2}" y2="${H/2}"></line>${marks}</svg></div>
+      <div class="ns">${thin(nc)} / ${thin(nh)}</div></div>`;
+  }
+  plot.innerHTML=html;
+
+  const thinGroups=groups.filter(g=>{
+    const gd=d.filter(r=>key(r)===g);
+    return gd.filter(r=>r.prep==='Chemical').length<=1 || gd.filter(r=>r.prep==='Rapid HPF').length<=1;
+  });
+  $('note').innerHTML = `${d.length} crops in ${groups.length} groups.`
+    + (thinGroups.length? ` <span class="warn">${thinGroups.length} group${thinGroups.length>1?'s':''} `
+        + `(${thinGroups.join(', ')}) ${thinGroups.length>1?'have':'has'} one arm at n&nbsp;≤&nbsp;1 `
+        + `and cannot support a comparison.</span>` : '');
+
+  const th=$('tbl').querySelector('thead'), tb=$('tbl').querySelector('tbody');
+  th.innerHTML='<tr><th>Crop</th><th>Tissue</th><th>Region</th><th>Anatomy</th>'
+    +'<th>Prep</th><th class="num">Voxel nm</th><th class="num">Value</th></tr>';
+  tb.innerHTML=d.slice().sort((a,b)=>a.crop.localeCompare(b.crop)).map(r=>
+    `<tr><td>${r.crop}</td><td>${r.tissue}</td><td>${r.region_group||''}</td>
+     <td>${r.anatomy||''}</td><td><span class="tag ${PREP[r.prep]}">${r.prep}</span></td>
+     <td class="num">${r.analysis_voxel_nm||''}</td>
+     <td class="num">${fmt(r.value)}</td></tr>`).join('');
+}
+
+document.addEventListener('mouseover',e=>{
+  const c=e.target.closest('circle[data-c]'); if(!c)return;
+  TIP.innerHTML=`<b>${c.dataset.c}</b><div>${c.dataset.p}</div>`
+    +`<div>${$('met').value} = ${fmt(parseFloat(c.dataset.v))}</div>`
+    +(c.dataset.a?`<div>${c.dataset.a}</div>`:'')
+    +(c.dataset.x?`<div class="muted">${c.dataset.x} nm</div>`:'');
+  TIP.style.opacity=1;
+});
+document.addEventListener('mousemove',e=>{
+  if(TIP.style.opacity!=='1')return;
+  const r=TIP.getBoundingClientRect();
+  TIP.style.left=Math.min(e.clientX+14, innerWidth-r.width-10)+'px';
+  TIP.style.top=Math.max(8, e.clientY-r.height-12)+'px';
+});
+document.addEventListener('mouseout',e=>{if(e.target.closest('circle[data-c]'))TIP.style.opacity=0});
+
+['run','fam'].forEach(id=>$(id).addEventListener('change',()=>{refreshOptions();draw()}));
+['met','grp','tis','vox'].forEach(id=>$(id).addEventListener('change',draw));
+let _rt; addEventListener('resize',()=>{clearTimeout(_rt);_rt=setTimeout(draw,150)});
+
+fetch('data/all_metrics_long.csv').then(r=>r.text()).then(t=>{
+  ROWS=parseCSV(t);
+  refreshOptions({run:'native',fam:'volume_fraction',met:'ecs_fraction',
+                  grp:'region_group',tis:'All tissues',vox:'All'});
+  draw();
+}).catch(e=>{$('plot').innerHTML='<p class="muted">Could not load data/all_metrics_long.csv — '+e+'</p>'});
+</script></body></html>
