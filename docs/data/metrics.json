@@ -1,0 +1,817 @@
+{
+ "runs": {
+  "native": {
+   "label": "Native resolution",
+   "blurb": "Each crop measured at the resolution it was acquired at \u2014 2, 4 or 8 nm.",
+   "caveat": "Voxel size is not balanced across preparations, so a difference here can be a resolution effect rather than a biological one. Check it against the matched run before believing it."
+  },
+  "matched": {
+   "label": "Resolution-matched (8 nm)",
+   "blurb": "Every crop downsampled to a common 8 nm voxel before measuring, so Chemical and HPF are compared on equal footing.",
+   "caveat": "The honest comparison for anything that depends on fine structure. Downsampling loses the narrowest channels in every crop equally."
+  },
+  "degradation": {
+   "label": "Degradation series",
+   "blurb": "One preparation measured repeatedly at 2, 4, 8 and 16 nm to show how each metric drifts as resolution is thrown away.",
+   "caveat": "This is the control that tells you how much of any difference could be resolution alone. Read the slope, not the value."
+  }
+ },
+ "families": {
+  "volume_fraction": {
+   "label": "Volume fraction",
+   "short": "How much of the crop is extracellular space",
+   "blurb": "Voxel-count ratios: what fraction of the volume is extracellular space and what fraction is cell. The most resolution-robust family here, because it counts voxels rather than measuring distances or surfaces.",
+   "caveat": "ECS is counted as the primary `ecs` label plus basement membrane (`bm`) where annotated, since bm is structurally part of the extracellular compartment. Four Kidney-Chemical crops under-report ECS by 2.7\u201310.3 percentage points without this correction \u2014 and the HPF kidneys may have handled bm differently at annotation time, which is still unconfirmed."
+  },
+  "ecs_width": {
+   "label": "ECS width",
+   "short": "How wide the extracellular gaps are",
+   "blurb": "For every extracellular voxel, the Euclidean distance to the nearest cell voxel, summarised as percentiles across the crop.",
+   "caveat": "This is distance to the nearest wall, not channel width. In a uniform channel of width W the values run from 0 at the walls to W/2 at the centreline, and the voxel-weighted median sits near W/4 \u2014 so multiply by roughly four to think in channel widths. The `narrow_` variants exclude anything above 200 nm, which removes vessel lumens and large pools; the `full_` variants keep them."
+  },
+  "sa_v": {
+   "label": "Surface area to volume",
+   "short": "How much ECS-facing membrane per unit of cell",
+   "blurb": "ECS-facing membrane area divided by cell volume, pooled across every cell in the crop that passes a physical size filter.",
+   "caveat": "Pooled at crop level, not averaged per cell \u2014 averaging per cell let truncated fragments dominate. Cells below 2.56\u00d710\u2076 nm\u00b3 are excluded so digitisation noise does not drive the ratio."
+  },
+  "voronoi_gap": {
+   "label": "Cell-to-cell gap",
+   "short": "How far apart neighbouring cells sit",
+   "blurb": "Every extracellular voxel is assigned to its nearest cell; where two differently-assigned voxels touch, the gap between those cells is estimated from both distances plus the voxel spacing.",
+   "caveat": "An upper bound, not the true straight-line gap \u2014 the path it measures is kinked. It also has a hard resolution floor of three voxels: at 8 nm no gap below 24 nm can be reported however narrow the real one is. Contact fractions below that floor are meaningless at 8 nm."
+  },
+  "topology": {
+   "label": "Membrane shape",
+   "short": "How folded, rough and bumpy the membrane is",
+   "blurb": "A mesh is fitted to each cell surface, and curvature, roughness at three spatial scales, and protrusion/indentation counts are measured on the ECS-facing part of it. All vertices from all cells in a crop are pooled into one sample, weighted by surface area.",
+   "caveat": "Convex is positive by convention, validated on synthetic spheres. Roughness is reported at 30, 60 and 120 nm, and a crop measured at 8 nm cannot resolve the 30 nm scale honestly \u2014 compare like with like."
+  },
+  "membrane_topology": {
+   "label": "Membrane shape (mesh-based)",
+   "short": "The same shape questions, measured on one representative cell",
+   "blurb": "A second, independent implementation working from a single ECS-facing membrane patch per crop, with its own boundary handling. This is what the 3D viewers show.",
+   "caveat": "One cell per crop, not the pooled population \u2014 the newest and least stress-tested module. Vertices near the volume boundary are marked uncertain and excluded, because the smoothing kernel and the distance transform both reach into the cap face there."
+  },
+  "bm_sensitivity": {
+   "label": "Basement-membrane sensitivity",
+   "short": "How much the kidney result depends on one annotation choice",
+   "blurb": "Kidney ECS fraction recomputed with basement membrane included and excluded, to bound how much of the kidney pattern is annotation rather than biology.",
+   "caveat": "Kidney only. Interpretation is blocked until the annotators confirm what the HPF kidneys did with bm \u2014 this is the single biggest open threat to the kidney numbers."
+  }
+ },
+ "metrics": {
+  "bm_voxels": {
+   "label": "Basement-membrane voxels",
+   "unit": "count",
+   "blurb": "Size of the contested annotation.",
+   "families": [
+    "bm_sensitivity"
+   ]
+  },
+  "ecs_fraction_bm_excluded": {
+   "label": "ECS fraction, bm excluded",
+   "unit": "fraction",
+   "blurb": "The same crop with basement membrane removed.",
+   "families": [
+    "bm_sensitivity"
+   ]
+  },
+  "ecs_fraction_with_bm": {
+   "label": "ECS fraction, bm included",
+   "unit": "fraction",
+   "blurb": "Kidney ECS with basement membrane counted as extracellular.",
+   "families": [
+    "bm_sensitivity"
+   ]
+  },
+  "full_percentiles_nm_p10": {
+   "label": "Wall distance, 10th percentile (all)",
+   "unit": "nm",
+   "blurb": "10th percentile distance to the nearest cell, including vessel lumens and large pools.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "full_percentiles_nm_p25": {
+   "label": "Wall distance, 25th percentile (all)",
+   "unit": "nm",
+   "blurb": "25th percentile distance to the nearest cell, including vessel lumens and large pools.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "full_percentiles_nm_p50": {
+   "label": "Wall distance, median (all)",
+   "unit": "nm",
+   "blurb": "Median distance to the nearest cell, including vessel lumens and large pools.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "full_percentiles_nm_p75": {
+   "label": "Wall distance, 75th percentile (all)",
+   "unit": "nm",
+   "blurb": "75th percentile distance to the nearest cell, including vessel lumens and large pools.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "full_percentiles_nm_p90": {
+   "label": "Wall distance, 90th percentile (all)",
+   "unit": "nm",
+   "blurb": "90th percentile distance to the nearest cell, including vessel lumens and large pools.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "n_ecs_voxels": {
+   "label": "ECS voxels",
+   "unit": "count",
+   "blurb": "Extracellular voxels in the crop.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "n_narrow_voxels": {
+   "label": "Narrow ECS voxels",
+   "unit": "count",
+   "blurb": "Extracellular voxels below 200 nm.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "narrow_fraction": {
+   "label": "Narrow-channel fraction",
+   "unit": "fraction of ECS voxels",
+   "blurb": "Share of extracellular voxels sitting in channels below 200 nm.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "narrow_mean_nm": {
+   "label": "Mean distance to wall, narrow",
+   "unit": "nm",
+   "blurb": "Mean wall distance over narrow channels only.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "narrow_percentiles_nm_p10": {
+   "label": "Wall distance, 10th percentile (narrow)",
+   "unit": "nm",
+   "blurb": "10th percentile distance to the nearest cell, excluding channels wider than 200 nm.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "narrow_percentiles_nm_p25": {
+   "label": "Wall distance, 25th percentile (narrow)",
+   "unit": "nm",
+   "blurb": "25th percentile distance to the nearest cell, excluding channels wider than 200 nm.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "narrow_percentiles_nm_p50": {
+   "label": "Wall distance, median (narrow)",
+   "unit": "nm",
+   "blurb": "Median distance to the nearest cell, excluding channels wider than 200 nm.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "narrow_percentiles_nm_p75": {
+   "label": "Wall distance, 75th percentile (narrow)",
+   "unit": "nm",
+   "blurb": "75th percentile distance to the nearest cell, excluding channels wider than 200 nm.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "narrow_percentiles_nm_p90": {
+   "label": "Wall distance, 90th percentile (narrow)",
+   "unit": "nm",
+   "blurb": "90th percentile distance to the nearest cell, excluding channels wider than 200 nm.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "narrow_std_nm": {
+   "label": "Width variability, narrow",
+   "unit": "nm",
+   "blurb": "Spread of wall distances in narrow channels. Higher means the gap width is less uniform, independent of how wide it is.",
+   "families": [
+    "ecs_width"
+   ]
+  },
+  "abs_curvature_p50_nm-1": {
+   "label": "Absolute curvature, median",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "Median how sharply the membrane bends, ignoring direction.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "abs_curvature_p90_nm-1": {
+   "label": "Absolute curvature, 90th percentile",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "90th percentile how sharply the membrane bends, ignoring direction.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "abs_deviation_p50_nm": {
+   "label": "Absolute deviation, median",
+   "unit": "nm",
+   "blurb": "Median departure of the membrane from a locally fitted plane.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "abs_deviation_p90_nm": {
+   "label": "Absolute deviation, 90th percentile",
+   "unit": "nm",
+   "blurb": "90th percentile departure of the membrane from a locally fitted plane.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "curvature_p10_nm-1": {
+   "label": "Signed curvature, 10th percentile",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "10th percentile positive is convex, negative concave.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "curvature_p50_nm-1": {
+   "label": "Signed curvature, median",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "Median positive is convex, negative concave.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "curvature_p90_nm-1": {
+   "label": "Signed curvature, 90th percentile",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "90th percentile positive is convex, negative concave.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "deviation_p10_nm": {
+   "label": "Deviation, 10th percentile",
+   "unit": "nm",
+   "blurb": "10th percentile departure of the membrane from a locally fitted plane.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "deviation_p50_nm": {
+   "label": "Deviation, median",
+   "unit": "nm",
+   "blurb": "Median departure of the membrane from a locally fitted plane.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "deviation_p90_nm": {
+   "label": "Deviation, 90th percentile",
+   "unit": "nm",
+   "blurb": "90th percentile departure of the membrane from a locally fitted plane.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "ecs_frac": {
+   "label": "ECS-facing fraction",
+   "unit": "fraction of patch",
+   "blurb": "Share of the patch that faces extracellular space.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "frac_concave": {
+   "label": "Concave fraction",
+   "unit": "fraction of patch",
+   "blurb": "Share bulging inward.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "frac_convex": {
+   "label": "Convex fraction",
+   "unit": "fraction of patch",
+   "blurb": "Share of the patch bulging outward.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "frac_indent": {
+   "label": "Indentation fraction",
+   "unit": "fraction of patch",
+   "blurb": "Share of the patch dipping below the local plane.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "frac_protrusion": {
+   "label": "Protrusion fraction",
+   "unit": "fraction of patch",
+   "blurb": "Share of the patch standing proud of the local plane.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "gap_bounded_frac": {
+   "label": "Gap-resolved fraction",
+   "unit": "fraction of patch",
+   "blurb": "Share of the patch where a facing cell was close enough to measure.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "gap_p10_nm": {
+   "label": "Patch gap, 10th percentile",
+   "unit": "nm",
+   "blurb": "10th percentile distance from the patch to the cell facing it.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "gap_p50_nm": {
+   "label": "Patch gap, median",
+   "unit": "nm",
+   "blurb": "Median distance from the patch to the cell facing it.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "gap_p90_nm": {
+   "label": "Patch gap, 90th percentile",
+   "unit": "nm",
+   "blurb": "90th percentile distance from the patch to the cell facing it.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "n_curvature_kept": {
+   "label": "Curvature vertices used",
+   "unit": "count",
+   "blurb": "Mesh vertices contributing to curvature, after uncertain ones are dropped.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "n_deviation_kept": {
+   "label": "Deviation vertices used",
+   "unit": "count",
+   "blurb": "Vertices contributing to deviation.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "n_gap_kept": {
+   "label": "Gap vertices used",
+   "unit": "count",
+   "blurb": "Vertices where a facing cell was close enough to measure.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "patch_faces": {
+   "label": "Mesh faces",
+   "unit": "count",
+   "blurb": "Triangles in the membrane patch.",
+   "families": [
+    "membrane_topology"
+   ]
+  },
+  "cell_density_per_um3": {
+   "label": "Cell density",
+   "unit": "cells / \u00b5m\u00b3",
+   "blurb": "Cells per unit volume, after the size filter.",
+   "families": [
+    "sa_v"
+   ]
+  },
+  "n_cells_passing": {
+   "label": "Cells passing filter",
+   "unit": "count",
+   "blurb": "Cells above the volume floor.",
+   "families": [
+    "sa_v"
+   ]
+  },
+  "n_cells_total": {
+   "label": "Cells in crop",
+   "unit": "count",
+   "blurb": "All labelled cells.",
+   "families": [
+    "sa_v"
+   ]
+  },
+  "sa_v_ecs_per_nm": {
+   "label": "SA:V, ECS-facing",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "ECS-facing membrane area per unit cell volume.",
+   "families": [
+    "sa_v"
+   ]
+  },
+  "total_cell_cell_sa_nm2": {
+   "label": "Cell\u2013cell contact area",
+   "unit": "nm\u00b2",
+   "blurb": "Membrane area where two cells touch directly.",
+   "families": [
+    "sa_v"
+   ]
+  },
+  "total_cell_volume_nm3": {
+   "label": "Cell volume (filtered)",
+   "unit": "nm\u00b3",
+   "blurb": "Summed volume of cells passing the size filter.",
+   "families": [
+    "sa_v"
+   ]
+  },
+  "total_ecs_facing_sa_nm2": {
+   "label": "ECS-facing membrane area",
+   "unit": "nm\u00b2",
+   "blurb": "Total membrane area facing extracellular space.",
+   "families": [
+    "sa_v"
+   ]
+  },
+  "total_outer_sa_nm2": {
+   "label": "Outer surface area",
+   "unit": "nm\u00b2",
+   "blurb": "Membrane area on the outside of the crop.",
+   "families": [
+    "sa_v"
+   ]
+  },
+  "curvature_abs_median_per_nm": {
+   "label": "Absolute curvature, median",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "Median how sharply the membrane bends, ignoring direction.",
+   "families": [
+    "topology"
+   ]
+  },
+  "curvature_abs_p25_per_nm": {
+   "label": "Absolute curvature, 25th percentile",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "25th percentile how sharply the membrane bends, ignoring direction.",
+   "families": [
+    "topology"
+   ]
+  },
+  "curvature_abs_p75_per_nm": {
+   "label": "Absolute curvature, 75th percentile",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "75th percentile how sharply the membrane bends, ignoring direction.",
+   "families": [
+    "topology"
+   ]
+  },
+  "curvature_iqr_per_nm": {
+   "label": "Curvature spread (IQR)",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "Interquartile range of curvature \u2014 robust width of the distribution.",
+   "families": [
+    "topology"
+   ]
+  },
+  "curvature_signed_median_per_nm": {
+   "label": "Signed curvature, median",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "Median positive is convex, negative concave.",
+   "families": [
+    "topology"
+   ]
+  },
+  "curvature_signed_p10_per_nm": {
+   "label": "Signed curvature, 10th percentile",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "10th percentile positive is convex, negative concave.",
+   "families": [
+    "topology"
+   ]
+  },
+  "curvature_signed_p90_per_nm": {
+   "label": "Signed curvature, 90th percentile",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "90th percentile positive is convex, negative concave.",
+   "families": [
+    "topology"
+   ]
+  },
+  "curvature_std_per_nm": {
+   "label": "Curvature spread (SD)",
+   "unit": "nm\u207b\u00b9",
+   "blurb": "Standard deviation of signed curvature across the membrane.",
+   "families": [
+    "topology"
+   ]
+  },
+  "fraction_concave": {
+   "label": "Concave fraction",
+   "unit": "fraction of surface",
+   "blurb": "Share bulging inward.",
+   "families": [
+    "topology"
+   ]
+  },
+  "fraction_convex": {
+   "label": "Convex fraction",
+   "unit": "fraction of surface",
+   "blurb": "Share of ECS-facing membrane bulging outward.",
+   "families": [
+    "topology"
+   ]
+  },
+  "fraction_flat": {
+   "label": "Flat fraction",
+   "unit": "fraction of surface",
+   "blurb": "Share that is neither.",
+   "families": [
+    "topology"
+   ]
+  },
+  "indentation_count": {
+   "label": "Indentations",
+   "unit": "count",
+   "blurb": "Raw count of inward features.",
+   "families": [
+    "topology"
+   ]
+  },
+  "indentation_density_per_um2": {
+   "label": "Indentation density",
+   "unit": "per \u00b5m\u00b2",
+   "blurb": "Inward dimples per unit membrane area.",
+   "families": [
+    "topology"
+   ]
+  },
+  "n_cells_considered": {
+   "label": "Cells considered",
+   "unit": "count",
+   "blurb": "Cells examined in the crop.",
+   "families": [
+    "topology"
+   ]
+  },
+  "n_cells_included": {
+   "label": "Cells included",
+   "unit": "count",
+   "blurb": "Cells passing the surface-area filter.",
+   "families": [
+    "topology"
+   ]
+  },
+  "protrusion_count": {
+   "label": "Protrusions",
+   "unit": "count",
+   "blurb": "Raw count of outward features.",
+   "families": [
+    "topology"
+   ]
+  },
+  "protrusion_density_per_um2": {
+   "label": "Protrusion density",
+   "unit": "per \u00b5m\u00b2",
+   "blurb": "Outward bumps per unit membrane area.",
+   "families": [
+    "topology"
+   ]
+  },
+  "roughness_rms_nm_p120": {
+   "label": "Roughness at 120 nm",
+   "unit": "nm",
+   "blurb": "RMS deviation of the membrane from a local plane fitted over a 120 nm neighbourhood \u2014 how bumpy it is at that spatial scale.",
+   "families": [
+    "topology"
+   ]
+  },
+  "roughness_rms_nm_p30": {
+   "label": "Roughness at 30 nm",
+   "unit": "nm",
+   "blurb": "RMS deviation of the membrane from a local plane fitted over a 30 nm neighbourhood \u2014 how bumpy it is at that spatial scale.",
+   "families": [
+    "topology"
+   ]
+  },
+  "roughness_rms_nm_p60": {
+   "label": "Roughness at 60 nm",
+   "unit": "nm",
+   "blurb": "RMS deviation of the membrane from a local plane fitted over a 60 nm neighbourhood \u2014 how bumpy it is at that spatial scale.",
+   "families": [
+    "topology"
+   ]
+  },
+  "total_ecs_surface_nm2": {
+   "label": "Membrane sampled",
+   "unit": "nm\u00b2",
+   "blurb": "ECS-facing surface area entering the shape statistics.",
+   "families": [
+    "topology"
+   ]
+  },
+  "cell_fraction": {
+   "label": "Cell fraction",
+   "unit": "fraction of crop volume",
+   "blurb": "Fraction of the crop that is cell.",
+   "families": [
+    "volume_fraction"
+   ]
+  },
+  "cell_volume_um3": {
+   "label": "Cell volume",
+   "unit": "\u00b5m\u00b3",
+   "blurb": "Absolute cell volume in the crop.",
+   "families": [
+    "volume_fraction"
+   ]
+  },
+  "cell_voxels": {
+   "label": "Cell voxels",
+   "unit": "count",
+   "blurb": "Voxels labelled as cell.",
+   "families": [
+    "volume_fraction"
+   ]
+  },
+  "ecs_bm_voxels": {
+   "label": "Basement-membrane voxels",
+   "unit": "count",
+   "blurb": "Voxels annotated as basement membrane and counted into ECS.",
+   "families": [
+    "volume_fraction"
+   ]
+  },
+  "ecs_fraction": {
+   "label": "ECS fraction",
+   "unit": "fraction of crop volume",
+   "blurb": "Fraction of the crop that is extracellular space.",
+   "families": [
+    "volume_fraction"
+   ]
+  },
+  "ecs_primary_voxels": {
+   "label": "ECS voxels (primary label)",
+   "unit": "count",
+   "blurb": "Extracellular voxels from the `ecs` label alone.",
+   "families": [
+    "volume_fraction"
+   ]
+  },
+  "ecs_volume_um3": {
+   "label": "ECS volume",
+   "unit": "\u00b5m\u00b3",
+   "blurb": "Absolute extracellular volume in the crop.",
+   "families": [
+    "volume_fraction"
+   ]
+  },
+  "ecs_voxels": {
+   "label": "ECS voxels (total)",
+   "unit": "count",
+   "blurb": "Extracellular voxels, primary label plus basement membrane.",
+   "families": [
+    "volume_fraction"
+   ]
+  },
+  "total_volume_um3": {
+   "label": "Crop volume",
+   "unit": "\u00b5m\u00b3",
+   "blurb": "Total volume of the crop.",
+   "families": [
+    "volume_fraction"
+   ]
+  },
+  "total_voxels": {
+   "label": "Voxels in crop",
+   "unit": "count",
+   "blurb": "Size of the crop in voxels.",
+   "families": [
+    "volume_fraction"
+   ]
+  },
+  "contact_fractions_p160": {
+   "label": "Contact fraction under 160 nm",
+   "unit": "fraction of faces",
+   "blurb": "Share of cell-to-cell boundary faces closer together than 160 nm.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "contact_fractions_p20": {
+   "label": "Contact fraction under 20 nm",
+   "unit": "fraction of faces",
+   "blurb": "Share of cell-to-cell boundary faces closer together than 20 nm.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "contact_fractions_p320": {
+   "label": "Contact fraction under 320 nm",
+   "unit": "fraction of faces",
+   "blurb": "Share of cell-to-cell boundary faces closer together than 320 nm.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "contact_fractions_p40": {
+   "label": "Contact fraction under 40 nm",
+   "unit": "fraction of faces",
+   "blurb": "Share of cell-to-cell boundary faces closer together than 40 nm.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "contact_fractions_p80": {
+   "label": "Contact fraction under 80 nm",
+   "unit": "fraction of faces",
+   "blurb": "Share of cell-to-cell boundary faces closer together than 80 nm.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "gap_mean_nm": {
+   "label": "Mean cell\u2013cell gap",
+   "unit": "nm",
+   "blurb": "Average gap across Voronoi boundary faces.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "gap_min_nm": {
+   "label": "Smallest cell\u2013cell gap",
+   "unit": "nm",
+   "blurb": "Narrowest gap found in the crop.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "gap_std_nm": {
+   "label": "Gap variability",
+   "unit": "nm",
+   "blurb": "Spread of cell-to-cell gaps.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "n_boundary_faces": {
+   "label": "Voronoi boundary faces",
+   "unit": "count",
+   "blurb": "How many measurements the gap distribution rests on.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "percentiles_nm_p10": {
+   "label": "Cell\u2013cell gap, 10th percentile",
+   "unit": "nm",
+   "blurb": "10th percentile gap between neighbouring cells.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "percentiles_nm_p25": {
+   "label": "Cell\u2013cell gap, 25th percentile",
+   "unit": "nm",
+   "blurb": "25th percentile gap between neighbouring cells.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "percentiles_nm_p50": {
+   "label": "Cell\u2013cell gap, median",
+   "unit": "nm",
+   "blurb": "Median gap between neighbouring cells.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "percentiles_nm_p75": {
+   "label": "Cell\u2013cell gap, 75th percentile",
+   "unit": "nm",
+   "blurb": "75th percentile gap between neighbouring cells.",
+   "families": [
+    "voronoi_gap"
+   ]
+  },
+  "percentiles_nm_p90": {
+   "label": "Cell\u2013cell gap, 90th percentile",
+   "unit": "nm",
+   "blurb": "90th percentile gap between neighbouring cells.",
+   "families": [
+    "voronoi_gap"
+   ]
+  }
+ }
+}

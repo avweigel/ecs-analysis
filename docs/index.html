@@ -1,78 +1,71 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ECS preservation — data overview</title><link rel="stylesheet" href="assets/app.css"><style>
-      .thin-flag{color:var(--chem);font-size:12px;font-weight:600}
-      td.num{font-variant-numeric:tabular-nums}
-      .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-      @media(max-width:820px){.two{grid-template-columns:1fr}}
-    </style></head><body><header class="top"><div class="wrap">
-  <span class="brand">ECS preservation</span>
-  <nav>
-    <a href="index.html" aria-current="page">Overview</a>
-    <a href="explore.html">Metric explorer</a>
-    <a href="crops.html">Crops</a>
-    <a href="figures.html">Figures</a>
-    <a href="membranes/views.html">3D views</a>
-    <a href="membranes/inspector.html">Membrane inspector</a>
-  </nav>
-</div></header><main>
-  <h1>Extracellular space across fixation methods</h1>
-  <p class="lede">Every measurement from the chemical-fixation versus rapid high-pressure-freezing
-  comparison, browsable rather than filed away in CSVs. Nothing here is a finished result — this is
-  the working data, published so it can be looked at from the outside.</p>
+<title>ECS preservation — data overview</title>
+<link rel="stylesheet" href="assets/app.css">
+<script src="assets/site.js"></script>
+<style>.tile .n{font-variant-numeric:tabular-nums}</style></head><body><header class="top"><div class="wrap"><a class="brand" href="index.html">ECS preservation</a><nav><a href="index.html" aria-current="page">Overview</a><a href="explore.html">Explorer</a><a href="crops.html">Crops</a><a href="figures.html">Figures</a><a href="membranes/views.html">3D views</a><a href="membranes/inspector.html">Inspector</a><a href="reference.html">Reference</a></nav><button id="themetog" type="button">Auto</button></div></header><main>
+<h1>Extracellular space across fixation methods</h1>
+<p class="lede">Every measurement from the chemical-fixation versus rapid high-pressure
+freezing comparison, browsable rather than filed away in CSVs. Nothing here is a finished
+result &mdash; this is working data, published so it can be looked at from the outside.</p>
 
-  <div class="grid tiles">
-    <div class="card tile"><div class="n">55</div><div class="k">annotated crops</div></div>
-    <div class="card tile"><div class="n">94</div><div class="k">distinct metrics</div></div>
-    <div class="card tile"><div class="n">12,932</div><div class="k">measurements</div></div>
-    <div class="card tile"><div class="n">4</div><div class="k">tissues</div></div>
-  </div>
+<div class="grid tiles">
+  <div class="card tile"><div class="n">55</div><div class="k">annotated crops</div></div>
+  <div class="card tile"><div class="n">94</div><div class="k">distinct metrics</div></div>
+  <div class="card tile"><div class="n">12,932</div><div class="k">measurements</div></div>
+  <div class="card tile"><div class="n">4</div><div class="k">tissues</div></div>
+</div>
 
-  <h2>What is measured</h2>
-  <div class="two">
-    <div class="card scroll"><table>
-      <thead><tr><th>Metric family</th><th class="num">Metrics</th><th class="num">Values</th></tr></thead>
-      <tbody><tr><td>bm sensitivity</td><td class="num">3</td><td class="num">39</td></tr><tr><td>ecs width</td><td class="num">15</td><td class="num">2,865</td></tr><tr><td>membrane topology</td><td class="num">23</td><td class="num">1,265</td></tr><tr><td>sa v</td><td class="num">8</td><td class="num">1,528</td></tr><tr><td>topology</td><td class="num">21</td><td class="num">4,011</td></tr><tr><td>volume fraction</td><td class="num">10</td><td class="num">550</td></tr><tr><td>voronoi gap</td><td class="num">14</td><td class="num">2,674</td></tr></tbody></table>
-      <p class="note">Each family runs three ways: <b>native</b> resolution, <b>matched</b> to 8&nbsp;nm
-      so preps are compared on equal footing, and a <b>degradation</b> series that downsamples
-      chemical crops to 2/4/8/16&nbsp;nm to separate real differences from resolution effects.</p>
-    </div>
-    <div class="card">
-      <p style="margin-top:0"><b>Preparation</b></p>
-      <p class="muted" style="margin:2px 0">Chemical — 30 crops</p><p class="muted" style="margin:2px 0">Rapid HPF — 25 crops</p>
-      <p style="margin-top:16px"><b>Tissue</b></p>
-      <p class="muted" style="margin:2px 0">Cortex — 12 crops</p><p class="muted" style="margin:2px 0">Heart — 8 crops</p><p class="muted" style="margin:2px 0">Kidney — 13 crops</p><p class="muted" style="margin:2px 0">Liver — 22 crops</p>
-    </div>
-  </div>
+<div class="callout"><b>New here?</b> The <a href="reference.html">reference page</a> explains
+what a crop is, what the two preparations are, why every metric is computed three times, and
+what each of the 94 metrics measures.</div>
 
-  <h2>Where the comparison is actually supported</h2>
-  <p class="lede" style="margin-bottom:12px">A region only supports a chemical-vs-HPF comparison
-  if both arms have crops in it. Several do not — worth knowing before reading any difference
-  in that region as real.</p>
+<h2>Start here</h2>
+<div class="two">
+  <div class="card"><h3 style="margin-top:0"><a href="explore.html">Metric explorer</a></h3>
+    <p class="muted" style="margin:0">Any of the 94 metrics, grouped by tissue, region
+    or anatomy, both preparations on one scale. One dot per crop.</p></div>
+  <div class="card"><h3 style="margin-top:0"><a href="crops.html">Crop table</a></h3>
+    <p class="muted" style="margin:0">All 55 crops with their metadata and headline
+    numbers, sortable and filterable.</p></div>
+  <div class="card"><h3 style="margin-top:0"><a href="figures.html">Figure gallery</a></h3>
+    <p class="muted" style="margin:0">Every plot the analysis pipeline produces.</p></div>
+  <div class="card"><h3 style="margin-top:0"><a href="membranes/views.html">3D views</a> and
+    <a href="membranes/inspector.html">inspector</a></h3>
+    <p class="muted" style="margin:0">Membrane surfaces in 3D &mdash; a quick paired gallery,
+    and a viewer with all 55 crops and live control of the colour range.</p></div>
+</div>
+
+<h2>What is measured</h2>
+<div class="two">
   <div class="card scroll"><table>
-    <thead><tr><th>Tissue</th><th>Region</th><th class="num">Chemical</th>
-      <th class="num">Rapid HPF</th><th></th></tr></thead>
-    <tbody><tr><td>Cortex</td><td>(unassigned)</td><td class="num">7</td><td class="num">5</td><td></td></tr><tr><td>Heart</td><td>Cardiac interstitial</td><td class="num">2</td><td class="num">2</td><td></td></tr><tr><td>Heart</td><td>Intercalated disc</td><td class="num">2</td><td class="num">2</td><td></td></tr><tr><td>Kidney</td><td>DCT base</td><td class="num">1</td><td class="num">3</td><td><span class=thin-flag>one arm too thin</span></td></tr><tr><td>Kidney</td><td>Glomerular</td><td class="num">2</td><td class="num">2</td><td></td></tr><tr><td>Kidney</td><td>PCT base</td><td class="num">1</td><td class="num">0</td><td><span class=thin-flag>one arm too thin</span></td></tr><tr><td>Kidney</td><td>PCT brush border</td><td class="num">2</td><td class="num">0</td><td><span class=thin-flag>one arm too thin</span></td></tr><tr><td>Kidney</td><td>PCT lateral</td><td class="num">1</td><td class="num">1</td><td><span class=thin-flag>one arm too thin</span></td></tr><tr><td>Liver</td><td>Bile canaliculus</td><td class="num">3</td><td class="num">4</td><td></td></tr><tr><td>Liver</td><td>Hepatocyte lateral</td><td class="num">6</td><td class="num">6</td><td></td></tr><tr><td>Liver</td><td>Space of Disse</td><td class="num">3</td><td class="num">0</td><td><span class=thin-flag>one arm too thin</span></td></tr></tbody></table></div>
-
-  <h2>Browse</h2>
-  <div class="two">
-    <div class="card"><p style="margin-top:0"><b><a href="explore.html">Metric explorer</a></b></p>
-      <p class="muted">Any metric, grouped by tissue, region or anatomy, both preps on a shared
-      scale. Each dot is one crop.</p></div>
-    <div class="card"><p style="margin-top:0"><b><a href="crops.html">Crop table</a></b></p>
-      <p class="muted">All 55 crops with their metadata and headline numbers, linked to
-      their membrane renders.</p></div>
-    <div class="card"><p style="margin-top:0"><b><a href="figures.html">Figure gallery</a></b></p>
-      <p class="muted">Every plot the pipeline produces.</p></div>
-    <div class="card"><p style="margin-top:0"><b><a href="membranes/views.html">3D views</a>
-    <a href="membranes/inspector.html">Membrane inspector</a></b></p>
-      <p class="muted">Interactive 3D membrane patches; curvature, deviation and gap colormapped
-      live with adjustable range.</p></div>
+    <thead><tr><th>Metric family</th><th class="num">Metrics</th><th class="num">Values</th></tr></thead>
+    <tbody><tr><td><a href="reference.html#bm_sensitivity">bm sensitivity</a></td><td class="num">3</td><td class="num">39</td></tr><tr><td><a href="reference.html#ecs_width">ecs width</a></td><td class="num">15</td><td class="num">2,865</td></tr><tr><td><a href="reference.html#membrane_topology">membrane topology</a></td><td class="num">23</td><td class="num">1,265</td></tr><tr><td><a href="reference.html#sa_v">sa v</a></td><td class="num">8</td><td class="num">1,528</td></tr><tr><td><a href="reference.html#topology">topology</a></td><td class="num">21</td><td class="num">4,011</td></tr><tr><td><a href="reference.html#volume_fraction">volume fraction</a></td><td class="num">10</td><td class="num">550</td></tr><tr><td><a href="reference.html#voronoi_gap">voronoi gap</a></td><td class="num">14</td><td class="num">2,674</td></tr></tbody></table>
+    <p class="note">Each family is computed three ways &mdash; at native resolution, matched to
+    8&nbsp;nm, and across a degradation series &mdash; so a difference can be checked against
+    what resolution alone would produce. <a href="reference.html#design">What the runs mean.</a></p>
   </div>
+  <div class="card">
+    <h3 style="margin-top:0">Preparation</h3>
+    <p class="muted" style="margin:2px 0"><span class="tag chem">Chemical</span> 30 crops</p><p class="muted" style="margin:2px 0"><span class="tag hpf">Rapid HPF</span> 25 crops</p>
+    <h3>Tissue</h3>
+    <p class="muted" style="margin:2px 0">Cortex &mdash; 12 crops</p><p class="muted" style="margin:2px 0">Heart &mdash; 8 crops</p><p class="muted" style="margin:2px 0">Kidney &mdash; 13 crops</p><p class="muted" style="margin:2px 0">Liver &mdash; 22 crops</p>
+  </div>
+</div>
 
-  <h2>Data</h2>
-  <p class="muted">Everything on this site comes from two files, both downloadable:
-    <a href="data/all_metrics_long.csv">all_metrics_long.csv</a> (tidy, one row per measurement) and
-    <a href="data/all_metrics_wide.csv">all_metrics_wide.csv</a> (one row per crop/run/resolution).
-    Regenerate with <code>python scripts/collect_all.py</code>.</p>
-</main></body></html>
+<h2 id="coverage">Where the comparison is supported</h2>
+<p class="lede" style="margin-bottom:12px">A region can only support a chemical-vs-HPF
+comparison if both arms have crops in it. <b>5 of 11 do not.</b> Kidney, where the
+direction of the effect splits by region, is where most of the gaps are.</p>
+<div class="card scroll"><table>
+  <thead><tr><th>Tissue</th><th>Region</th><th class="num">Chemical</th>
+    <th class="num">Rapid HPF</th><th class="wrap"></th></tr></thead>
+  <tbody><tr><td>Cortex</td><td>no region assigned</td><td class="num">7</td><td class="num">5</td><td class="wrap"></td></tr><tr><td>Heart</td><td>Cardiac interstitial</td><td class="num">2</td><td class="num">2</td><td class="wrap"></td></tr><tr><td>Heart</td><td>Intercalated disc</td><td class="num">2</td><td class="num">2</td><td class="wrap"></td></tr><tr><td>Kidney</td><td>DCT base</td><td class="num flag">1</td><td class="num">3</td><td class="wrap"><span class=flag>no comparison possible</span></td></tr><tr><td>Kidney</td><td>Glomerular</td><td class="num">2</td><td class="num">2</td><td class="wrap"></td></tr><tr><td>Kidney</td><td>PCT base</td><td class="num flag">1</td><td class="num flag">0</td><td class="wrap"><span class=flag>no comparison possible</span></td></tr><tr><td>Kidney</td><td>PCT brush border</td><td class="num">2</td><td class="num flag">0</td><td class="wrap"><span class=flag>no comparison possible</span></td></tr><tr><td>Kidney</td><td>PCT lateral</td><td class="num flag">1</td><td class="num flag">1</td><td class="wrap"><span class=flag>no comparison possible</span></td></tr><tr><td>Liver</td><td>Bile canaliculus</td><td class="num">3</td><td class="num">4</td><td class="wrap"></td></tr><tr><td>Liver</td><td>Hepatocyte lateral</td><td class="num">6</td><td class="num">6</td><td class="wrap"></td></tr><tr><td>Liver</td><td>Space of Disse</td><td class="num">3</td><td class="num flag">0</td><td class="wrap"><span class=flag>no comparison possible</span></td></tr></tbody></table></div>
+
+<h2>Data</h2>
+<p class="muted">Everything on this site is generated from
+<a href="data/all_metrics_long.csv">all_metrics_long.csv</a> (one row per measurement) and
+<a href="data/all_metrics_wide.csv">all_metrics_wide.csv</a> (one row per crop, run and
+resolution), with names and units from <a href="data/metrics.json">metrics.json</a>.
+Rebuild with <code>python scripts/collect_all.py</code>.</p>
+<footer class="site"><span>Chemical fixation vs rapid high-pressure freezing · 55 crops</span><a href="reference.html">How to read this</a><a href="data/all_metrics_long.csv">Download the data</a><a href="https://github.com/avweigel/ecs-analysis">Source</a></footer></main><div id="tip"></div></body></html>

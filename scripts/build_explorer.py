@@ -1,9 +1,17 @@
-<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Metric explorer — ECS preservation</title>
-<link rel="stylesheet" href="assets/app.css">
-<script src="assets/site.js"></script>
-<style>
+#!/usr/bin/env python3
+"""Build docs/explore.html — the metric explorer, on the shared site shell.
+Reads data/all_metrics_long.csv and data/metrics.json at runtime."""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import site_shell as sh
+
+ROOT = Path(__file__).resolve().parent.parent
+
+EXTRA = """<style>
  .strip{background:var(--surface-1);border:1px solid var(--line);border-radius:10px;
         padding:14px 18px 8px}
  .row{display:grid;grid-template-columns:210px 1fr 104px;gap:14px;align-items:center;
@@ -30,38 +38,9 @@
  .cavbody .callout{margin:0;font-size:13px;padding:11px 13px}
  @media(max-width:900px){.cavbody{grid-template-columns:1fr}}
  circle[data-c]{cursor:crosshair}
-</style></head><body><header class="top"><div class="wrap"><a class="brand" href="index.html">ECS preservation</a><nav><a href="index.html">Overview</a><a href="explore.html" aria-current="page">Explorer</a><a href="crops.html">Crops</a><a href="figures.html">Figures</a><a href="membranes/views.html">3D views</a><a href="membranes/inspector.html">Inspector</a><a href="reference.html">Reference</a></nav><button id="themetog" type="button">Auto</button></div></header><main>
-<h1>Metric explorer</h1>
-<p class="lede">Every per-crop measurement the pipeline has produced. Pick a metric; each dot is
-one crop, chemical above the line and HPF below, with groups sharing one scale so they can be
-read against each other. <a href="reference.html#reading">How to read this.</a></p>
+</style>"""
 
-<div class="controls">
-  <div class="ctl"><label for="run">Run</label><select id="run"></select></div>
-  <div class="ctl"><label for="fam">Metric family</label><select id="fam"></select></div>
-  <div class="ctl"><label for="met">Metric</label><select id="met" style="min-width:280px"></select></div>
-  <div class="ctl"><label for="grp">Group by</label><select id="grp">
-    <option value="region_group">Region</option><option value="tissue">Tissue</option>
-    <option value="anatomy">Anatomy</option></select></div>
-  <div class="ctl"><label for="tis">Tissue</label><select id="tis"></select></div>
-  <div class="ctl"><label for="vox">Analysis voxel</label><select id="vox"></select></div>
-</div>
-
-<div id="about"></div>
-
-<div class="legend">
-  <span class="item"><i class="sw" style="background:var(--chem)"></i>Chemical, one crop</span>
-  <span class="item"><i class="sw" style="background:var(--hpf)"></i>Rapid HPF, one crop</span>
-  <span class="item"><i class="sw line" style="background:var(--text-muted)"></i>group median</span>
-  <span class="item"><b class="flag">n</b>&nbsp;arm with one crop or none</span>
-</div>
-
-<div class="strip" id="plot"><p class="muted" style="padding:22px 0">Loading&hellip;</p></div>
-<p class="note" id="note"></p>
-
-<h2>Table view</h2>
-<div class="card scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
-<footer class="site"><span>Chemical fixation vs rapid high-pressure freezing · 55 crops</span><a href="reference.html">How to read this</a><a href="data/all_metrics_long.csv">Download the data</a><a href="https://github.com/avweigel/ecs-analysis">Source</a></footer></main><div id="tip"></div>
+JS = r"""
 <script>
 const $=id=>document.getElementById(id);
 const PREP={Chemical:'chem','Rapid HPF':'hpf'};
@@ -224,4 +203,48 @@ Promise.all([
                   grp:'region_group',tis:'All tissues',vox:'All'});
   draw();
 }).catch(e=>{$('plot').innerHTML='<p class="muted">Could not load the data &mdash; '+e+'</p>'});
-</script></body></html>
+</script>"""
+
+
+def main():
+    html = sh.head("Metric explorer — ECS preservation", 0, EXTRA)
+    html += sh.nav("explore.html", 0)
+    html += f"""<main>
+<h1>Metric explorer</h1>
+<p class="lede">Every per-crop measurement the pipeline has produced. Pick a metric; each dot is
+one crop, chemical above the line and HPF below, with groups sharing one scale so they can be
+read against each other. <a href="reference.html#reading">How to read this.</a></p>
+
+<div class="controls">
+  <div class="ctl"><label for="run">Run</label><select id="run"></select></div>
+  <div class="ctl"><label for="fam">Metric family</label><select id="fam"></select></div>
+  <div class="ctl"><label for="met">Metric</label><select id="met" style="min-width:280px"></select></div>
+  <div class="ctl"><label for="grp">Group by</label><select id="grp">
+    <option value="region_group">Region</option><option value="tissue">Tissue</option>
+    <option value="anatomy">Anatomy</option></select></div>
+  <div class="ctl"><label for="tis">Tissue</label><select id="tis"></select></div>
+  <div class="ctl"><label for="vox">Analysis voxel</label><select id="vox"></select></div>
+</div>
+
+<div id="about"></div>
+
+<div class="legend">
+  <span class="item"><i class="sw" style="background:var(--chem)"></i>Chemical, one crop</span>
+  <span class="item"><i class="sw" style="background:var(--hpf)"></i>Rapid HPF, one crop</span>
+  <span class="item"><i class="sw line" style="background:var(--text-muted)"></i>group median</span>
+  <span class="item"><b class="flag">n</b>&nbsp;arm with one crop or none</span>
+</div>
+
+<div class="strip" id="plot"><p class="muted" style="padding:22px 0">Loading&hellip;</p></div>
+<p class="note" id="note"></p>
+
+<h2>Table view</h2>
+<div class="card scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+"""
+    html += sh.footer(0) + "</main><div id=\"tip\"></div>" + JS + "</body></html>"
+    (ROOT / "docs" / "explore.html").write_text(html)
+    print("built docs/explore.html")
+
+
+if __name__ == "__main__":
+    main()

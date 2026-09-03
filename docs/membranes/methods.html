@@ -1,7 +1,24 @@
 <!doctype html><meta charset=utf-8>
-<title>Methods — mesh-based membrane topology</title>
+<title>Methods — mesh-based membrane topology</title><style>.container table{display:block;overflow-x:auto;max-width:100%}</style><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="../assets/app.css"><script src="../assets/site.js"></script><style>
+ body{background:var(--surface-0);color:var(--text-primary)}
+ .container{max-width:var(--maxw);margin:0 auto;padding:28px 20px 80px}
+ nav.bar{display:none}
+ h1{font-size:25px;margin:0 0 8px;letter-spacing:-.022em}
+ h2{font-size:17px;color:var(--text-primary);border-bottom:1px solid var(--line);
+    padding-bottom:6px;margin-top:36px}
+ h3{color:var(--text-primary);margin:20px 0 6px;font-size:14px}
+ a{color:var(--accent)}
+ table{border-collapse:collapse;width:100%;font-size:13.5px}
+ th,td{border-bottom:1px solid var(--line-soft);padding:7px 11px;text-align:left}
+ th{color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.055em}
+ code,pre{background:var(--surface-2);border-radius:5px;padding:1px 5px;font-size:12.5px}
+ pre{padding:11px;overflow-x:auto}
+ img{max-width:100%;border-radius:8px}
+ .grid,.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+ .card,.item{background:var(--surface-1);border:1px solid var(--line);border-radius:10px;padding:12px}
+</style><!--rethemed-->
 <style>
- :root{--bg:#0f1420;--card:#1a2030;--card2:#222b3e;--ink:#e8ecf3;--muted:#8a93a6;--line:#2a3346;--accent:#5b9cff;--head:#cfe0ff}
+ 
  *{box-sizing:border-box}
  body{font-family:'Segoe UI',Tahoma,sans-serif;margin:0;background:var(--bg);color:var(--ink);line-height:1.6}
  .container{max-width:920px;margin:0 auto;padding:24px 32px 64px}
@@ -79,7 +96,7 @@
  figure.fig img{width:100%;height:auto;border-radius:8px;background:#fff;display:block}
  figure.fig figcaption{font-size:12.5px;color:#aeb6c4;margin-top:9px;line-height:1.5}
 </style>
-<nav class=bar><a href='../home.html'>⌂ project home</a><a href='membranes_3d.html'>interactive 3D gallery</a><a href='index.html'>static map gallery</a><a href='inspector.html'>adjustable-scale inspector</a></nav>
+<header class="top"><div class="wrap"><a class="brand" href="../index.html">ECS preservation</a><nav><a href="../index.html">Overview</a><a href="../explore.html">Explorer</a><a href="../crops.html">Crops</a><a href="../figures.html">Figures</a><a href="../membranes/views.html">3D views</a><a href="../membranes/inspector.html" aria-current="page">Inspector</a><a href="../reference.html">Reference</a></nav><button id="themetog" type="button">Auto</button></div></header><nav class=bar><a href='../index.html'>⌂ project home</a>interactive 3D gallery<a href='index.html'>static map gallery</a><a href='inspector.html'>adjustable-scale inspector</a></nav>
 <div class=container>
 <h1>Methods — mesh-based membrane topology</h1>
 <p class=lead>
