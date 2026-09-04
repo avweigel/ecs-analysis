@@ -58,6 +58,11 @@ SECTIONS = [
         ("vignette_bile_canaliculus.png", "Bile canaliculus", "Liver, chemical vs HPF."),
         ("vignette_hepatocyte_lateral.png", "Hepatocyte lateral", "Liver, the largest matched group."),
         ("vignette_glomerular.png", "Glomerular", "Kidney."),
+        # generated in August and never copied into docs/: the site showed five
+        # vignettes for the six regions the effect matrix scores
+        ("vignette_tubule_basal.png", "Tubule basal",
+         "Kidney, DCT base and PCT base pooled &mdash; the pooling is what gives this region "
+         "an arm on both sides."),
         ("vignette_cardiac_interstitial.png", "Cardiac interstitial", "Heart."),
         ("vignette_intercalated_disc.png", "Intercalated disc", "Heart."),
     ]),
