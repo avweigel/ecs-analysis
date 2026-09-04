@@ -6,6 +6,9 @@ docs/membranes/) and fixes up the relative asset paths.
 """
 from __future__ import annotations
 
+import hashlib
+from pathlib import Path
+
 NAV = [
     ("explore.html",         "Explore"),
     ("crops.html",           "Crops"),
@@ -28,13 +31,33 @@ def _rel(depth: int) -> str:
     return "../" * depth
 
 
+def _ver() -> str:
+    """Short hash of the shared assets.
+
+    Pages are cached for ten minutes by GitHub Pages. Without this, a browser
+    can pair freshly-fetched markup with a stale stylesheet and render something
+    that looks broken for no visible reason. Stamping the asset URLs means new
+    markup always fetches the CSS and JS it was built against.
+    """
+    here = Path(__file__).resolve().parent.parent / "docs" / "assets"
+    h = hashlib.sha1()
+    for name in ("app.css", "site.js"):
+        f = here / name
+        if f.exists():
+            h.update(f.read_bytes())
+    return h.hexdigest()[:8]
+
+
+VER = _ver()
+
+
 def head(title: str, depth: int = 0, extra: str = "", wide: bool = False) -> str:
     r = _rel(depth)
     return f"""<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
-<link rel="stylesheet" href="{r}assets/app.css">
-<script src="{r}assets/site.js"></script>
+<link rel="stylesheet" href="{r}assets/app.css?v={VER}">
+<script src="{r}assets/site.js?v={VER}"></script>
 {extra}</head><body>"""
 
 
