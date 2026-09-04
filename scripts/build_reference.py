@@ -199,6 +199,37 @@ one you should look at depends on what you are asking.</p>
   row, and the <a href="index.html#coverage">coverage table</a> lists them.</div>
 </div>
 
+<h2 id="surfaces">The two surfaces in the viewer</h2>
+<p class="lede">The <a href="crops.html">crop page</a> can show either side of the same
+boundary. They are built differently, and the difference matters when you compare them.</p>
+<div class="grid cols-2">
+  <div class="card">
+    <h3 style="margin-top:0">Membrane</h3>
+    <p style="color:var(--ink-2)">One cell's ECS-facing skin, in the crop's own frame. The
+    cell with the most ECS-facing surface is meshed at 16 nm, and the patch is the part of it
+    that faces extracellular space. Coloured by signed curvature, protrusion / indentation
+    against a 60 nm smoothed reference, or the gap to the nearest neighbouring cell.</p>
+    <p class="note" style="margin:0">Faces at the crop wall are trimmed: marching cubes caps
+    the volume there, and the cap is not membrane.</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">ECS</h3>
+    <p style="color:var(--ink-2)">The space itself, meshed at 8 nm from an 800 nm cube of
+    every crop &mdash; equal volume, so two crops can be compared with a shared camera. The
+    cube is not the middle of the crop: it is the position whose ECS fraction is closest to
+    the whole crop's, because the middle of a liver crop can sit inside one hepatocyte and
+    hold no ECS at all. Coloured by curvature, protrusion / indentation, or local channel
+    width.</p>
+    <p class="note" style="margin:0">Width is the diameter of the largest ball that fits in
+    the channel, found by walking the surface normal into the space &mdash; an estimate, and
+    it saturates in open pools. Where a channel leaves the cube the reading would be a guess,
+    so those vertices are grey rather than wrong.</p>
+  </div>
+</div>
+<p class="note">Both surfaces use one sign convention: positive curvature and positive
+deviation mean the membrane bulges <b>into</b> the extracellular space. The shared geometry
+code is calibrated on a cell mask, so the ECS values are negated to put them on that scale.</p>
+
 <h2 id="datasets">The datasets</h2>
 <p class="lede">The 55 crops come from nine imaged volumes. A crop is a hand-annotated cube
 inside one of these; the volume itself is the raw electron microscopy it was cut from.</p>

@@ -195,6 +195,12 @@ def main():
         manifest = next(v for v in manifest.values() if isinstance(v, list))
     mani = {e["crop"]: e for e in manifest}
 
+    # the ECS surfaces, built by scripts/make_ecs_surfaces.py. Optional: the
+    # page still builds without them, it just has no ECS views.
+    ecs_path = DOCS / "membranes" / "manifest_ecs.json"
+    ecs_mani = ({e["crop"]: e for e in json.loads(ecs_path.read_text())}
+                if ecs_path.exists() else {})
+
     metric_cols = sorted(
         {k for r in wide for k, v in r.items() if "." in k and v not in ("", None)},
         key=lambda c: (mets.get(c.split(".", 1)[1], {}).get("label", c)))
@@ -222,14 +228,22 @@ def main():
                                        ("crop", "bin", "nverts", "nfaces", "ranges",
                                         "tissue", "prep", "region_group", "anatomy", "voxel_nm")
                                        if kk in v}
-                                   for k, v in mani.items()}}, separators=(",", ":"))
+                                   for k, v in mani.items()},
+                          "ecs": {k: {kk: v[kk] for kk in
+                                      ("crop", "bin", "nverts", "nfaces", "ranges",
+                                       "tissue", "prep", "region_group", "anatomy",
+                                       "voxel_nm", "cube_nm", "box_nm", "ecs_frac")
+                                      if kk in v}
+                                  for k, v in ecs_mani.items()}}, separators=(",", ":"))
 
     html = sh.head("Crops — ECS preservation", 0, EXTRA.replace("__VER__", sh.VER))
     html += sh.nav("crops.html", 0)
     html += sh.pagehead("Crops",
-        f"All {len(rows)} annotated crops, with the membrane viewer alongside. Filter the table, "
-        "click a row to load it, and use compare to put two crops side by side with the same "
-        'colour range and a shared camera. <a href="reference.html#metrics">What the metrics mean.</a>',
+        f"All {len(rows)} annotated crops, with the viewer alongside. Pick a view — the "
+        "membrane, or the extracellular space itself — filter the table, click a row to load "
+        "it, and compare two crops with the same colour range and a shared camera. "
+        '<a href="reference.html#surfaces">How the two surfaces are built.</a> '
+        '<a href="reference.html#metrics">What the metrics mean.</a>',
         wide=True)
 
     html += """<main class="wide after-head">
@@ -272,7 +286,10 @@ def main():
   </div>
 </div>
 <p class="note" id="ngnote"></p>
-<p class="note">Grey on a surface means the boundary there is uncertain. Click a row to load it into the highlighted panel; <b>compare →</b> on a row sends
+<p class="note">Grey on a surface means the reading there is uncertain — a value whose
+kernel reached the crop wall, or a channel that leaves the box. The ECS views are an 800 nm
+cube of each crop at 8 nm, chosen to match the crop's own ECS fraction; the membrane views are
+one cell's ECS-facing patch at 16 nm, in the crop's frame. Click a row to load it into the highlighted panel; <b>compare →</b> on a row sends
 it to B. Drag the divider to widen the table. While the cameras are linked both patches are drawn
 at the <b>same scale</b>, so a patch that looks smaller really is smaller — that is the point of
 linking them. <b>Fit</b> recentres a patch; double-clicking a panel does the same.</p>

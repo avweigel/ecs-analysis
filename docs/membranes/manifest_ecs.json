@@ -1,0 +1,3577 @@
+[
+ {
+  "crop": "crop1026",
+  "dataset": "jrc_mus-kidney",
+  "tissue": "Kidney",
+  "prep": "Chemical",
+  "region_group": "Glomerular",
+  "anatomy": "Glomerular interstitium",
+  "nverts": 58832,
+  "nfaces": 115118,
+  "bin": "crop1026.bin",
+  "bytes": 2793384,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   0,
+   125
+  ],
+  "window_origin_nm": [
+   0.0,
+   0.0,
+   1000.0
+  ],
+  "ecs_frac": 0.3558,
+  "ecs_frac_full_crop": 0.3555,
+  "width_uncertain_frac": 0.215,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.5169428586959839,
+     0.06334997713565826
+    ],
+    "default": [
+     -0.012134101055562493,
+     0.012134101055562493
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -21.57619857788086,
+     11.29578685760498
+    ],
+    "default": [
+     -6.105400943756103,
+     6.105400943756103
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     283.5207214355469
+    ],
+    "default": [
+     0.0,
+     229.08514404296875
+    ]
+   }
+  },
+  "built_s": 19.2
+ },
+ {
+  "crop": "crop1027",
+  "dataset": "jrc_mus-kidney",
+  "tissue": "Kidney",
+  "prep": "Chemical",
+  "region_group": "Glomerular",
+  "anatomy": "Glomerular interstitium",
+  "nverts": 80127,
+  "nfaces": 157161,
+  "bin": "crop1027.bin",
+  "bytes": 3808980,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   50,
+   150,
+   25
+  ],
+  "window_origin_nm": [
+   400.0,
+   1200.0,
+   200.0
+  ],
+  "ecs_frac": 0.4423,
+  "ecs_frac_full_crop": 0.4434,
+  "width_uncertain_frac": 0.275,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -5.022170543670654,
+     0.15270069241523743
+    ],
+    "default": [
+     -0.015040486119687557,
+     0.015040486119687557
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -24.617725372314453,
+     14.043004989624023
+    ],
+    "default": [
+     -6.861993312835693,
+     6.861993312835693
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     257.99224853515625
+    ],
+    "default": [
+     0.0,
+     195.9591827392578
+    ]
+   }
+  },
+  "built_s": 80.0
+ },
+ {
+  "crop": "crop1028",
+  "dataset": "jrc_mus-kidney",
+  "tissue": "Kidney",
+  "prep": "Chemical",
+  "region_group": "PCT brush border",
+  "anatomy": "PCT brush border",
+  "nverts": 74756,
+  "nfaces": 146463,
+  "bin": "crop1028.bin",
+  "bytes": 3551700,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   50,
+   75
+  ],
+  "window_origin_nm": [
+   0.0,
+   400.0,
+   600.0
+  ],
+  "ecs_frac": 0.6148,
+  "ecs_frac_full_crop": 0.5974,
+  "width_uncertain_frac": 0.152,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -6.688730716705322,
+     0.3559860587120056
+    ],
+    "default": [
+     -0.0304000645875931,
+     0.0304000645875931
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -28.514923095703125,
+     21.97037696838379
+    ],
+    "default": [
+     -10.428876399993898,
+     10.428876399993898
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     410.7359313964844
+    ],
+    "default": [
+     0.0,
+     312.6024426269536
+    ]
+   }
+  },
+  "built_s": 18.8
+ },
+ {
+  "crop": "crop1029",
+  "dataset": "jrc_mus-kidney",
+  "tissue": "Kidney",
+  "prep": "Chemical",
+  "region_group": "PCT brush border",
+  "anatomy": "PCT brush border",
+  "nverts": 54218,
+  "nfaces": 106196,
+  "bin": "crop1029.bin",
+  "bytes": 2575584,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   100,
+   50,
+   25
+  ],
+  "window_origin_nm": [
+   800.0,
+   400.0,
+   200.0
+  ],
+  "ecs_frac": 0.7436,
+  "ecs_frac_full_crop": 0.7453,
+  "width_uncertain_frac": 0.168,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -79.68141174316406,
+     0.3976404070854187
+    ],
+    "default": [
+     -0.029711784794926643,
+     0.029711784794926643
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -26.98573875427246,
+     17.339445114135742
+    ],
+    "default": [
+     -9.517154693603516,
+     9.517154693603516
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     408.8618469238281
+    ],
+    "default": [
+     0.0,
+     309.0113220214844
+    ]
+   }
+  },
+  "built_s": 22.6
+ },
+ {
+  "crop": "crop1030",
+  "dataset": "jrc_mus-kidney",
+  "tissue": "Kidney",
+  "prep": "Chemical",
+  "region_group": "DCT base",
+  "anatomy": "DCT base",
+  "nverts": 30524,
+  "nfaces": 59592,
+  "bin": "crop1030.bin",
+  "bytes": 1447680,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   50,
+   0,
+   125
+  ],
+  "window_origin_nm": [
+   400.0,
+   0.0,
+   1000.0
+  ],
+  "ecs_frac": 0.1934,
+  "ecs_frac_full_crop": 0.1945,
+  "width_uncertain_frac": 0.3,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -5.7957305908203125,
+     0.14454656839370728
+    ],
+    "default": [
+     -0.04239315167069435,
+     0.04239315167069435
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -26.270265579223633,
+     26.348865509033203
+    ],
+    "default": [
+     -11.068046760559083,
+     11.068046760559083
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     204.27432250976562
+    ],
+    "default": [
+     0.0,
+     159.19798278808594
+    ]
+   }
+  },
+  "built_s": 78.7
+ },
+ {
+  "crop": "crop1031",
+  "dataset": "jrc_mus-kidney",
+  "tissue": "Kidney",
+  "prep": "Chemical",
+  "region_group": "PCT lateral",
+  "anatomy": "PCT lateral",
+  "nverts": 7252,
+  "nfaces": 13991,
+  "bin": "crop1031.bin",
+  "bytes": 341940,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   150,
+   75,
+   100
+  ],
+  "window_origin_nm": [
+   1200.0,
+   600.0,
+   800.0
+  ],
+  "ecs_frac": 0.0143,
+  "ecs_frac_full_crop": 0.0144,
+  "width_uncertain_frac": 0.026,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.03435368090867996,
+     0.023160267621278763
+    ],
+    "default": [
+     -0.00905783595517278,
+     0.00905783595517278
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -4.785604953765869,
+     3.9700989723205566
+    ],
+    "default": [
+     -3.2373613357543944,
+     3.2373613357543944
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     65.96968841552734
+    ],
+    "default": [
+     0.0,
+     48.0
+    ]
+   }
+  },
+  "built_s": 15.1
+ },
+ {
+  "crop": "crop1032",
+  "dataset": "jrc_mus-kidney",
+  "tissue": "Kidney",
+  "prep": "Chemical",
+  "region_group": "PCT base",
+  "anatomy": "PCT base",
+  "nverts": 27520,
+  "nfaces": 53669,
+  "bin": "crop1032.bin",
+  "bytes": 1304508,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   75,
+   25
+  ],
+  "window_origin_nm": [
+   0.0,
+   600.0,
+   200.0
+  ],
+  "ecs_frac": 0.3039,
+  "ecs_frac_full_crop": 0.3033,
+  "width_uncertain_frac": 0.541,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -581.7488403320312,
+     0.2383202165365219
+    ],
+    "default": [
+     -0.019797272980213165,
+     0.019797272980213165
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -28.06059455871582,
+     8.807220458984375
+    ],
+    "default": [
+     -7.085209369659424,
+     7.085209369659424
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     344.6505432128906
+    ],
+    "default": [
+     0.0,
+     279.427978515625
+    ]
+   }
+  },
+  "built_s": 67.4
+ },
+ {
+  "crop": "crop1033",
+  "dataset": "jrc_mus-cortex-3",
+  "tissue": "Cortex",
+  "prep": "Chemical",
+  "region_group": "",
+  "anatomy": "Unmyelinated nerve fibers",
+  "nverts": 19280,
+  "nfaces": 37843,
+  "bin": "crop1033.bin",
+  "bytes": 916836,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   25,
+   0,
+   25
+  ],
+  "window_origin_nm": [
+   200.0,
+   0.0,
+   200.0
+  ],
+  "ecs_frac": 0.0505,
+  "ecs_frac_full_crop": 0.0482,
+  "width_uncertain_frac": 0.001,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -82.47820281982422,
+     0.461374968290329
+    ],
+    "default": [
+     -0.10543267652392387,
+     0.10543267652392387
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -30.92780303955078,
+     4.994582653045654
+    ],
+    "default": [
+     -14.787523078918456,
+     14.787523078918456
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     48.0
+    ],
+    "default": [
+     0.0,
+     39.191837310791016
+    ]
+   }
+  },
+  "built_s": 11.8
+ },
+ {
+  "crop": "crop1034",
+  "dataset": "jrc_mus-cortex-3",
+  "tissue": "Cortex",
+  "prep": "Chemical",
+  "region_group": "",
+  "anatomy": "Neuropil (synaptic cleft)",
+  "nverts": 43141,
+  "nfaces": 85001,
+  "bin": "crop1034.bin",
+  "bytes": 2055396,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   0,
+   0
+  ],
+  "window_origin_nm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ecs_frac": 0.0873,
+  "ecs_frac_full_crop": 0.0873,
+  "width_uncertain_frac": 0.007,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -20.202606201171875,
+     0.2806774079799652
+    ],
+    "default": [
+     -0.07520969659090043,
+     0.07520969659090043
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -30.699810028076172,
+     9.954404830932617
+    ],
+    "default": [
+     -13.886441802978517,
+     13.886441802978517
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     81.58431243896484
+    ],
+    "default": [
+     0.0,
+     55.42562484741211
+    ]
+   }
+  },
+  "built_s": 39.2
+ },
+ {
+  "crop": "crop1035",
+  "dataset": "jrc_mus-cortex-3",
+  "tissue": "Cortex",
+  "prep": "Chemical",
+  "region_group": "",
+  "anatomy": "Neuronal cell processes",
+  "nverts": 11092,
+  "nfaces": 21420,
+  "bin": "crop1035.bin",
+  "bytes": 523248,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   0,
+   25
+  ],
+  "window_origin_nm": [
+   0.0,
+   0.0,
+   200.0
+  ],
+  "ecs_frac": 0.04,
+  "ecs_frac_full_crop": 0.0429,
+  "width_uncertain_frac": 0.009,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -2.8240747451782227,
+     0.18893596529960632
+    ],
+    "default": [
+     -0.08173772767186165,
+     0.08173772767186165
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -27.694103240966797,
+     5.708967685699463
+    ],
+    "default": [
+     -13.459164524078368,
+     13.459164524078368
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     86.16263580322266
+    ],
+    "default": [
+     0.0,
+     67.88224792480469
+    ]
+   }
+  },
+  "built_s": 38.2
+ },
+ {
+  "crop": "crop1036",
+  "dataset": "jrc_mus-cortex-3",
+  "tissue": "Cortex",
+  "prep": "Chemical",
+  "region_group": "",
+  "anatomy": "Glial-neuronal (synaptic clefts)",
+  "nverts": 67834,
+  "nfaces": 133084,
+  "bin": "crop1036.bin",
+  "bytes": 3225024,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   0,
+   0
+  ],
+  "window_origin_nm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ecs_frac": 0.1074,
+  "ecs_frac_full_crop": 0.1074,
+  "width_uncertain_frac": 0.006,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -34.925132751464844,
+     0.28050291538238525
+    ],
+    "default": [
+     -0.04970979318022728,
+     0.04970979318022728
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -30.47580337524414,
+     12.666964530944824
+    ],
+    "default": [
+     -10.578681945800781,
+     10.578681945800781
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     80.0
+    ],
+    "default": [
+     0.0,
+     53.06599807739258
+    ]
+   }
+  },
+  "built_s": 32.7
+ },
+ {
+  "crop": "crop1037",
+  "dataset": "jrc_mus-cortex-3",
+  "tissue": "Cortex",
+  "prep": "Chemical",
+  "region_group": "",
+  "anatomy": "Neurovascular (endothelium/glia/neurons)",
+  "nverts": 13559,
+  "nfaces": 26496,
+  "bin": "crop1037.bin",
+  "bytes": 643368,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   25,
+   75,
+   0
+  ],
+  "window_origin_nm": [
+   200.0,
+   600.0,
+   0.0
+  ],
+  "ecs_frac": 0.3229,
+  "ecs_frac_full_crop": 0.3353,
+  "width_uncertain_frac": 0.695,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.03634094074368477,
+     0.2066837102174759
+    ],
+    "default": [
+     -0.009909582883119583,
+     0.009909582883119583
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -8.298383712768555,
+     7.169382572174072
+    ],
+    "default": [
+     -3.290516757965088,
+     3.290516757965088
+    ]
+   },
+   "width": {
+    "bounds": [
+     229.08514404296875,
+     409.7999572753906
+    ],
+    "default": [
+     0.0,
+     405.087646484375
+    ]
+   }
+  },
+  "built_s": 43.8
+ },
+ {
+  "crop": "crop1038",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Space of Disse",
+  "anatomy": "Space of Disse",
+  "nverts": 92007,
+  "nfaces": 180199,
+  "bin": "crop1038.bin",
+  "bytes": 4370556,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   25,
+   50,
+   75
+  ],
+  "window_origin_nm": [
+   200.0,
+   400.0,
+   600.0
+  ],
+  "ecs_frac": 0.5488,
+  "ecs_frac_full_crop": 0.5497,
+  "width_uncertain_frac": 0.248,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -1.620513677597046,
+     3.134328842163086
+    ],
+    "default": [
+     -0.018994511105120182,
+     0.018994511105120182
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -24.563432693481445,
+     24.821651458740234
+    ],
+    "default": [
+     -8.456145286560059,
+     8.456145286560059
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     351.63616943359375
+    ],
+    "default": [
+     0.0,
+     235.69471740722656
+    ]
+   }
+  },
+  "built_s": 42.7
+ },
+ {
+  "crop": "crop1039",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Bile canaliculus",
+  "anatomy": "Bile canaliculus",
+  "nverts": 68745,
+  "nfaces": 135494,
+  "bin": "crop1039.bin",
+  "bytes": 3275808,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   50,
+   75,
+   0
+  ],
+  "window_origin_nm": [
+   400.0,
+   600.0,
+   0.0
+  ],
+  "ecs_frac": 0.1922,
+  "ecs_frac_full_crop": 0.1922,
+  "width_uncertain_frac": 0.083,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -10.275043487548828,
+     0.19671958684921265
+    ],
+    "default": [
+     -0.052334754914045344,
+     0.052334754914045344
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -27.750341415405273,
+     18.667720794677734
+    ],
+    "default": [
+     -12.437814140319825,
+     12.437814140319825
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     299.33258056640625
+    ],
+    "default": [
+     0.0,
+     144.0
+    ]
+   }
+  },
+  "built_s": 16.6
+ },
+ {
+  "crop": "crop1040",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Bile canaliculus",
+  "anatomy": "Bile canaliculus",
+  "nverts": 36092,
+  "nfaces": 71259,
+  "bin": "crop1040.bin",
+  "bytes": 1721316,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   25,
+   25
+  ],
+  "window_origin_nm": [
+   0.0,
+   200.0,
+   200.0
+  ],
+  "ecs_frac": 0.2288,
+  "ecs_frac_full_crop": 0.226,
+  "width_uncertain_frac": 0.234,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -12.574344635009766,
+     0.48241373896598816
+    ],
+    "default": [
+     -0.03589832782745361,
+     0.03589832782745361
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -28.129745483398438,
+     14.748958587646484
+    ],
+    "default": [
+     -10.627744197845459,
+     10.627744197845459
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     401.2779541015625
+    ],
+    "default": [
+     0.0,
+     278.05035400390625
+    ]
+   }
+  },
+  "built_s": 23.1
+ },
+ {
+  "crop": "crop1041",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Space of Disse",
+  "anatomy": "Space of Disse",
+  "nverts": 63062,
+  "nfaces": 123921,
+  "bin": "crop1041.bin",
+  "bytes": 3000540,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   75,
+   50,
+   100
+  ],
+  "window_origin_nm": [
+   600.0,
+   400.0,
+   800.0
+  ],
+  "ecs_frac": 0.2682,
+  "ecs_frac_full_crop": 0.268,
+  "width_uncertain_frac": 0.166,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -1.6008305549621582,
+     0.26081421971321106
+    ],
+    "default": [
+     -0.018738944642245778,
+     0.018738944642245778
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -20.296411514282227,
+     19.950387954711914
+    ],
+    "default": [
+     -9.092126846313477,
+     9.092126846313477
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     268.2088623046875
+    ],
+    "default": [
+     0.0,
+     236.23716735839844
+    ]
+   }
+  },
+  "built_s": 31.6
+ },
+ {
+  "crop": "crop1042",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Bile canaliculus",
+  "anatomy": "Bile canaliculus",
+  "nverts": 75611,
+  "nfaces": 148256,
+  "bin": "crop1042.bin",
+  "bytes": 3593736,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   75,
+   50,
+   100
+  ],
+  "window_origin_nm": [
+   600.0,
+   400.0,
+   800.0
+  ],
+  "ecs_frac": 0.1757,
+  "ecs_frac_full_crop": 0.1763,
+  "width_uncertain_frac": 0.07,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -10.040218353271484,
+     0.7617834210395813
+    ],
+    "default": [
+     -0.021415498852729798,
+     0.021415498852729798
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -20.70990562438965,
+     20.320898056030273
+    ],
+    "default": [
+     -9.840262413024904,
+     9.840262413024904
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     195.9591827392578
+    ],
+    "default": [
+     0.0,
+     102.44998931884766
+    ]
+   }
+  },
+  "built_s": 23.2
+ },
+ {
+  "crop": "crop1043",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Space of Disse",
+  "anatomy": "Space of Disse",
+  "nverts": 78785,
+  "nfaces": 154978,
+  "bin": "crop1043.bin",
+  "bytes": 3750576,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   50,
+   75,
+   100
+  ],
+  "window_origin_nm": [
+   400.0,
+   600.0,
+   800.0
+  ],
+  "ecs_frac": 0.2675,
+  "ecs_frac_full_crop": 0.2657,
+  "width_uncertain_frac": 0.145,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -11.077444076538086,
+     0.8505009412765503
+    ],
+    "default": [
+     -0.023579566180706033,
+     0.023579566180706033
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -27.890811920166016,
+     20.345813751220703
+    ],
+    "default": [
+     -9.84034290313721,
+     9.84034290313721
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     270.5845642089844
+    ],
+    "default": [
+     0.0,
+     160.79800415039062
+    ]
+   }
+  },
+  "built_s": 36.7
+ },
+ {
+  "crop": "crop1044",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Hepatocyte lateral",
+  "nverts": 34240,
+  "nfaces": 66664,
+  "bin": "crop1044.bin",
+  "bytes": 1621728,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   50,
+   0,
+   100
+  ],
+  "window_origin_nm": [
+   400.0,
+   0.0,
+   800.0
+  ],
+  "ecs_frac": 0.22,
+  "ecs_frac_full_crop": 0.2201,
+  "width_uncertain_frac": 0.24,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.6660011410713196,
+     0.10462896525859833
+    ],
+    "default": [
+     -0.016831851936876776,
+     0.016831851936876776
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -15.389693260192871,
+     18.4150390625
+    ],
+    "default": [
+     -8.47794589996338,
+     8.47794589996338
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     290.2137145996094
+    ],
+    "default": [
+     0.0,
+     236.77838134765625
+    ]
+   }
+  },
+  "built_s": 24.3
+ },
+ {
+  "crop": "crop1045",
+  "dataset": "jrc_mus-cortex-3",
+  "tissue": "Cortex",
+  "prep": "Chemical",
+  "region_group": "",
+  "anatomy": "Neurovascular (mixed nerve fibers)",
+  "nverts": 63934,
+  "nfaces": 125239,
+  "bin": "crop1045.bin",
+  "bytes": 3037284,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   0,
+   50
+  ],
+  "window_origin_nm": [
+   0.0,
+   0.0,
+   400.0
+  ],
+  "ecs_frac": 0.1766,
+  "ecs_frac_full_crop": 0.1427,
+  "width_uncertain_frac": 0.115,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -61.503814697265625,
+     0.584227979183197
+    ],
+    "default": [
+     -0.046458223462104875,
+     0.046458223462104875
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -29.067752838134766,
+     14.00339412689209
+    ],
+    "default": [
+     -11.259148597717289,
+     11.259148597717289
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     330.23626708984375
+    ],
+    "default": [
+     0.0,
+     50.59644317626953
+    ]
+   }
+  },
+  "built_s": 58.9
+ },
+ {
+  "crop": "crop1046",
+  "dataset": "jrc_mus-cortex-3",
+  "tissue": "Cortex",
+  "prep": "Chemical",
+  "region_group": "",
+  "anatomy": "Neurovascular (myelinated/unmyelinated fibers)",
+  "nverts": 82680,
+  "nfaces": 162563,
+  "bin": "crop1046.bin",
+  "bytes": 3935076,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   0,
+   0
+  ],
+  "window_origin_nm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ecs_frac": 0.146,
+  "ecs_frac_full_crop": 0.1645,
+  "width_uncertain_frac": 0.02,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -124.62419891357422,
+     10.523296356201172
+    ],
+    "default": [
+     -0.0403980053961277,
+     0.0403980053961277
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -28.903383255004883,
+     24.834531784057617
+    ],
+    "default": [
+     -9.633133029937747,
+     9.633133029937747
+    ]
+   },
+   "width": {
+    "bounds": [
+     0.0,
+     80.0
+    ],
+    "default": [
+     0.0,
+     59.866519927978516
+    ]
+   }
+  },
+  "built_s": 45.0
+ },
+ {
+  "crop": "crop1071",
+  "dataset": "jrc_mus-liver-8",
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Hepatocyte lateral",
+  "nverts": 71464,
+  "nfaces": 140418,
+  "bin": "crop1071.bin",
+  "bytes": 3400152,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   200,
+   150,
+   0
+  ],
+  "window_origin_nm": [
+   1600.0,
+   1200.0,
+   0.0
+  ],
+  "ecs_frac": 0.2807,
+  "ecs_frac_full_crop": 0.2809,
+  "width_uncertain_frac": 0.156,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -44.187782287597656,
+     0.2929806411266327
+    ],
+    "default": [
+     -0.021552687510848045,
+     0.021552687510848045
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -23.670650482177734,
+     20.939699172973633
+    ],
+    "default": [
+     -9.664006233215332,
+     9.664006233215332
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     276.20281982421875
+    ],
+    "default": [
+     0.0,
+     187.9574432373047
+    ]
+   }
+  },
+  "built_s": 15.8
+ },
+ {
+  "crop": "crop1072",
+  "dataset": "jrc_mus-liver-8",
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region_group": "Bile canaliculus",
+  "anatomy": "Bile canaliculus",
+  "nverts": 8846,
+  "nfaces": 17029,
+  "bin": "crop1072.bin",
+  "bytes": 416652,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   150,
+   75,
+   200
+  ],
+  "window_origin_nm": [
+   1200.0,
+   600.0,
+   1600.0
+  ],
+  "ecs_frac": 0.0387,
+  "ecs_frac_full_crop": 0.0391,
+  "width_uncertain_frac": 0.14,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -2.9100170135498047,
+     0.39382249116897583
+    ],
+    "default": [
+     -0.03565117865800861,
+     0.03565117865800861
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -19.613876342773438,
+     14.610542297363281
+    ],
+    "default": [
+     -11.010512351989748,
+     11.010512351989748
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     117.57550811767578
+    ],
+    "default": [
+     0.0,
+     94.65727996826172
+    ]
+   }
+  },
+  "built_s": 3.2
+ },
+ {
+  "crop": "crop1073",
+  "dataset": "jrc_mus-liver-8",
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region_group": "Bile canaliculus",
+  "anatomy": "Bile canaliculus",
+  "nverts": 51108,
+  "nfaces": 100081,
+  "bin": "crop1073.bin",
+  "bytes": 2427564,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   100,
+   175,
+   75
+  ],
+  "window_origin_nm": [
+   800.0,
+   1400.0,
+   600.0
+  ],
+  "ecs_frac": 0.1428,
+  "ecs_frac_full_crop": 0.1428,
+  "width_uncertain_frac": 0.109,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -1.5912511348724365,
+     0.1596584916114807
+    ],
+    "default": [
+     -0.01537289284169674,
+     0.01537289284169674
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -22.24428367614746,
+     20.974090576171875
+    ],
+    "default": [
+     -7.616795063018799,
+     7.616795063018799
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     254.99803161621094
+    ],
+    "default": [
+     0.0,
+     131.9393768310547
+    ]
+   }
+  },
+  "built_s": 13.5
+ },
+ {
+  "crop": "crop1074",
+  "dataset": "jrc_mus-liver-8",
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region_group": "Bile canaliculus",
+  "anatomy": "Bile canaliculus",
+  "nverts": 19328,
+  "nfaces": 37516,
+  "bin": "crop1074.bin",
+  "bytes": 914064,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   25,
+   25,
+   100
+  ],
+  "window_origin_nm": [
+   200.0,
+   200.0,
+   800.0
+  ],
+  "ecs_frac": 0.101,
+  "ecs_frac_full_crop": 0.1016,
+  "width_uncertain_frac": 0.27,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.6669896841049194,
+     0.19015811383724213
+    ],
+    "default": [
+     -0.02393463328480721,
+     0.02393463328480721
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -25.503705978393555,
+     16.00548553466797
+    ],
+    "default": [
+     -9.961757850646974,
+     9.961757850646974
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     250.4396209716797
+    ],
+    "default": [
+     0.0,
+     176.72576904296875
+    ]
+   }
+  },
+  "built_s": 8.3
+ },
+ {
+  "crop": "crop1075",
+  "dataset": "jrc_mus-liver-8",
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region_group": "Bile canaliculus",
+  "anatomy": "Bile canaliculus",
+  "nverts": 22588,
+  "nfaces": 44294,
+  "bin": "crop1075.bin",
+  "bytes": 1073640,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   25,
+   75
+  ],
+  "window_origin_nm": [
+   0.0,
+   200.0,
+   600.0
+  ],
+  "ecs_frac": 0.0463,
+  "ecs_frac_full_crop": 0.0451,
+  "width_uncertain_frac": 0.069,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.0347890630364418,
+     0.02137930877506733
+    ],
+    "default": [
+     -0.008354108501225713,
+     0.008354108501225713
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -7.160170555114746,
+     5.9445013999938965
+    ],
+    "default": [
+     -2.905083656311035,
+     2.905083656311035
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     96.0
+    ],
+    "default": [
+     0.0,
+     75.0466537475586
+    ]
+   }
+  },
+  "built_s": 8.6
+ },
+ {
+  "crop": "crop1116",
+  "dataset": "jrc_mus-cortex-2",
+  "tissue": "Cortex",
+  "prep": "Rapid HPF",
+  "region_group": "",
+  "anatomy": "Neuropil (mixed nerve fibers)",
+  "nverts": 68024,
+  "nfaces": 133862,
+  "bin": "crop1116.bin",
+  "bytes": 3238920,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   125,
+   175,
+   150
+  ],
+  "window_origin_nm": [
+   1000.0,
+   1400.0,
+   1200.0
+  ],
+  "ecs_frac": 0.1998,
+  "ecs_frac_full_crop": 0.1998,
+  "width_uncertain_frac": 0.067,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -452.49176025390625,
+     0.8164262771606445
+    ],
+    "default": [
+     -0.029399542696774014,
+     0.029399542696774014
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -28.745927810668945,
+     20.558284759521484
+    ],
+    "default": [
+     -8.1392617225647,
+     8.1392617225647
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     176.72576904296875
+    ],
+    "default": [
+     0.0,
+     133.8656005859375
+    ]
+   }
+  },
+  "built_s": 47.2
+ },
+ {
+  "crop": "crop1118",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Hepatocyte lateral",
+  "nverts": 40134,
+  "nfaces": 79241,
+  "bin": "crop1118.bin",
+  "bytes": 1914108,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   50,
+   75
+  ],
+  "window_origin_nm": [
+   0.0,
+   400.0,
+   600.0
+  ],
+  "ecs_frac": 0.0469,
+  "ecs_frac_full_crop": 0.046,
+  "width_uncertain_frac": 0.065,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -76.39815521240234,
+     0.10882581025362015
+    ],
+    "default": [
+     -0.09783568978309631,
+     0.09783568978309631
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -23.79619598388672,
+     11.240269660949707
+    ],
+    "default": [
+     -5.018000602722168,
+     5.018000602722168
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     172.3252716064453
+    ],
+    "default": [
+     0.0,
+     116.48175811767578
+    ]
+   }
+  },
+  "built_s": 3.7
+ },
+ {
+  "crop": "crop1119",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Hepatocyte lateral",
+  "nverts": 22901,
+  "nfaces": 45207,
+  "bin": "crop1119.bin",
+  "bytes": 1092108,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   25,
+   25,
+   50
+  ],
+  "window_origin_nm": [
+   200.0,
+   200.0,
+   400.0
+  ],
+  "ecs_frac": 0.0435,
+  "ecs_frac_full_crop": 0.0431,
+  "width_uncertain_frac": 0.08,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -27.11272430419922,
+     0.14614033699035645
+    ],
+    "default": [
+     -0.05692422986030584,
+     0.05692422986030584
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -33.16777801513672,
+     19.15492057800293
+    ],
+    "default": [
+     -9.009111404418945,
+     9.009111404418945
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     112.0
+    ],
+    "default": [
+     0.0,
+     81.58431243896484
+    ]
+   }
+  },
+  "built_s": 5.4
+ },
+ {
+  "crop": "crop1120",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Hepatocyte lateral",
+  "nverts": 21657,
+  "nfaces": 42369,
+  "bin": "crop1120.bin",
+  "bytes": 1028196,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   25,
+   0,
+   50
+  ],
+  "window_origin_nm": [
+   200.0,
+   0.0,
+   400.0
+  ],
+  "ecs_frac": 0.0473,
+  "ecs_frac_full_crop": 0.0471,
+  "width_uncertain_frac": 0.082,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -46.51800537109375,
+     0.7897436618804932
+    ],
+    "default": [
+     -0.13378455638885522,
+     0.13378455638885522
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -26.265077590942383,
+     19.44332504272461
+    ],
+    "default": [
+     -8.88513116836548,
+     8.88513116836548
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     140.39942932128906
+    ],
+    "default": [
+     0.0,
+     101.19288635253906
+    ]
+   }
+  },
+  "built_s": 5.2
+ },
+ {
+  "crop": "crop1121",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Hepatocyte lateral",
+  "nverts": 7119,
+  "nfaces": 13614,
+  "bin": "crop1121.bin",
+  "bytes": 334224,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   50,
+   25
+  ],
+  "window_origin_nm": [
+   0.0,
+   400.0,
+   200.0
+  ],
+  "ecs_frac": 0.0151,
+  "ecs_frac_full_crop": 0.0152,
+  "width_uncertain_frac": 0.0,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -156.91339111328125,
+     0.0721258893609047
+    ],
+    "default": [
+     -0.7891243398189545,
+     0.7891243398189545
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -34.60621643066406,
+     11.64207935333252
+    ],
+    "default": [
+     -13.014384269714355,
+     13.014384269714355
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     27.712812423706055
+    ],
+    "default": [
+     0.0,
+     22.627416610717773
+    ]
+   }
+  },
+  "built_s": 5.8
+ },
+ {
+  "crop": "crop1122",
+  "dataset": "jrc_mus-liver",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Hepatocyte lateral",
+  "nverts": 21381,
+  "nfaces": 42341,
+  "bin": "crop1122.bin",
+  "bytes": 1021236,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   25,
+   25,
+   75
+  ],
+  "window_origin_nm": [
+   200.0,
+   200.0,
+   600.0
+  ],
+  "ecs_frac": 0.0322,
+  "ecs_frac_full_crop": 0.0327,
+  "width_uncertain_frac": 0.013,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -7.400264263153076,
+     4.736189842224121
+    ],
+    "default": [
+     -0.08652445673942566,
+     0.08652445673942566
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -28.545679092407227,
+     13.371363639831543
+    ],
+    "default": [
+     -9.018106460571289,
+     9.018106460571289
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     91.91300201416016
+    ],
+    "default": [
+     0.0,
+     73.32121276855469
+    ]
+   }
+  },
+  "built_s": 4.3
+ },
+ {
+  "crop": "crop1123",
+  "dataset": "jrc_mus-liver-8",
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Tight junction",
+  "nverts": 15825,
+  "nfaces": 31418,
+  "bin": "crop1123.bin",
+  "bytes": 756816,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   75,
+   75,
+   0
+  ],
+  "window_origin_nm": [
+   600.0,
+   600.0,
+   0.0
+  ],
+  "ecs_frac": 0.0248,
+  "ecs_frac_full_crop": 0.0253,
+  "width_uncertain_frac": 0.047,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.35888633131980896,
+     0.13301584124565125
+    ],
+    "default": [
+     -0.027530139684677133,
+     0.027530139684677133
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -8.195673942565918,
+     6.69012975692749
+    ],
+    "default": [
+     -3.604543733596804,
+     3.604543733596804
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     81.58431243896484
+    ],
+    "default": [
+     0.0,
+     53.06599807739258
+    ]
+   }
+  },
+  "built_s": 5.1
+ },
+ {
+  "crop": "crop1124",
+  "dataset": "jrc_mus-liver-8",
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Hepatocyte lateral",
+  "nverts": 18178,
+  "nfaces": 35539,
+  "bin": "crop1124.bin",
+  "bytes": 862740,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   150,
+   25,
+   325
+  ],
+  "window_origin_nm": [
+   1200.0,
+   200.0,
+   2600.0
+  ],
+  "ecs_frac": 0.0194,
+  "ecs_frac_full_crop": 0.0194,
+  "width_uncertain_frac": 0.0,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.05281710624694824,
+     0.021599026396870613
+    ],
+    "default": [
+     -0.02299019731581212,
+     0.02299019731581212
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -4.896462917327881,
+     3.6413052082061768
+    ],
+    "default": [
+     -1.8831332564353949,
+     1.8831332564353949
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     35.7770881652832
+    ],
+    "default": [
+     0.0,
+     32.0
+    ]
+   }
+  },
+  "built_s": 9.8
+ },
+ {
+  "crop": "crop1125",
+  "dataset": "jrc_mus-liver-8",
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Hepatocyte lateral",
+  "nverts": 28352,
+  "nfaces": 56615,
+  "bin": "crop1125.bin",
+  "bytes": 1359828,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   50,
+   75,
+   25
+  ],
+  "window_origin_nm": [
+   400.0,
+   600.0,
+   200.0
+  ],
+  "ecs_frac": 0.0316,
+  "ecs_frac_full_crop": 0.0316,
+  "width_uncertain_frac": 0.015,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -3.3782105445861816,
+     0.3144259452819824
+    ],
+    "default": [
+     -0.06878041177988055,
+     0.06878041177988055
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -17.14249610900879,
+     7.953889846801758
+    ],
+    "default": [
+     -3.824056172370911,
+     3.824056172370911
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     137.63720703125
+    ],
+    "default": [
+     0.0,
+     55.42562484741211
+    ]
+   }
+  },
+  "built_s": 6.0
+ },
+ {
+  "crop": "crop1126",
+  "dataset": "jrc_mus-liver-8",
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Tight junction",
+  "nverts": 13258,
+  "nfaces": 25830,
+  "bin": "crop1126.bin",
+  "bytes": 628152,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   75,
+   25,
+   325
+  ],
+  "window_origin_nm": [
+   600.0,
+   200.0,
+   2600.0
+  ],
+  "ecs_frac": 0.0211,
+  "ecs_frac_full_crop": 0.0211,
+  "width_uncertain_frac": 0.051,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.047536130994558334,
+     0.018689217045903206
+    ],
+    "default": [
+     -0.014951192960143082,
+     0.014951192960143082
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -5.9543609619140625,
+     5.850161552429199
+    ],
+    "default": [
+     -3.4361433029174804,
+     3.4361433029174804
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     101.19288635253906
+    ],
+    "default": [
+     0.0,
+     57.688819885253906
+    ]
+   }
+  },
+  "built_s": 12.3
+ },
+ {
+  "crop": "crop1127",
+  "dataset": "jrc_mus-liver-8",
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region_group": "Hepatocyte lateral",
+  "anatomy": "Hepatocyte lateral",
+  "nverts": 20377,
+  "nfaces": 39971,
+  "bin": "crop1127.bin",
+  "bytes": 968700,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   0,
+   100
+  ],
+  "window_origin_nm": [
+   0.0,
+   0.0,
+   800.0
+  ],
+  "ecs_frac": 0.0402,
+  "ecs_frac_full_crop": 0.0401,
+  "width_uncertain_frac": 0.026,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.030577559024095535,
+     0.018614094704389572
+    ],
+    "default": [
+     -0.008353662863373754,
+     0.008353662863373754
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -5.33005952835083,
+     5.251259803771973
+    ],
+    "default": [
+     -3.084646773338318,
+     3.084646773338318
+    ]
+   },
+   "width": {
+    "bounds": [
+     27.712812423706055,
+     64.0
+    ],
+    "default": [
+     0.0,
+     50.59644317626953
+    ]
+   }
+  },
+  "built_s": 7.9
+ },
+ {
+  "crop": "crop1134",
+  "dataset": "jrc_mus-kidney-4",
+  "tissue": "Kidney",
+  "prep": "Rapid HPF",
+  "region_group": "Glomerular",
+  "anatomy": "Glomerular interstitium",
+  "nverts": 62261,
+  "nfaces": 121686,
+  "bin": "crop1134.bin",
+  "bytes": 2954496,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   175,
+   200,
+   50
+  ],
+  "window_origin_nm": [
+   1400.0,
+   1600.0,
+   400.0
+  ],
+  "ecs_frac": 0.6468,
+  "ecs_frac_full_crop": 0.6475,
+  "width_uncertain_frac": 0.367,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.04570414498448372,
+     0.9722850918769836
+    ],
+    "default": [
+     -0.014860533364117147,
+     0.014860533364117147
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -11.710614204406738,
+     16.090450286865234
+    ],
+    "default": [
+     -8.062047195434571,
+     8.062047195434571
+    ]
+   },
+   "width": {
+    "bounds": [
+     22.627416610717773,
+     389.953857421875
+    ],
+    "default": [
+     0.0,
+     304.0
+    ]
+   }
+  },
+  "built_s": 27.5
+ },
+ {
+  "crop": "crop1135",
+  "dataset": "jrc_mus-kidney-4",
+  "tissue": "Kidney",
+  "prep": "Rapid HPF",
+  "region_group": "Glomerular",
+  "anatomy": "Glomerular interstitium",
+  "nverts": 81981,
+  "nfaces": 160833,
+  "bin": "crop1135.bin",
+  "bytes": 3897540,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   25,
+   25,
+   50
+  ],
+  "window_origin_nm": [
+   200.0,
+   200.0,
+   400.0
+  ],
+  "ecs_frac": 0.3457,
+  "ecs_frac_full_crop": 0.3483,
+  "width_uncertain_frac": 0.186,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -35.82899475097656,
+     0.28941458463668823
+    ],
+    "default": [
+     -0.020014438778162003,
+     0.020014438778162003
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -26.159101486206055,
+     17.642250061035156
+    ],
+    "default": [
+     -8.39931869506836,
+     8.39931869506836
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     365.206787109375
+    ],
+    "default": [
+     0.0,
+     172.3252716064453
+    ]
+   }
+  },
+  "built_s": 9.3
+ },
+ {
+  "crop": "crop1136",
+  "dataset": "jrc_mus-kidney-4",
+  "tissue": "Kidney",
+  "prep": "Rapid HPF",
+  "region_group": "DCT base",
+  "anatomy": "DCT base",
+  "nverts": 23262,
+  "nfaces": 45192,
+  "bin": "crop1136.bin",
+  "bytes": 1100592,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   75,
+   75,
+   300
+  ],
+  "window_origin_nm": [
+   600.0,
+   600.0,
+   2400.0
+  ],
+  "ecs_frac": 0.0893,
+  "ecs_frac_full_crop": 0.0899,
+  "width_uncertain_frac": 0.14,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.4909467399120331,
+     0.19637803733348846
+    ],
+    "default": [
+     -0.011793741583824164,
+     0.011793741583824164
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -22.63270378112793,
+     17.076128005981445
+    ],
+    "default": [
+     -4.0965296745300295,
+     4.0965296745300295
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     170.08233642578125
+    ],
+    "default": [
+     0.0,
+     144.0
+    ]
+   }
+  },
+  "built_s": 16.0
+ },
+ {
+  "crop": "crop1137",
+  "dataset": "jrc_mus-kidney-4",
+  "tissue": "Kidney",
+  "prep": "Rapid HPF",
+  "region_group": "DCT base",
+  "anatomy": "DCT base",
+  "nverts": 98190,
+  "nfaces": 194336,
+  "bin": "crop1137.bin",
+  "bytes": 4688592,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   50,
+   125
+  ],
+  "window_origin_nm": [
+   0.0,
+   400.0,
+   1000.0
+  ],
+  "ecs_frac": 0.1467,
+  "ecs_frac_full_crop": 0.1473,
+  "width_uncertain_frac": 0.022,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -75.46670532226562,
+     0.9980126023292542
+    ],
+    "default": [
+     -0.0647037118673325,
+     0.0647037118673325
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -27.922321319580078,
+     21.373376846313477
+    ],
+    "default": [
+     -7.998242187500002,
+     7.998242187500002
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     117.57550811767578
+    ],
+    "default": [
+     0.0,
+     78.38367462158203
+    ]
+   }
+  },
+  "built_s": 8.7
+ },
+ {
+  "crop": "crop1138",
+  "dataset": "jrc_mus-kidney-4",
+  "tissue": "Kidney",
+  "prep": "Rapid HPF",
+  "region_group": "PCT lateral",
+  "anatomy": "PCT lateral",
+  "nverts": 28180,
+  "nfaces": 54975,
+  "bin": "crop1138.bin",
+  "bytes": 1336020,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   100,
+   75,
+   100
+  ],
+  "window_origin_nm": [
+   800.0,
+   600.0,
+   800.0
+  ],
+  "ecs_frac": 0.0893,
+  "ecs_frac_full_crop": 0.09,
+  "width_uncertain_frac": 0.245,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.16866658627986908,
+     0.04559702426195145
+    ],
+    "default": [
+     -0.01868573594838381,
+     0.01868573594838381
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -18.924291610717773,
+     7.944002628326416
+    ],
+    "default": [
+     -10.017188644409181,
+     10.017188644409181
+    ]
+   },
+   "width": {
+    "bounds": [
+     32.0,
+     135.76449584960938
+    ],
+    "default": [
+     0.0,
+     120.79734802246094
+    ]
+   }
+  },
+  "built_s": 13.1
+ },
+ {
+  "crop": "crop1140",
+  "dataset": "jrc_mus-cortex-4",
+  "tissue": "Cortex",
+  "prep": "Rapid HPF",
+  "region_group": "",
+  "anatomy": "Neuropil (unmyelinated fibers)",
+  "nverts": 80865,
+  "nfaces": 158977,
+  "bin": "crop1140.bin",
+  "bytes": 3848484,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   50,
+   225,
+   250
+  ],
+  "window_origin_nm": [
+   400.0,
+   1800.0,
+   2000.0
+  ],
+  "ecs_frac": 0.1473,
+  "ecs_frac_full_crop": 0.1471,
+  "width_uncertain_frac": 0.028,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -44.49970626831055,
+     0.27362799644470215
+    ],
+    "default": [
+     -0.026220284402370453,
+     0.026220284402370453
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -29.364112854003906,
+     21.149499893188477
+    ],
+    "default": [
+     -7.841595077514649,
+     7.841595077514649
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     144.0
+    ],
+    "default": [
+     0.0,
+     86.16263580322266
+    ]
+   }
+  },
+  "built_s": 3.6
+ },
+ {
+  "crop": "crop1141",
+  "dataset": "jrc_mus-cortex-4",
+  "tissue": "Cortex",
+  "prep": "Rapid HPF",
+  "region_group": "",
+  "anatomy": "Glial-neuronal (synaptic clefts)",
+  "nverts": 62818,
+  "nfaces": 124616,
+  "bin": "crop1141.bin",
+  "bytes": 3003024,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   75,
+   200,
+   225
+  ],
+  "window_origin_nm": [
+   600.0,
+   1600.0,
+   1800.0
+  ],
+  "ecs_frac": 0.0958,
+  "ecs_frac_full_crop": 0.0959,
+  "width_uncertain_frac": 0.015,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -115.6845474243164,
+     0.9620931148529053
+    ],
+    "default": [
+     -0.07810897529125214,
+     0.07810897529125214
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -28.23130226135254,
+     15.871942520141602
+    ],
+    "default": [
+     -7.488381862640382,
+     7.488381862640382
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     119.73303985595703
+    ],
+    "default": [
+     0.0,
+     90.5096664428711
+    ]
+   }
+  },
+  "built_s": 19.4
+ },
+ {
+  "crop": "crop1142",
+  "dataset": "jrc_mus-cortex-4",
+  "tissue": "Cortex",
+  "prep": "Rapid HPF",
+  "region_group": "",
+  "anatomy": "Unmyelinated nerve fibers",
+  "nverts": 55564,
+  "nfaces": 109228,
+  "bin": "crop1142.bin",
+  "bytes": 2644272,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   225,
+   125
+  ],
+  "window_origin_nm": [
+   0.0,
+   1800.0,
+   1000.0
+  ],
+  "ecs_frac": 0.1252,
+  "ecs_frac_full_crop": 0.125,
+  "width_uncertain_frac": 0.041,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -24.76772689819336,
+     10.475120544433594
+    ],
+    "default": [
+     -0.037233975157141656,
+     0.037233975157141656
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -26.673189163208008,
+     24.47572898864746
+    ],
+    "default": [
+     -10.300745105743408,
+     10.300745105743408
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     144.0
+    ],
+    "default": [
+     0.0,
+     83.13843536376953
+    ]
+   }
+  },
+  "built_s": 13.7
+ },
+ {
+  "crop": "crop1143",
+  "dataset": "jrc_mus-cortex-4",
+  "tissue": "Cortex",
+  "prep": "Rapid HPF",
+  "region_group": "",
+  "anatomy": "Unmyelinated nerve fibers",
+  "nverts": 103886,
+  "nfaces": 205500,
+  "bin": "crop1143.bin",
+  "bytes": 4959264,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   75,
+   150,
+   75
+  ],
+  "window_origin_nm": [
+   600.0,
+   1200.0,
+   600.0
+  ],
+  "ecs_frac": 0.1815,
+  "ecs_frac_full_crop": 0.1816,
+  "width_uncertain_frac": 0.035,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -100.46910858154297,
+     0.265414834022522
+    ],
+    "default": [
+     -0.04199300706386568,
+     0.04199300706386568
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -28.166086196899414,
+     20.76927375793457
+    ],
+    "default": [
+     -7.4172629833221455,
+     7.4172629833221455
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     131.9393768310547
+    ],
+    "default": [
+     0.0,
+     86.16263580322266
+    ]
+   }
+  },
+  "built_s": 15.3
+ },
+ {
+  "crop": "crop1144",
+  "dataset": "jrc_mus-kidney-4",
+  "tissue": "Kidney",
+  "prep": "Rapid HPF",
+  "region_group": "DCT base",
+  "anatomy": "DCT base",
+  "nverts": 50098,
+  "nfaces": 98205,
+  "bin": "crop1144.bin",
+  "bytes": 2380812,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   150,
+   275,
+   25
+  ],
+  "window_origin_nm": [
+   1200.0,
+   2200.0,
+   200.0
+  ],
+  "ecs_frac": 0.1088,
+  "ecs_frac_full_crop": 0.1086,
+  "width_uncertain_frac": 0.024,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.05307815968990326,
+     0.05901695787906647
+    ],
+    "default": [
+     -0.007662703469395639,
+     0.007662703469395639
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -7.720978260040283,
+     5.7577948570251465
+    ],
+    "default": [
+     -2.7676703929901127,
+     2.7676703929901127
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     80.0
+    ],
+    "default": [
+     0.0,
+     67.88224792480469
+    ]
+   }
+  },
+  "built_s": 28.8
+ },
+ {
+  "crop": "crop1145",
+  "dataset": "jrc_mus-heart-6",
+  "tissue": "Heart",
+  "prep": "Chemical",
+  "region_group": "Cardiac interstitial",
+  "anatomy": "Interstitial",
+  "nverts": 68454,
+  "nfaces": 134525,
+  "bin": "crop1145.bin",
+  "bytes": 3257196,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   100,
+   25,
+   0
+  ],
+  "window_origin_nm": [
+   800.0,
+   200.0,
+   0.0
+  ],
+  "ecs_frac": 0.3141,
+  "ecs_frac_full_crop": 0.3145,
+  "width_uncertain_frac": 0.201,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -1.3832082748413086,
+     0.31494298577308655
+    ],
+    "default": [
+     -0.018195683136582385,
+     0.018195683136582385
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -25.4521427154541,
+     14.467642784118652
+    ],
+    "default": [
+     -8.254085159301761,
+     8.254085159301761
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     400.31988525390625
+    ],
+    "default": [
+     0.0,
+     182.42807006835938
+    ]
+   }
+  },
+  "built_s": 4.3
+ },
+ {
+  "crop": "crop1146",
+  "dataset": "jrc_mus-heart-6",
+  "tissue": "Heart",
+  "prep": "Chemical",
+  "region_group": "Cardiac interstitial",
+  "anatomy": "Interstitial",
+  "nverts": 43498,
+  "nfaces": 85097,
+  "bin": "crop1146.bin",
+  "bytes": 2065116,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   75,
+   100,
+   75
+  ],
+  "window_origin_nm": [
+   600.0,
+   800.0,
+   600.0
+  ],
+  "ecs_frac": 0.205,
+  "ecs_frac_full_crop": 0.2024,
+  "width_uncertain_frac": 0.203,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -2.3513073921203613,
+     2.36209774017334
+    ],
+    "default": [
+     -0.029981237277388575,
+     0.029981237277388575
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -23.442745208740234,
+     14.09755802154541
+    ],
+    "default": [
+     -13.706134033203124,
+     13.706134033203124
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     272.0
+    ],
+    "default": [
+     0.0,
+     202.38577270507812
+    ]
+   }
+  },
+  "built_s": 8.2
+ },
+ {
+  "crop": "crop1147",
+  "dataset": "jrc_mus-heart-6",
+  "tissue": "Heart",
+  "prep": "Chemical",
+  "region_group": "Intercalated disc",
+  "anatomy": "Intercalated disc",
+  "nverts": 15884,
+  "nfaces": 30861,
+  "bin": "crop1147.bin",
+  "bytes": 751548,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   0,
+   100,
+   25
+  ],
+  "window_origin_nm": [
+   0.0,
+   800.0,
+   200.0
+  ],
+  "ecs_frac": 0.1138,
+  "ecs_frac_full_crop": 0.1128,
+  "width_uncertain_frac": 0.491,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.6378092765808105,
+     0.04214513674378395
+    ],
+    "default": [
+     -0.006741109536960721,
+     0.006741109536960721
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -19.224956512451172,
+     6.455469131469727
+    ],
+    "default": [
+     -2.49513509273529,
+     2.49513509273529
+    ]
+   },
+   "width": {
+    "bounds": [
+     22.627416610717773,
+     215.851806640625
+    ],
+    "default": [
+     0.0,
+     193.3287353515625
+    ]
+   }
+  },
+  "built_s": 8.1
+ },
+ {
+  "crop": "crop1148",
+  "dataset": "jrc_mus-heart-6",
+  "tissue": "Heart",
+  "prep": "Chemical",
+  "region_group": "Intercalated disc",
+  "anatomy": "Intercalated disc",
+  "nverts": 28907,
+  "nfaces": 56657,
+  "bin": "crop1148.bin",
+  "bytes": 1373652,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   75,
+   0,
+   250
+  ],
+  "window_origin_nm": [
+   600.0,
+   0.0,
+   2000.0
+  ],
+  "ecs_frac": 0.0911,
+  "ecs_frac_full_crop": 0.0912,
+  "width_uncertain_frac": 0.097,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.05607594922184944,
+     0.06011293828487396
+    ],
+    "default": [
+     -0.009544602129608393,
+     0.009544602129608393
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -10.850909233093262,
+     16.02859878540039
+    ],
+    "default": [
+     -4.247416257858276,
+     4.247416257858276
+    ]
+   },
+   "width": {
+    "bounds": [
+     22.627416610717773,
+     144.88616943359375
+    ],
+    "default": [
+     0.0,
+     125.98412322998047
+    ]
+   }
+  },
+  "built_s": 10.4
+ },
+ {
+  "crop": "crop1149",
+  "dataset": "jrc_mus-heart-4",
+  "tissue": "Heart",
+  "prep": "Rapid HPF",
+  "region_group": "Cardiac interstitial",
+  "anatomy": "Interstitial",
+  "nverts": 34407,
+  "nfaces": 67515,
+  "bin": "crop1149.bin",
+  "bytes": 1635948,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   50,
+   100,
+   25
+  ],
+  "window_origin_nm": [
+   400.0,
+   800.0,
+   200.0
+  ],
+  "ecs_frac": 0.2113,
+  "ecs_frac_full_crop": 0.2136,
+  "width_uncertain_frac": 0.258,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.22640566527843475,
+     0.15859036147594452
+    ],
+    "default": [
+     -0.015437623485922815,
+     0.015437623485922815
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -19.28705406188965,
+     15.927842140197754
+    ],
+    "default": [
+     -7.4177083015441925,
+     7.4177083015441925
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     207.38369750976562
+    ],
+    "default": [
+     0.0,
+     187.2751922607422
+    ]
+   }
+  },
+  "built_s": 10.1
+ },
+ {
+  "crop": "crop1150",
+  "dataset": "jrc_mus-heart-4",
+  "tissue": "Heart",
+  "prep": "Rapid HPF",
+  "region_group": "Cardiac interstitial",
+  "anatomy": "Interstitial",
+  "nverts": 104222,
+  "nfaces": 204739,
+  "bin": "crop1150.bin",
+  "bytes": 4958196,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   50,
+   0,
+   50
+  ],
+  "window_origin_nm": [
+   400.0,
+   0.0,
+   400.0
+  ],
+  "ecs_frac": 0.3841,
+  "ecs_frac_full_crop": 0.3853,
+  "width_uncertain_frac": 0.154,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.5066257119178772,
+     0.24017402529716492
+    ],
+    "default": [
+     -0.015162537898868322,
+     0.015162537898868322
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -19.606313705444336,
+     17.051898956298828
+    ],
+    "default": [
+     -7.628577232360841,
+     7.628577232360841
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     287.1097412109375
+    ],
+    "default": [
+     0.0,
+     144.0
+    ]
+   }
+  },
+  "built_s": 10.2
+ },
+ {
+  "crop": "crop1151",
+  "dataset": "jrc_mus-heart-4",
+  "tissue": "Heart",
+  "prep": "Rapid HPF",
+  "region_group": "Intercalated disc",
+  "anatomy": "Intercalated disc",
+  "nverts": 31066,
+  "nfaces": 61166,
+  "bin": "crop1151.bin",
+  "bytes": 1479576,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   375,
+   0,
+   0
+  ],
+  "window_origin_nm": [
+   3000.0,
+   0.0,
+   0.0
+  ],
+  "ecs_frac": 0.0456,
+  "ecs_frac_full_crop": 0.0456,
+  "width_uncertain_frac": 0.005,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -5.542366027832031,
+     0.285250723361969
+    ],
+    "default": [
+     -0.019762416183948524,
+     0.019762416183948524
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -26.802043914794922,
+     23.617624282836914
+    ],
+    "default": [
+     -8.194377708435061,
+     8.194377708435061
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     71.5541763305664
+    ],
+    "default": [
+     0.0,
+     57.688819885253906
+    ]
+   }
+  },
+  "built_s": 10.6
+ },
+ {
+  "crop": "crop1152",
+  "dataset": "jrc_mus-heart-4",
+  "tissue": "Heart",
+  "prep": "Rapid HPF",
+  "region_group": "Intercalated disc",
+  "anatomy": "Intercalated disc",
+  "nverts": 19867,
+  "nfaces": 38495,
+  "bin": "crop1152.bin",
+  "bytes": 938748,
+  "voxel_nm": 8.0,
+  "cube_nm": 800.0,
+  "box_nm": [
+   800.0,
+   800.0,
+   800.0
+  ],
+  "window_origin_vox": [
+   50,
+   50,
+   25
+  ],
+  "window_origin_nm": [
+   400.0,
+   400.0,
+   200.0
+  ],
+  "ecs_frac": 0.204,
+  "ecs_frac_full_crop": 0.2021,
+  "width_uncertain_frac": 0.616,
+  "ranges": {
+   "curvature": {
+    "bounds": [
+     -0.04520789161324501,
+     0.07324596494436264
+    ],
+    "default": [
+     -0.008897317573428157,
+     0.008897317573428157
+    ]
+   },
+   "deviation": {
+    "bounds": [
+     -10.080382347106934,
+     18.104299545288086
+    ],
+    "default": [
+     -3.894598913192749,
+     3.894598913192749
+    ]
+   },
+   "width": {
+    "bounds": [
+     16.0,
+     334.0898132324219
+    ],
+    "default": [
+     0.0,
+     267.731201171875
+    ]
+   }
+  },
+  "built_s": 7.8
+ }
+]

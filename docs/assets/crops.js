@@ -2,7 +2,13 @@
 (function () {
   const $ = id => document.getElementById(id);
   const PREP = { Chemical: 'chem', 'Rapid HPF': 'hpf' };
-  const rows = DATA.rows, COLS = DATA.cols, MANI = DATA.mani;
+  const rows = DATA.rows, COLS = DATA.cols;
+  // one manifest per surface; the view says which one a panel is reading
+  const SURF = { membrane: DATA.mani || {}, ecs: DATA.ecs || {} };
+  const V = window.ECSViewer;
+  const curView = () => V.VIEW[$('vview').value] || V.VIEW['mem-gap'];
+  const MANIfor = surf => SURF[surf] || {};
+  const MANI = () => MANIfor(curView().surface);
   const base = 'membranes/';
   let shown = new Set(DATA.defaults.filter(c => COLS[c]));
   const facet = { tissue: new Set(), region: new Set(), prep: new Set() };
@@ -163,7 +169,6 @@
   });
 
   /* ---------- viewer ---------- */
-  const V = window.ECSViewer;
   const panels = {};
   function initPanels() {
     for (const s of ['A', 'B']) {
@@ -175,10 +180,6 @@
         if (other && other.entry) other.syncFrom(p);
       };
       const sel = $('p' + s).querySelector('.pick');
-      sel.innerHTML = Object.keys(MANI).sort()
-        .map(c => {const r=rows.find(x=>x.crop===c);
-          return `<option value="${c}">${c} · ${MANI[c].tissue} · ${MANI[c].prep}${
-            r&&r.voxel?' · '+r.voxel+' nm':''}</option>`;}).join('');
       sel.onchange = () => load(s, sel.value);
       $('p' + s).onclick = () => setActive(s);
       const fit = $('p' + s).querySelector('.fit');
@@ -194,6 +195,17 @@
         .addEventListener('dblclick', () => panels[s].frame());
     }
   }
+  function fillPicks() {
+    const M = MANI();
+    for (const s of ['A', 'B']) {
+      const sel = $('p' + s).querySelector('.pick');
+      sel.innerHTML = Object.keys(M).sort()
+        .map(c => {const r = rows.find(x => x.crop === c);
+          return `<option value="${c}">${c} · ${M[c].tissue} · ${M[c].prep}${
+            r && r.voxel ? ' · ' + r.voxel + ' nm' : ''}</option>`;}).join('');
+      if (selected[s] && M[selected[s]]) sel.value = selected[s];
+    }
+  }
   function setActive(s) {
     active = s;
     for (const k of ['A', 'B']) $('p' + k).classList.toggle('active', k === active);
@@ -201,10 +213,11 @@
   function currentRange() { return [parseFloat($('vlo').value), parseFloat($('vhi').value)]; }
   /* which surface, coloured by what. `scalar` is null for the bare mesh, and
      the colour-range controls have nothing to say then, so they go away. */
-  function curScalar() { return (V.VIEW[$('vview').value] || {}).scalar || null; }
+  function curScalar() { return curView().scalar || null; }
   function autoRange() {
     const sc = curScalar(); if (!sc) return;
-    const es = [selected.A, selected.B].filter(Boolean).map(c => MANI[c]).filter(Boolean);
+    const M = MANI();
+    const es = [selected.A, selected.B].filter(Boolean).map(c => M[c]).filter(Boolean);
     if (!es.length) return;
     const d = es.map(e => e.ranges[sc] && e.ranges[sc].default).filter(Boolean);
     if (!d.length) return;
@@ -221,18 +234,22 @@
     $('vhilab').textContent = fmt(hi) + ' ' + V.SCALARS[sc].unit;
   }
   async function load(slot, crop) {
-    const e = MANI[crop]; if (!e) return;
+    const view = curView(), M = MANI();
+    const e = M[crop]; if (!e) return;
     selected[slot] = crop;
     $('p' + slot).querySelector('.pick').value = crop;
     if (!Number.isFinite(parseFloat($('vlo').value))) autoRange();
     const sc = curScalar(), [lo, hi] = currentRange();
-    await panels[slot].show(e, sc, lo, hi);
+    await panels[slot].show(e, sc, lo, hi, view.surface);
     // the manifest's voxel_nm is the scale the mesh patch was built at (16 nm for
     // every crop), not the crop's acquisition voxel — take that from the table row
     const row = rows.find(r => r.crop === crop);
     const vox = row && row.voxel ? row.voxel + ' nm' : '';
+    const box = view.surface === 'ecs' && e.cube_nm
+      ? `${Math.round(e.cube_nm)} nm box at ${e.voxel_nm} nm` : '';
     $('p' + slot).querySelector('.vfoot').textContent =
-      [e.tissue, e.region_group || e.anatomy, e.prep, vox].filter(Boolean).join(' · ');
+      [e.tissue, e.region_group || e.anatomy, e.prep, vox, box]
+        .filter(Boolean).join(' · ');
     if (linked && compare) {
       const other = slot === 'A' ? panels.B : panels.A;
       if (other && other.entry) panels[slot].syncFrom(other);
@@ -252,8 +269,10 @@
     $('vswap').hidden = !compare;
     $('vcompare').textContent = compare ? 'Single view' : 'Compare two';
     if (compare && !selected.B) {
-      const list = rows.filter(passes).map(r => r.crop).filter(c => c !== selected.A);
-      load('B', list[0] || Object.keys(MANI)[0]);
+      const M = MANI();
+      const list = rows.filter(passes).map(r => r.crop)
+        .filter(c => c !== selected.A && M[c]);
+      load('B', list[0] || Object.keys(M)[0]);
     }
     resizeSoon();
   }
@@ -306,9 +325,23 @@
     g.addEventListener('dblclick', () => setTableWidth(460));
   })();
 
-  V.mountViewSelect($('vview'), 'mem-gap');
-  $('vview').onchange = () => {
-    $('vlo').value = ''; $('vhi').value = '';   // each view has its own sensible range
+  V.mountViewSelect($('vview'), 'mem-gap',
+    v => Object.keys(MANIfor(v.surface)).length > 0);
+  let surfaceShown = curView().surface;
+  $('vview').onchange = async () => {
+    $('vlo').value = ''; $('vhi').value = '';   // each view has its own range
+    const view = curView();
+    if (view.surface === surfaceShown) { autoRange(); recolorAll(); return; }
+    surfaceShown = view.surface;
+    const M = MANI(), keys = Object.keys(M).sort();
+    fillPicks();
+    const pick = (want, fallback) => (want && M[want]) ? want : fallback;
+    const a = pick(selected.A, keys[0]);
+    const b = pick(selected.B, keys[1] || keys[0]);
+    selected.A = selected.B = null;
+    await load('A', a);
+    if (compare) await load('B', b);
+    for (const s of ['A', 'B']) panels[s] && panels[s].frame();
     autoRange(); recolorAll();
   };
   $('vlo').oninput = recolorAll; $('vhi').oninput = recolorAll;
@@ -367,11 +400,11 @@
   }
 
   buildFacets(); buildRanges(); buildCols(); render();
-  initPanels();
+  initPanels(); fillPicks();
   fitHub();
   addEventListener('resize', resizeSoon);
   (async () => {
-    const first = Object.keys(MANI).sort();
+    const first = Object.keys(MANI()).sort();
     await load('A', first[0]);
     await load('B', first[1] || first[0]);
   })();

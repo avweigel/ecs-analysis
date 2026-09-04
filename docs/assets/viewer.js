@@ -8,15 +8,21 @@
     gap:       { label: 'Gap to nearest cell', cmap: 'viridis', unit: 'nm' },
     curvature: { label: 'Signed curvature',    cmap: 'RdBu_r',  unit: '1/nm' },
     deviation: { label: 'Protrusion / indentation', cmap: 'RdBu_r', unit: 'nm' },
+    width:     { label: 'Local channel width', cmap: 'viridis', unit: 'nm' },
+  };
+  // each surface is a directory of .bin files and the scalars they carry, in
+  // the order they are written
+  const SURFACES = {
+    membrane: { dir: 'inspect/', scalars: ['curvature', 'deviation', 'gap'] },
+    ecs:      { dir: 'ecs/',     scalars: ['curvature', 'deviation', 'width'] },
   };
   const NAN_GREY = [0.30, 0.31, 0.35];
   const PLAIN = 0xb9b2a3;          // unpainted surface: warm bone, reads in both themes
 
   /* What you can put in a panel. `surface` is which mesh, `scalar` is what
-     colours it (null = the bare mesh). `ready:false` entries are listed but
-     disabled: the ECS surfaces are coming and the menu should say so rather
-     than pretend the analysis is membrane-only. Turning one on is a one-line
-     change here once its data ships. */
+     colours it (null = the bare mesh). A view whose data has not been built
+     is listed and disabled rather than hidden, so the menu says what is
+     coming instead of implying the analysis stops here. */
   const VIEWS = [
     { id: 'mem',      group: 'Membrane surface', label: 'Mesh only',
       surface: 'membrane', scalar: null, ready: true },
@@ -26,41 +32,47 @@
       surface: 'membrane', scalar: 'deviation', ready: true },
     { id: 'mem-gap',  group: 'Membrane surface', label: 'Gap to nearest cell — distance',
       surface: 'membrane', scalar: 'gap', ready: true },
-    { id: 'ecs',      group: 'ECS surface (not built yet)', label: 'Mesh only',
-      surface: 'ecs', scalar: null, ready: false },
-    { id: 'ecs-curv', group: 'ECS surface (not built yet)', label: 'Curvature — morphology',
-      surface: 'ecs', scalar: 'curvature', ready: false },
-    { id: 'ecs-wid',  group: 'ECS surface (not built yet)', label: 'Local width — thickness',
-      surface: 'ecs', scalar: 'width', ready: false },
+    { id: 'ecs',      group: 'ECS surface', label: 'Mesh only',
+      surface: 'ecs', scalar: null, ready: true },
+    { id: 'ecs-curv', group: 'ECS surface', label: 'Curvature — morphology',
+      surface: 'ecs', scalar: 'curvature', ready: true },
+    { id: 'ecs-dev',  group: 'ECS surface', label: 'Protrusion / indentation — morphology',
+      surface: 'ecs', scalar: 'deviation', ready: true },
+    { id: 'ecs-wid',  group: 'ECS surface', label: 'Local channel width — thickness',
+      surface: 'ecs', scalar: 'width', ready: true },
   ];
   const VIEW = Object.fromEntries(VIEWS.map(v => [v.id, v]));
 
-  function mountViewSelect(sel, current) {
+  function mountViewSelect(sel, current, have) {
     let g = null, html = '';
     for (const v of VIEWS) {
+      const ok = v.ready && (!have || have(v));
       if (v.group !== g) { if (g) html += '</optgroup>'; g = v.group;
         html += `<optgroup label="${g}">`; }
-      html += `<option value="${v.id}"${v.ready ? '' : ' disabled'}${
-        v.id === current ? ' selected' : ''}>${v.label}</option>`;
+      html += `<option value="${v.id}"${ok ? '' : ' disabled'}${
+        v.id === current ? ' selected' : ''}>${v.label}${
+        ok ? '' : ' — not built yet'}</option>`;
     }
     sel.innerHTML = html + '</optgroup>';
   }
   const cache = new Map();
 
-  async function loadBin(base, entry) {
-    const key = entry.crop;
+  async function loadBin(base, entry, surface) {
+    const spec = SURFACES[surface || 'membrane'];
+    const key = spec.dir + entry.crop;
     if (cache.has(key)) return cache.get(key);
-    const buf = await (await fetch(base + 'inspect/' + entry.bin)).arrayBuffer();
+    const buf = await (await fetch(base + spec.dir + entry.bin)).arrayBuffer();
     const nv = entry.nverts, nf = entry.nfaces;
     let o = 0;
     const pos = new Float32Array(buf, o, nv * 3);           o += nv * 12;
     const idx = new Uint32Array(buf, o, nf * 3);            o += nf * 12;
-    const cur = new Float32Array(buf, o, nv);               o += nv * 4;
-    const dev = new Float32Array(buf, o, nv);               o += nv * 4;
-    const gap = new Float32Array(buf, o, nv);
-    const data = { pos, idx, scal: { curvature: cur, deviation: dev, gap } };
-    cache.set(key, data);
-    return data;
+    const scal = {};
+    for (const name of spec.scalars) {
+      scal[name] = new Float32Array(buf, o, nv);            o += nv * 4;
+    }
+    const out = { pos, idx, scal };
+    cache.set(key, out);
+    return out;
   }
 
   class Panel {
@@ -98,9 +110,9 @@
       this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
     }
-    async show(entry, scalar, lo, hi) {
-      this.entry = entry;
-      const d = await loadBin(this.base, entry);
+    async show(entry, scalar, lo, hi, surface) {
+      this.entry = entry; this.surface = surface || 'membrane';
+      const d = await loadBin(this.base, entry, this.surface);
       if (this.mesh) { this.scene.remove(this.mesh); this.mesh.geometry.dispose(); }
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.BufferAttribute(d.pos, 3));

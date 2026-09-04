@@ -51,19 +51,27 @@ Published from `docs/` (see `docs/README.md`). Overview, a metric explorer over
 all 94 metrics, a crop table, the figure gallery and the membrane inspector.
 Replaces the local HTML files so it can be shared by link.
 
-The crop page's viewer takes a **view**: which surface, coloured by what. Four
-membrane views work today (bare mesh, curvature, protrusion/indentation, gap to
-nearest cell). Three ECS views are listed and disabled, waiting on data:
+The crop page's viewer takes a **view**: which surface, coloured by what. Both
+surfaces are built — four membrane views (bare mesh, curvature, protrusion /
+indentation, gap to nearest cell) and four ECS views (bare mesh, curvature,
+protrusion / indentation, local channel width).
 
-| view | needs |
-| --- | --- |
-| ECS mesh only | an ECS surface per crop in the `.bin` layout `docs/membranes/inspect/` uses: positions `f32[nv*3]`, indices `u32[nf*3]`, then one `f32[nv]` block per scalar |
-| ECS morphology | per-vertex curvature on that surface |
-| ECS thickness | per-vertex local width on that surface |
+`scripts/make_ecs_surfaces.py` builds the ECS side: 55 crops, 8 nm, an 800 nm
+cube each, 117 MB in `docs/membranes/ecs/`. Two choices in it are worth
+remembering:
 
-`scripts/render_ecs_3d.py` already marching-cubes the ECS mask (needs the zarr,
-so VPN and a cluster job). Turning a view on is one line in `VIEWS` in
-`docs/assets/viewer.js` once its `.bin` and manifest ranges exist.
+- **The cube is not the middle of the crop.** It is the position whose ECS
+  fraction is closest to the whole crop's. The centre of crop1072 sits inside
+  one hepatocyte and holds no ECS at all. Median error against the whole crop
+  is 0.3%, p90 2.8%.
+- **Width is an estimate.** Distance to the nearest cell is zero on the ECS
+  surface by construction, so width is the diameter of the largest ball that
+  fits in the channel, found by walking the normal into the space. It saturates
+  in open pools, and where a channel leaves the cube the vertex is NaN (grey)
+  rather than a number that flatters the box.
+
+Rebuild with `ECS_DATA_BASE=<mount>/data python scripts/make_ecs_surfaces.py
+--all`; it needs the zarr, so VPN or the mounted share, and about 25 minutes.
 
 ## Data situation
 
