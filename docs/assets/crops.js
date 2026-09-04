@@ -325,23 +325,41 @@
     g.addEventListener('dblclick', () => setTableWidth(460));
   })();
 
-  V.mountViewSelect($('vview'), 'mem-gap',
-    v => Object.keys(MANIfor(v.surface)).length > 0);
-  let surfaceShown = curView().surface;
-  $('vview').onchange = async () => {
-    $('vlo').value = ''; $('vhi').value = '';   // each view has its own range
-    const view = curView();
-    if (view.surface === surfaceShown) { autoRange(); recolorAll(); return; }
-    surfaceShown = view.surface;
+  let surfaceShown = 'membrane';
+  const haveSurface = sf => Object.keys(MANIfor(sf)).length > 0;
+  V.mountSurfaceToggle($('vsurface'), surfaceShown, haveSurface);
+  V.mountScalarSelect($('vview'), surfaceShown, 'mem-gap');
+
+  async function switchSurface(sf) {
+    if (sf === surfaceShown || !haveSurface(sf)) return;
+    surfaceShown = sf;
+    V.mountSurfaceToggle($('vsurface'), sf, haveSurface);
+    // keep the same kind of colouring across the switch where it exists:
+    // curvature stays curvature, and gap and width are both "how far apart"
+    const same = { curvature: 'curvature', deviation: 'deviation',
+                   gap: 'width', width: 'gap', '': '' };
+    const want = same[curScalar() || ''] || '';
+    const match = V.VIEWS.find(v => v.surface === sf && v.ready &&
+                                    (v.scalar || '') === want);
+    V.mountScalarSelect($('vview'), sf, match ? match.id : undefined);
+    $('vlo').value = ''; $('vhi').value = '';
     const M = MANI(), keys = Object.keys(M).sort();
     fillPicks();
-    const pick = (want, fallback) => (want && M[want]) ? want : fallback;
+    const pick = (w, fb) => (w && M[w]) ? w : fb;
     const a = pick(selected.A, keys[0]);
     const b = pick(selected.B, keys[1] || keys[0]);
     selected.A = selected.B = null;
     await load('A', a);
     if (compare) await load('B', b);
     for (const s of ['A', 'B']) panels[s] && panels[s].frame();
+    autoRange(); recolorAll();
+  }
+  $('vsurface').onclick = e => {
+    const b = e.target.closest('[data-surface]');
+    if (b && !b.disabled) switchSurface(b.dataset.surface);
+  };
+  $('vview').onchange = () => {
+    $('vlo').value = ''; $('vhi').value = '';   // each view has its own range
     autoRange(); recolorAll();
   };
   $('vlo').oninput = recolorAll; $('vhi').oninput = recolorAll;

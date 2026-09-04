@@ -26,35 +26,48 @@
   const VIEWS = [
     { id: 'mem',      group: 'Membrane surface', label: 'Mesh only',
       surface: 'membrane', scalar: null, ready: true },
-    { id: 'mem-curv', group: 'Membrane surface', label: 'Curvature — morphology',
+    { id: 'mem-curv', group: 'Membrane surface', label: 'Curvature',
       surface: 'membrane', scalar: 'curvature', ready: true },
-    { id: 'mem-dev',  group: 'Membrane surface', label: 'Protrusion / indentation — morphology',
+    { id: 'mem-dev',  group: 'Membrane surface', label: 'Protrusion / indentation',
       surface: 'membrane', scalar: 'deviation', ready: true },
-    { id: 'mem-gap',  group: 'Membrane surface', label: 'Gap to nearest cell — distance',
+    { id: 'mem-gap',  group: 'Membrane surface', label: 'Gap to nearest cell',
       surface: 'membrane', scalar: 'gap', ready: true },
     { id: 'ecs',      group: 'ECS surface', label: 'Mesh only',
       surface: 'ecs', scalar: null, ready: true },
-    { id: 'ecs-curv', group: 'ECS surface', label: 'Curvature — morphology',
+    { id: 'ecs-curv', group: 'ECS surface', label: 'Curvature',
       surface: 'ecs', scalar: 'curvature', ready: true },
-    { id: 'ecs-dev',  group: 'ECS surface', label: 'Protrusion / indentation — morphology',
+    { id: 'ecs-dev',  group: 'ECS surface', label: 'Protrusion / indentation',
       surface: 'ecs', scalar: 'deviation', ready: true },
-    { id: 'ecs-wid',  group: 'ECS surface', label: 'Local channel width — thickness',
+    { id: 'ecs-wid',  group: 'ECS surface', label: 'Local channel width',
       surface: 'ecs', scalar: 'width', ready: true },
   ];
   const VIEW = Object.fromEntries(VIEWS.map(v => [v.id, v]));
 
-  function mountViewSelect(sel, current, have) {
-    let g = null, html = '';
-    for (const v of VIEWS) {
-      const ok = v.ready && (!have || have(v));
-      if (v.group !== g) { if (g) html += '</optgroup>'; g = v.group;
-        html += `<optgroup label="${g}">`; }
-      html += `<option value="${v.id}"${ok ? '' : ' disabled'}${
-        v.id === current ? ' selected' : ''}>${v.label}${
-        ok ? '' : ' — not built yet'}</option>`;
-    }
-    sel.innerHTML = html + '</optgroup>';
+  const SURFACE_LABEL = { membrane: 'Membrane', ecs: 'ECS' };
+
+  /* The surface is a visible pair of buttons, not a group inside a menu.
+     Buried in one long dropdown, the ECS views read as absent -- you had to
+     open a select labelled "Gap to nearest cell" to discover the page could
+     show the extracellular space at all. */
+  function mountSurfaceToggle(host, current, have) {
+    const surfs = [...new Set(VIEWS.map(v => v.surface))];
+    host.innerHTML = surfs.map(sf => {
+      const ok = !have || have(sf);
+      return `<button type="button" class="btn seg${sf === current ? ' on' : ''}"
+        data-surface="${sf}"${ok ? '' : ' disabled title="not built yet"'}
+        >${SURFACE_LABEL[sf] || sf}</button>`;
+    }).join('');
   }
+
+  function mountScalarSelect(sel, surface, current) {
+    const vs = VIEWS.filter(v => v.surface === surface && v.ready);
+    sel.innerHTML = vs.map(v =>
+      `<option value="${v.id}"${v.id === current ? ' selected' : ''}>${v.label}</option>`
+    ).join('');
+    if (!vs.some(v => v.id === current) && vs.length) sel.value = vs[0].id;
+    return sel.value;
+  }
+
   const cache = new Map();
 
   async function loadBin(base, entry, surface) {
@@ -171,7 +184,8 @@
     }
   }
 
-  window.ECSViewer = { Panel, SCALARS, VIEWS, VIEW, mountViewSelect, drawBar };
+  window.ECSViewer = { Panel, SCALARS, VIEWS, VIEW, SURFACE_LABEL,
+                     mountSurfaceToggle, mountScalarSelect, drawBar };
 
   function drawBar(canvas, scalar, lo, hi) {
     const w = canvas.clientWidth || 220;

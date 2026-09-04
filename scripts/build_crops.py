@@ -120,6 +120,13 @@ EXTRA = """<script src="membranes/three.min.js"></script>
  .vbar .rng{display:flex;gap:var(--s3);align-items:center}
  .vbar .rng[hidden]{display:none!important}
  .vbar select{max-width:none}
+ /* the surface is a two-button segment, not a line in a menu */
+ .seggroup{display:inline-flex}
+ .seggroup .seg{border-radius:0;margin-left:-1px;position:relative}
+ .seggroup .seg:first-child{border-radius:6px 0 0 6px;margin-left:0}
+ .seggroup .seg:last-child{border-radius:0 6px 6px 0}
+ .seggroup .seg.on{z-index:1}
+ .seggroup .seg[disabled]{opacity:.4;cursor:not-allowed}
  .vbar optgroup{font-style:normal}
  .vbar .key{font-size:10.5px}
  .grow{flex:1 1 auto}
@@ -264,7 +271,8 @@ def main():
   </div>
   <div class="gutter" id="gutter" title="Drag to resize the table"></div>
   <div class="vbar">
-    <select id="vview" title="Which surface, and what it is coloured by"></select>
+    <span class="seggroup" id="vsurface" title="Which surface to show"></span>
+    <select id="vview" title="What colours the surface"></select>
     <span class="rng" id="vrange"><input type="number" id="vlo" step="any" title="Colour range, low">
       <input type="number" id="vhi" step="any" title="Colour range, high">
       <button class="btn" id="vauto" type="button">Auto</button>
