@@ -47,6 +47,16 @@ def build_index(long_rows, wide_rows, mets):
             f'<td class="num{" flag" if nh<=1 else ""}">{nh}</td>'
             f'<td class="wrap">{"<span class=flag>no comparison possible</span>" if bad else ""}</td></tr>')
 
+    # the thumbnails the section list deals from: every crop that has one
+    thumb_dir = DOCS / "assets" / "art" / "thumbs"
+    have = sorted(p.stem for p in thumb_dir.glob("*.png")) if thumb_dir.is_dir() else []
+    thumbs = json.dumps([{"crop": c, "tissue": crops[c]["tissue"],
+                          "prep": crops[c]["prep"]}
+                         for c in have if c in crops], separators=(",", ":"))
+    seed = [c for c in have if c in crops][:5] or ["crop1026"] * 5
+    while len(seed) < 5:
+        seed.append(seed[0])
+
     fams = Counter(r["metric_family"] for r in long_rows)
     fam_labels = json.loads((DOCS / "data" / "metrics.json").read_text())["families"]
     fam_rows = ""
@@ -61,6 +71,7 @@ def build_index(long_rows, wide_rows, mets):
     html = sh.head("ECS preservation — data overview", 0,
                    '<script type="module" src="assets/model-viewer.min.js"></script>')
     html += sh.nav("index.html", 0)
+    t0, t1, t2, t3, t4 = seed[:5]
     html += f"""
 <div class="hero"><div class="inner">
   <div>
@@ -93,23 +104,60 @@ def build_index(long_rows, wide_rows, mets):
 data, published so it can be read from the outside &mdash; every metric, every crop, and the
 caveats that go with them.</p>
 
-<ul class="jump">
-  <li><a href="explore.html"><img src="assets/art/thumbs/crop1146.png" alt="A heart membrane patch" loading="lazy">
+<ul class="jump" id="jump">
+  <li><a href="explore.html"><img src="assets/art/thumbs/{t0}.png" alt="A membrane patch" loading="lazy">
     <span class="t">Explore</span>
     <span class="d">Any metric, grouped by tissue, region or anatomy. One dot per crop.</span></a></li>
-  <li><a href="crops.html"><img src="assets/art/thumbs/crop1038.png" alt="A liver membrane patch" loading="lazy">
+  <li><a href="crops.html"><img src="assets/art/thumbs/{t1}.png" alt="A membrane patch" loading="lazy">
     <span class="t">Crops</span>
     <span class="d">All {n_crops} crops with their metadata and headline numbers.</span></a></li>
-  <li><a href="figures.html"><img src="assets/art/thumbs/crop1030.png" alt="A kidney membrane patch" loading="lazy">
+  <li><a href="figures.html"><img src="assets/art/thumbs/{t2}.png" alt="A membrane patch" loading="lazy">
     <span class="t">Figures</span>
     <span class="d">Every plot the pipeline produces, captioned.</span></a></li>
-  <li><a href="figures.html#3d"><img src="assets/art/thumbs/crop1033.png" alt="A cortex membrane patch" loading="lazy">
+  <li><a href="figures.html#3d"><img src="assets/art/thumbs/{t3}.png" alt="A membrane patch" loading="lazy">
     <span class="t">Renders</span>
     <span class="d">Paired 3D views per region, and the methods behind the membrane measurements.</span></a></li>
-  <li><a href="reference.html"><img src="assets/art/thumbs/crop1145.png" alt="A heart membrane patch" loading="lazy">
+  <li><a href="reference.html"><img src="assets/art/thumbs/{t4}.png" alt="A membrane patch" loading="lazy">
     <span class="t">Reference</span>
     <span class="d">What a crop is, how to read the charts, and what all {n_metrics} metrics mean.</span></a></li>
 </ul>
+<p class="note" id="jumpnote" style="margin-top:var(--s3)"></p>
+<script>
+/* Five hard-coded thumbnails meant the same five crops greeted everyone for
+   ever, two of them near-identical hearts. There are 55; deal a fresh hand on
+   every load, one tissue each where the tissues allow it, and say underneath
+   which crops these are -- decoration that is also a sample of the data. */
+(function () {{
+  const T = {thumbs};
+  const imgs = [...document.querySelectorAll('#jump img')];
+  if (!T.length || !imgs.length) return;
+  const pool = T.slice();
+  for (let i = pool.length - 1; i > 0; i--) {{
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }}
+  const used = new Set(), pick = [];
+  for (const t of pool) {{                       // one per tissue first
+    if (pick.length === imgs.length) break;
+    if (used.has(t.tissue)) continue;
+    used.add(t.tissue); pick.push(t);
+  }}
+  for (const t of pool) {{                       // then whatever is left
+    if (pick.length === imgs.length) break;
+    if (!pick.includes(t)) pick.push(t);
+  }}
+  imgs.forEach((img, i) => {{
+    const t = pick[i]; if (!t) return;
+    img.src = 'assets/art/thumbs/' + t.crop + '.png';
+    img.alt = t.tissue + ' membrane patch, ' + t.crop;
+    img.title = t.crop + ' \u00b7 ' + t.tissue + ' \u00b7 ' + t.prep;
+  }});
+  const note = document.getElementById('jumpnote');
+  if (note) note.textContent = 'Thumbnails, top to bottom: '
+    + pick.map(t => t.crop + ' (' + t.tissue.toLowerCase() + ', '
+      + t.prep.toLowerCase() + ')').join(', ') + '. A different five each visit.';
+}})();
+</script>
 
 <div class="sec">
 <h2 style="margin-top:0">What you are looking at</h2>
