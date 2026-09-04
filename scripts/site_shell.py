@@ -12,7 +12,8 @@ from pathlib import Path
 NAV = [
     ("explore.html",   "Explore"),
     ("crops.html",     "Crops"),
-    ("figures.html",   "Figures"),
+    # "Figures" implied assembled manuscript figures. Nothing here is one.
+    ("figures.html",   "Quantification"),
     ("reference.html", "Reference"),
 ]
 

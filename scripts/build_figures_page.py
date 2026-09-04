@@ -90,20 +90,22 @@ def main():
                  border-top:1px solid var(--rule)}
  .fig figcaption b{display:block;color:var(--ink);margin-bottom:2px;font-size:13.5px}
 </style>"""
-    html = sh.head("Figures — ECS preservation", 0, extra)
+    html = sh.head("Quantification — ECS preservation", 0, extra)
     html += sh.nav("figures.html", 0)
-    html += sh.pagehead("Figure gallery",
-        "Every plot the analysis pipeline produces, with what it shows and the caveat that goes "
-        "with it. Click any figure for the full-resolution version. These are generated output, "
-        'not final figures &mdash; the <a href="explore.html">explorer</a> is the better place to '
-        "interrogate a specific number.", wide=True)
+    html += sh.pagehead("Quantification",
+        "Every plot the pipeline draws, with what it shows and the caveat that goes with it. "
+        "Click any panel for the full-resolution version. These are pipeline output, not "
+        "assembled figures &mdash; nothing here is numbered and nothing is final. For one "
+        'metric at a time, per crop, the <a href="explore.html">explorer</a> does it live and '
+        "does it better; this page is for what a single dot plot cannot show &mdash; every "
+        "metric at once, the paired region vignettes, and the 3D renders.", wide=True)
     html += f"""<main class="wide after-head">
 {sh.PREP_LEGEND}
 {body}
 """
     html += sh.tail(0)
     (ROOT / "docs" / "figures.html").write_text(html)
-    print(f"built docs/figures.html ({n} figures)"
+    print(f"built docs/figures.html ({n} panels)"
           + (f", {len(missing)} missing: {missing}" if missing else ""))
 
 

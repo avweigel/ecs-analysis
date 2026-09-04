@@ -78,7 +78,7 @@ docs/                   the published site (GitHub Pages serves this folder)
   explore.html          metric explorer over all 94 metrics
   crops.html            per-crop table
   reference.html        study design, how to read the charts, metric dictionary
-  figures.html          plot gallery
+  figures.html          quantification: every plot the pipeline draws
   membranes/            3D views, the membrane inspector, methods
   data/                 the CSVs and metrics.json the pages read
   README.md             what is published, what is deliberately left out

@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="assets/app.css?v=541bcceb">
 <script src="assets/site.js?v=541bcceb"></script>
-<script type="module" src="assets/model-viewer.min.js"></script></head><body><header class="top"><div class="wrap"><a class="brand" href="index.html">ECS preservation</a><nav><a href="explore.html">Explore</a><a href="crops.html">Crops</a><a href="figures.html">Figures</a><a href="reference.html">Reference</a></nav><button id="themetog" type="button">Auto</button></div></header>
+<script type="module" src="assets/model-viewer.min.js"></script></head><body><header class="top"><div class="wrap"><a class="brand" href="index.html">ECS preservation</a><nav><a href="explore.html">Explore</a><a href="crops.html">Crops</a><a href="figures.html">Quantification</a><a href="reference.html">Reference</a></nav><button id="themetog" type="button">Auto</button></div></header>
 <div class="hero"><div class="inner">
   <div>
     <p class="eyebrow">Volume electron microscopy &middot; mouse tissue</p>
@@ -38,60 +38,23 @@
 data, published so it can be read from the outside &mdash; every metric, every crop, and the
 caveats that go with them.</p>
 
-<ul class="jump" id="jump">
-  <li><a href="explore.html"><img src="assets/art/thumbs/crop1026.png" alt="A membrane patch" loading="lazy">
+<ul class="jump">
+  <li><a href="explore.html"><svg class="ico" viewBox="0 0 44 44" width="46" height="46" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g stroke="currentColor" stroke-width="1.6" opacity=".55"><path d="M6 8v30h32"/></g><g stroke="var(--rule-strong)" stroke-width="1.4" opacity=".8"><path d="M12 12v22M20 12v22M28 12v22M36 12v22"/></g><g fill="var(--chem)"><circle cx="14" cy="15" r="2.4"/><circle cx="22" cy="15" r="2.4"/><circle cx="30" cy="15" r="2.4"/></g><g fill="var(--hpf)"><circle cx="12" cy="24" r="2.4"/><circle cx="18" cy="24" r="2.4"/><circle cx="27" cy="24" r="2.4"/></g><g fill="var(--chem)"><circle cx="17" cy="32" r="2.4"/><circle cx="25" cy="32" r="2.4"/><circle cx="34" cy="32" r="2.4"/></g></svg>
     <span class="t">Explore</span>
     <span class="d">Any metric, grouped by tissue, region or anatomy. One dot per crop.</span></a></li>
-  <li><a href="crops.html"><img src="assets/art/thumbs/crop1027.png" alt="A membrane patch" loading="lazy">
+  <li><a href="crops.html"><svg class="ico" viewBox="0 0 44 44" width="46" height="46" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g stroke="currentColor" stroke-width="1.6"><rect x="5" y="8" width="20" height="28" rx="2"/><path d="M5 15h20M13 15v21"/></g><g stroke="var(--accent)" stroke-width="1.5" opacity=".85"><path d="M8 20h3M8 26h3M8 32h3"/></g><g stroke="currentColor" stroke-width="1.6"><rect x="29" y="8" width="10" height="28" rx="2"/></g><path d="M31 30c3-6 2-11 6-14v18h-6z" fill="var(--accent)" opacity=".8"/></svg>
     <span class="t">Crops</span>
-    <span class="d">All 55 crops with their metadata and headline numbers.</span></a></li>
-  <li><a href="figures.html"><img src="assets/art/thumbs/crop1028.png" alt="A membrane patch" loading="lazy">
-    <span class="t">Figures</span>
-    <span class="d">Every plot the pipeline produces, captioned.</span></a></li>
-  <li><a href="figures.html#3d"><img src="assets/art/thumbs/crop1029.png" alt="A membrane patch" loading="lazy">
+    <span class="d">All 55 crops, filterable, with the membrane and the space itself in the viewer.</span></a></li>
+  <li><a href="figures.html"><svg class="ico" viewBox="0 0 44 44" width="46" height="46" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g stroke="currentColor" stroke-width="1.5"><rect x="5" y="6" width="15" height="15" rx="2"/><rect x="24" y="6" width="15" height="15" rx="2"/><rect x="5" y="24" width="15" height="14" rx="2"/><rect x="24" y="24" width="15" height="14" rx="2"/></g><g stroke="var(--chem)" stroke-width="1.8"><path d="M8 17l3-6 3 4 3-6"/></g><g fill="var(--hpf)"><rect x="27" y="12" width="2.6" height="6" rx="1"/><rect x="31" y="9" width="2.6" height="9" rx="1"/><rect x="35" y="14" width="2.6" height="4" rx="1"/></g><g stroke="var(--hpf)" stroke-width="1.8"><path d="M8 34c4 0 4-7 8-7"/></g><g fill="var(--chem)" opacity=".85"><rect x="27" y="28" width="10" height="3" rx="1.5"/><rect x="27" y="33" width="6" height="3" rx="1.5"/></g></svg>
+    <span class="t">Quantification</span>
+    <span class="d">Every plot the pipeline draws, captioned — including the cross-metric effect matrix.</span></a></li>
+  <li><a href="figures.html#3d"><svg class="ico" viewBox="0 0 44 44" width="46" height="46" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g stroke="currentColor" stroke-width="1.6"><path d="M22 5l15 8v18l-15 8-15-8V13z"/></g><path d="M9 15c5 5 8-2 13 2s7-3 13 1v14l-13 7-13-7z" fill="var(--accent)" opacity=".28"/><g stroke="var(--accent)" stroke-width="1.6"><path d="M9 15c5 5 8-2 13 2s7-3 13 1"/><path d="M9 24c5 5 8-2 13 2s7-3 13 1"/></g></svg>
     <span class="t">Renders</span>
     <span class="d">Paired 3D views per region, and the methods behind the membrane measurements.</span></a></li>
-  <li><a href="reference.html"><img src="assets/art/thumbs/crop1030.png" alt="A membrane patch" loading="lazy">
+  <li><a href="reference.html"><svg class="ico" viewBox="0 0 44 44" width="46" height="46" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g stroke="currentColor" stroke-width="1.6"><path d="M8 7h17a4 4 0 014 4v26H12a4 4 0 01-4-4z"/><path d="M12 37a4 4 0 010-8h17"/></g><g stroke="var(--accent)" stroke-width="1.5" opacity=".9"><path d="M13 14h13M13 19h13M13 24h8"/></g><g stroke="var(--chem)" stroke-width="1.7"><circle cx="30" cy="26" r="5"/><path d="M34 30l4 4"/></g></svg>
     <span class="t">Reference</span>
     <span class="d">What a crop is, how to read the charts, and what all 94 metrics mean.</span></a></li>
 </ul>
-<p class="note" id="jumpnote" style="margin-top:var(--s3)"></p>
-<script>
-/* Five hard-coded thumbnails meant the same five crops greeted everyone for
-   ever, two of them near-identical hearts. There are 55; deal a fresh hand on
-   every load, one tissue each where the tissues allow it, and say underneath
-   which crops these are -- decoration that is also a sample of the data. */
-(function () {
-  const T = [{"crop":"crop1026","tissue":"Kidney","prep":"Chemical"},{"crop":"crop1027","tissue":"Kidney","prep":"Chemical"},{"crop":"crop1028","tissue":"Kidney","prep":"Chemical"},{"crop":"crop1029","tissue":"Kidney","prep":"Chemical"},{"crop":"crop1030","tissue":"Kidney","prep":"Chemical"},{"crop":"crop1031","tissue":"Kidney","prep":"Chemical"},{"crop":"crop1032","tissue":"Kidney","prep":"Chemical"},{"crop":"crop1033","tissue":"Cortex","prep":"Chemical"},{"crop":"crop1034","tissue":"Cortex","prep":"Chemical"},{"crop":"crop1035","tissue":"Cortex","prep":"Chemical"},{"crop":"crop1036","tissue":"Cortex","prep":"Chemical"},{"crop":"crop1037","tissue":"Cortex","prep":"Chemical"},{"crop":"crop1038","tissue":"Liver","prep":"Chemical"},{"crop":"crop1039","tissue":"Liver","prep":"Chemical"},{"crop":"crop1040","tissue":"Liver","prep":"Chemical"},{"crop":"crop1041","tissue":"Liver","prep":"Chemical"},{"crop":"crop1042","tissue":"Liver","prep":"Chemical"},{"crop":"crop1043","tissue":"Liver","prep":"Chemical"},{"crop":"crop1044","tissue":"Liver","prep":"Chemical"},{"crop":"crop1045","tissue":"Cortex","prep":"Chemical"},{"crop":"crop1046","tissue":"Cortex","prep":"Chemical"},{"crop":"crop1071","tissue":"Liver","prep":"Rapid HPF"},{"crop":"crop1072","tissue":"Liver","prep":"Rapid HPF"},{"crop":"crop1073","tissue":"Liver","prep":"Rapid HPF"},{"crop":"crop1074","tissue":"Liver","prep":"Rapid HPF"},{"crop":"crop1075","tissue":"Liver","prep":"Rapid HPF"},{"crop":"crop1116","tissue":"Cortex","prep":"Rapid HPF"},{"crop":"crop1118","tissue":"Liver","prep":"Chemical"},{"crop":"crop1119","tissue":"Liver","prep":"Chemical"},{"crop":"crop1120","tissue":"Liver","prep":"Chemical"},{"crop":"crop1121","tissue":"Liver","prep":"Chemical"},{"crop":"crop1122","tissue":"Liver","prep":"Chemical"},{"crop":"crop1123","tissue":"Liver","prep":"Rapid HPF"},{"crop":"crop1124","tissue":"Liver","prep":"Rapid HPF"},{"crop":"crop1125","tissue":"Liver","prep":"Rapid HPF"},{"crop":"crop1126","tissue":"Liver","prep":"Rapid HPF"},{"crop":"crop1127","tissue":"Liver","prep":"Rapid HPF"},{"crop":"crop1134","tissue":"Kidney","prep":"Rapid HPF"},{"crop":"crop1135","tissue":"Kidney","prep":"Rapid HPF"},{"crop":"crop1136","tissue":"Kidney","prep":"Rapid HPF"},{"crop":"crop1137","tissue":"Kidney","prep":"Rapid HPF"},{"crop":"crop1138","tissue":"Kidney","prep":"Rapid HPF"},{"crop":"crop1140","tissue":"Cortex","prep":"Rapid HPF"},{"crop":"crop1141","tissue":"Cortex","prep":"Rapid HPF"},{"crop":"crop1142","tissue":"Cortex","prep":"Rapid HPF"},{"crop":"crop1143","tissue":"Cortex","prep":"Rapid HPF"},{"crop":"crop1144","tissue":"Kidney","prep":"Rapid HPF"},{"crop":"crop1145","tissue":"Heart","prep":"Chemical"},{"crop":"crop1146","tissue":"Heart","prep":"Chemical"},{"crop":"crop1147","tissue":"Heart","prep":"Chemical"},{"crop":"crop1148","tissue":"Heart","prep":"Chemical"},{"crop":"crop1149","tissue":"Heart","prep":"Rapid HPF"},{"crop":"crop1150","tissue":"Heart","prep":"Rapid HPF"},{"crop":"crop1151","tissue":"Heart","prep":"Rapid HPF"},{"crop":"crop1152","tissue":"Heart","prep":"Rapid HPF"}];
-  const imgs = [...document.querySelectorAll('#jump img')];
-  if (!T.length || !imgs.length) return;
-  const pool = T.slice();
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
-  const used = new Set(), pick = [];
-  for (const t of pool) {                       // one per tissue first
-    if (pick.length === imgs.length) break;
-    if (used.has(t.tissue)) continue;
-    used.add(t.tissue); pick.push(t);
-  }
-  for (const t of pool) {                       // then whatever is left
-    if (pick.length === imgs.length) break;
-    if (!pick.includes(t)) pick.push(t);
-  }
-  imgs.forEach((img, i) => {
-    const t = pick[i]; if (!t) return;
-    img.src = 'assets/art/thumbs/' + t.crop + '.png';
-    img.alt = t.tissue + ' membrane patch, ' + t.crop;
-    img.title = t.crop + ' · ' + t.tissue + ' · ' + t.prep;
-  });
-  const note = document.getElementById('jumpnote');
-  if (note) note.textContent = 'Thumbnails, top to bottom: '
-    + pick.map(t => t.crop + ' (' + t.tissue.toLowerCase() + ', '
-      + t.prep.toLowerCase() + ')').join(', ') + '. A different five each visit.';
-})();
-</script>
 
 <div class="sec">
 <h2 style="margin-top:0">What you are looking at</h2>

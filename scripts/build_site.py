@@ -22,6 +22,60 @@ ROOT = Path(__file__).resolve().parent.parent
 RES, DOCS = ROOT / "results", ROOT / "docs"
 
 
+# Section icons. Each one draws what the page actually is -- a strip plot, a
+# filterable table beside a render, a wall of panels, a cut solid, a dictionary
+# page -- rather than a crop thumbnail that says nothing about where the link
+# goes. Two colours, both from the palette, so they read in either theme.
+_ICO = ('<svg class="ico" viewBox="0 0 44 44" width="46" height="46" fill="none" '
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">%s</svg>')
+
+ICO_EXPLORE = _ICO % (
+    '<g stroke="currentColor" stroke-width="1.6" opacity=".55">'
+    '<path d="M6 8v30h32"/></g>'
+    '<g stroke="var(--rule-strong)" stroke-width="1.4" opacity=".8">'
+    '<path d="M12 12v22M20 12v22M28 12v22M36 12v22"/></g>'
+    '<g fill="var(--chem)"><circle cx="14" cy="15" r="2.4"/><circle cx="22" cy="15" r="2.4"/>'
+    '<circle cx="30" cy="15" r="2.4"/></g>'
+    '<g fill="var(--hpf)"><circle cx="12" cy="24" r="2.4"/><circle cx="18" cy="24" r="2.4"/>'
+    '<circle cx="27" cy="24" r="2.4"/></g>'
+    '<g fill="var(--chem)"><circle cx="17" cy="32" r="2.4"/><circle cx="25" cy="32" r="2.4"/>'
+    '<circle cx="34" cy="32" r="2.4"/></g>')
+
+ICO_CROPS = _ICO % (
+    '<g stroke="currentColor" stroke-width="1.6"><rect x="5" y="8" width="20" height="28" rx="2"/>'
+    '<path d="M5 15h20M13 15v21"/></g>'
+    '<g stroke="var(--accent)" stroke-width="1.5" opacity=".85">'
+    '<path d="M8 20h3M8 26h3M8 32h3"/></g>'
+    '<g stroke="currentColor" stroke-width="1.6"><rect x="29" y="8" width="10" height="28" rx="2"/></g>'
+    '<path d="M31 30c3-6 2-11 6-14v18h-6z" fill="var(--accent)" opacity=".8"/>')
+
+ICO_QUANT = _ICO % (
+    '<g stroke="currentColor" stroke-width="1.5">'
+    '<rect x="5" y="6" width="15" height="15" rx="2"/><rect x="24" y="6" width="15" height="15" rx="2"/>'
+    '<rect x="5" y="24" width="15" height="14" rx="2"/><rect x="24" y="24" width="15" height="14" rx="2"/></g>'
+    '<g stroke="var(--chem)" stroke-width="1.8"><path d="M8 17l3-6 3 4 3-6"/></g>'
+    '<g fill="var(--hpf)"><rect x="27" y="12" width="2.6" height="6" rx="1"/>'
+    '<rect x="31" y="9" width="2.6" height="9" rx="1"/><rect x="35" y="14" width="2.6" height="4" rx="1"/></g>'
+    '<g stroke="var(--hpf)" stroke-width="1.8"><path d="M8 34c4 0 4-7 8-7"/></g>'
+    '<g fill="var(--chem)" opacity=".85"><rect x="27" y="28" width="10" height="3" rx="1.5"/>'
+    '<rect x="27" y="33" width="6" height="3" rx="1.5"/></g>')
+
+ICO_RENDERS = _ICO % (
+    '<g stroke="currentColor" stroke-width="1.6">'
+    '<path d="M22 5l15 8v18l-15 8-15-8V13z"/></g>'
+    '<path d="M9 15c5 5 8-2 13 2s7-3 13 1v14l-13 7-13-7z" fill="var(--accent)" opacity=".28"/>'
+    '<g stroke="var(--accent)" stroke-width="1.6"><path d="M9 15c5 5 8-2 13 2s7-3 13 1"/>'
+    '<path d="M9 24c5 5 8-2 13 2s7-3 13 1"/></g>')
+
+ICO_REFERENCE = _ICO % (
+    '<g stroke="currentColor" stroke-width="1.6"><path d="M8 7h17a4 4 0 014 4v26H12a4 4 0 01-4-4z"/>'
+    '<path d="M12 37a4 4 0 010-8h17"/></g>'
+    '<g stroke="var(--accent)" stroke-width="1.5" opacity=".9">'
+    '<path d="M13 14h13M13 19h13M13 24h8"/></g>'
+    '<g stroke="var(--chem)" stroke-width="1.7"><circle cx="30" cy="26" r="5"/>'
+    '<path d="M34 30l4 4"/></g>')
+
+
 def esc(t):
     return (t or "").replace("&", "&amp;").replace("<", "&lt;")
 
@@ -47,16 +101,6 @@ def build_index(long_rows, wide_rows, mets):
             f'<td class="num{" flag" if nh<=1 else ""}">{nh}</td>'
             f'<td class="wrap">{"<span class=flag>no comparison possible</span>" if bad else ""}</td></tr>')
 
-    # the thumbnails the section list deals from: every crop that has one
-    thumb_dir = DOCS / "assets" / "art" / "thumbs"
-    have = sorted(p.stem for p in thumb_dir.glob("*.png")) if thumb_dir.is_dir() else []
-    thumbs = json.dumps([{"crop": c, "tissue": crops[c]["tissue"],
-                          "prep": crops[c]["prep"]}
-                         for c in have if c in crops], separators=(",", ":"))
-    seed = [c for c in have if c in crops][:5] or ["crop1026"] * 5
-    while len(seed) < 5:
-        seed.append(seed[0])
-
     fams = Counter(r["metric_family"] for r in long_rows)
     fam_labels = json.loads((DOCS / "data" / "metrics.json").read_text())["families"]
     fam_rows = ""
@@ -71,7 +115,6 @@ def build_index(long_rows, wide_rows, mets):
     html = sh.head("ECS preservation — data overview", 0,
                    '<script type="module" src="assets/model-viewer.min.js"></script>')
     html += sh.nav("index.html", 0)
-    t0, t1, t2, t3, t4 = seed[:5]
     html += f"""
 <div class="hero"><div class="inner">
   <div>
@@ -104,60 +147,23 @@ def build_index(long_rows, wide_rows, mets):
 data, published so it can be read from the outside &mdash; every metric, every crop, and the
 caveats that go with them.</p>
 
-<ul class="jump" id="jump">
-  <li><a href="explore.html"><img src="assets/art/thumbs/{t0}.png" alt="A membrane patch" loading="lazy">
+<ul class="jump">
+  <li><a href="explore.html">{ICO_EXPLORE}
     <span class="t">Explore</span>
     <span class="d">Any metric, grouped by tissue, region or anatomy. One dot per crop.</span></a></li>
-  <li><a href="crops.html"><img src="assets/art/thumbs/{t1}.png" alt="A membrane patch" loading="lazy">
+  <li><a href="crops.html">{ICO_CROPS}
     <span class="t">Crops</span>
-    <span class="d">All {n_crops} crops with their metadata and headline numbers.</span></a></li>
-  <li><a href="figures.html"><img src="assets/art/thumbs/{t2}.png" alt="A membrane patch" loading="lazy">
-    <span class="t">Figures</span>
-    <span class="d">Every plot the pipeline produces, captioned.</span></a></li>
-  <li><a href="figures.html#3d"><img src="assets/art/thumbs/{t3}.png" alt="A membrane patch" loading="lazy">
+    <span class="d">All {n_crops} crops, filterable, with the membrane and the space itself in the viewer.</span></a></li>
+  <li><a href="figures.html">{ICO_QUANT}
+    <span class="t">Quantification</span>
+    <span class="d">Every plot the pipeline draws, captioned — including the cross-metric effect matrix.</span></a></li>
+  <li><a href="figures.html#3d">{ICO_RENDERS}
     <span class="t">Renders</span>
     <span class="d">Paired 3D views per region, and the methods behind the membrane measurements.</span></a></li>
-  <li><a href="reference.html"><img src="assets/art/thumbs/{t4}.png" alt="A membrane patch" loading="lazy">
+  <li><a href="reference.html">{ICO_REFERENCE}
     <span class="t">Reference</span>
     <span class="d">What a crop is, how to read the charts, and what all {n_metrics} metrics mean.</span></a></li>
 </ul>
-<p class="note" id="jumpnote" style="margin-top:var(--s3)"></p>
-<script>
-/* Five hard-coded thumbnails meant the same five crops greeted everyone for
-   ever, two of them near-identical hearts. There are 55; deal a fresh hand on
-   every load, one tissue each where the tissues allow it, and say underneath
-   which crops these are -- decoration that is also a sample of the data. */
-(function () {{
-  const T = {thumbs};
-  const imgs = [...document.querySelectorAll('#jump img')];
-  if (!T.length || !imgs.length) return;
-  const pool = T.slice();
-  for (let i = pool.length - 1; i > 0; i--) {{
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }}
-  const used = new Set(), pick = [];
-  for (const t of pool) {{                       // one per tissue first
-    if (pick.length === imgs.length) break;
-    if (used.has(t.tissue)) continue;
-    used.add(t.tissue); pick.push(t);
-  }}
-  for (const t of pool) {{                       // then whatever is left
-    if (pick.length === imgs.length) break;
-    if (!pick.includes(t)) pick.push(t);
-  }}
-  imgs.forEach((img, i) => {{
-    const t = pick[i]; if (!t) return;
-    img.src = 'assets/art/thumbs/' + t.crop + '.png';
-    img.alt = t.tissue + ' membrane patch, ' + t.crop;
-    img.title = t.crop + ' \u00b7 ' + t.tissue + ' \u00b7 ' + t.prep;
-  }});
-  const note = document.getElementById('jumpnote');
-  if (note) note.textContent = 'Thumbnails, top to bottom: '
-    + pick.map(t => t.crop + ' (' + t.tissue.toLowerCase() + ', '
-      + t.prep.toLowerCase() + ')').join(', ') + '. A different five each visit.';
-}})();
-</script>
 
 <div class="sec">
 <h2 style="margin-top:0">What you are looking at</h2>
