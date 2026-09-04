@@ -113,8 +113,10 @@ p{margin:0 0 var(--s3)}
 @media(max-width:820px){.cols-2,.cols-3{grid-template-columns:1fr}}
 
 /* stat row — no boxes, just numbers on a rule */
+/* one rule above the numbers, one below; the list that follows butts straight
+   onto the lower rule rather than adding a second one 28px later */
 .stats{display:flex;gap:var(--s6);flex-wrap:wrap;padding:var(--s4) 0;
-  border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:0 0 var(--s5)}
+  border-top:1px solid var(--rule);margin:0}
 .stat .n{font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.1;
   font-variant-numeric:tabular-nums}
 .stat .k{font-size:var(--t5);color:var(--ink-3);text-transform:uppercase;
