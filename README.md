@@ -6,6 +6,19 @@ CellMap groundtruth crops in four mouse tissues (Kidney, Heart, Liver,
 Cortex). 52 active crops, ~1,500 cells. All four tissues now have both
 Chemical and HPF crops (Heart HPF added 2026-05 via `jrc_mus-heart-4`).
 
+## Browse the data
+
+**<https://avweigel.github.io/ecs-analysis/>**
+
+Every measurement in this repository, browsable without cloning it: a metric
+explorer over all 94 metrics, the per-crop table, the figure gallery, membrane
+surfaces in 3D, and a reference page defining every metric and the caveats that
+go with it. Built from `docs/` and published with GitHub Pages.
+
+Start at the [reference page](https://avweigel.github.io/ecs-analysis/reference.html)
+if you have not seen this dataset before — it explains what a crop is, what the
+two preparations are, and why every metric is computed three times.
+
 > **Quick handoff:** two zip snapshots live at the repo root, both
 > self-contained (excludes `archive/` and `paper/`).
 > - [`handoff.zip`](handoff.zip) — original handoff with empty
@@ -60,7 +73,27 @@ ecs/
     topology.py         pooled curvature, multi-scale roughness,
                         protrusion/indentation density per um^2
 
+docs/                   the published site (GitHub Pages serves this folder)
+  index.html            overview, scope, and where the comparison is supported
+  explore.html          metric explorer over all 94 metrics
+  crops.html            per-crop table
+  reference.html        study design, how to read the charts, metric dictionary
+  figures.html          plot gallery
+  membranes/            3D views, the membrane inspector, methods
+  data/                 the CSVs and metrics.json the pages read
+  README.md             what is published, what is deliberately left out
+
 scripts/
+  collect_all.py        merge every per-crop metric into results/all_metrics_*
+  build_metric_dictionary.py  names, units and caveats for all 94 metrics
+  site_shell.py         shared header, nav and footer for every page
+  build_site.py         -> docs/index.html, docs/crops.html
+  build_explorer.py     -> docs/explore.html
+  build_reference.py    -> docs/reference.html
+  build_figures_page.py -> docs/figures.html
+  build_views_page.py   -> docs/membranes/views.html
+  retheme_legacy.py     puts the older membrane pages on the shared shell
+
   run_native.py         native-resolution pass on all crops
   run_matched.py        downsample to TARGET_VOXEL_NM (8nm) then run all
   run_degradation.py    Chemical crops at multiple resolutions
