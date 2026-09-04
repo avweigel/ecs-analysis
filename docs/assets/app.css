@@ -122,8 +122,12 @@ header.top nav a[aria-current]{color:var(--ink);border-bottom-color:var(--ink)}
 .hero h1 em{font-style:italic;color:#cfe6d2}
 .hero p{color:var(--night-ink-2);max-width:52ch;font-size:16px;margin:0}
 .hero .art{position:relative;justify-self:center}
-.hero .art img{display:block;width:100%;max-width:460px;height:auto;
+.hero .art img,.hero .art model-viewer{display:block;width:100%;max-width:460px;height:auto;
   filter:drop-shadow(0 26px 60px rgba(0,0,0,.55)) saturate(1.06)}
+.hero .art model-viewer{height:400px;background:transparent;cursor:grab;
+  --poster-color:transparent}
+.hero .art model-viewer:active{cursor:grabbing}
+.hero .cap::before{content:"drag to rotate · ";opacity:.75}
 .hero .cap{position:absolute;bottom:-26px;right:0;font-size:var(--t5);
   color:var(--night-ink-2);letter-spacing:.03em}
 @media(max-width:860px){

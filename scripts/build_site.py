@@ -75,8 +75,12 @@ def build_index(long_rows, wide_rows, mets):
     </div>
   </div>
   <div class="art">
-    <img src="assets/art/hero-gap.png" alt="A cardiac membrane surface coloured by
-      distance to the nearest neighbouring cell, studded with caveolae" loading="eager">
+    <model-viewer src="assets/art/hero.glb" camera-controls auto-rotate
+      auto-rotate-delay="1200" rotation-per-second="14deg" interaction-prompt="none"
+      touch-action="pan-y" exposure="1.15" shadow-intensity="0"
+      camera-orbit="auto auto 88%" min-field-of-view="12deg"
+      alt="A cardiac membrane surface coloured by distance to the nearest neighbouring cell,
+      studded with caveolae. Drag to rotate."></model-viewer>
     <span class="cap">crop1146 &middot; heart, chemical &middot; gap to nearest cell</span>
   </div>
 </div></div>
@@ -87,19 +91,19 @@ data, published so it can be read from the outside &mdash; every metric, every c
 caveats that go with them.</p>
 
 <ul class="jump">
-  <li><a href="explore.html"><img src="assets/art/thumbs/crop1146.png" alt="" loading="lazy">
+  <li><a href="explore.html"><img src="assets/art/thumbs/crop1146.png" alt="A heart membrane patch" loading="lazy">
     <span class="t">Explore</span>
     <span class="d">Any metric, grouped by tissue, region or anatomy. One dot per crop.</span></a></li>
-  <li><a href="crops.html"><img src="assets/art/thumbs/crop1038.png" alt="" loading="lazy">
+  <li><a href="crops.html"><img src="assets/art/thumbs/crop1038.png" alt="A liver membrane patch" loading="lazy">
     <span class="t">Crops</span>
     <span class="d">All {n_crops} crops with their metadata and headline numbers.</span></a></li>
-  <li><a href="figures.html"><img src="assets/art/thumbs/crop1126.png" alt="" loading="lazy">
+  <li><a href="figures.html"><img src="assets/art/thumbs/crop1030.png" alt="A kidney membrane patch" loading="lazy">
     <span class="t">Figures</span>
     <span class="d">Every plot the pipeline produces, captioned.</span></a></li>
-  <li><a href="membranes/views.html"><img src="assets/art/thumbs/crop1039.png" alt="" loading="lazy">
-    <span class="t">Membranes</span>
-    <span class="d">Membrane surfaces in 3D, and a viewer with live control of the colour range.</span></a></li>
-  <li><a href="reference.html"><img src="assets/art/thumbs/crop1072.png" alt="" loading="lazy">
+  <li><a href="figures.html#3d"><img src="assets/art/thumbs/crop1033.png" alt="A cortex membrane patch" loading="lazy">
+    <span class="t">Renders</span>
+    <span class="d">Paired 3D views per region, and the methods behind the membrane measurements.</span></a></li>
+  <li><a href="reference.html"><img src="assets/art/thumbs/crop1145.png" alt="A heart membrane patch" loading="lazy">
     <span class="t">Reference</span>
     <span class="d">What a crop is, how to read the charts, and what all {n_metrics} metrics mean.</span></a></li>
 </ul>
@@ -283,10 +287,8 @@ def main():
     wide_rows = list(csv.DictReader((DOCS / "data" / "all_metrics_wide.csv").open()))
     mets = json.loads((DOCS / "data" / "metrics.json").read_text())["metrics"]
     n = build_index(long_rows, wide_rows, mets)
-    build_crops(wide_rows, mets)
-    p = DOCS / "crops.html"
-    p.write_text(p.read_text().replace("</body></html>", CROPS_JS + "</body></html>"))
-    print(f"built docs/index.html and docs/crops.html ({n} crops)")
+    # crops.html is built by scripts/build_crops.py — it owns the viewer now
+    print(f"built docs/index.html ({n} crops)")
 
 
 if __name__ == "__main__":

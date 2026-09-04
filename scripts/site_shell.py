@@ -10,19 +10,20 @@ import hashlib
 from pathlib import Path
 
 NAV = [
-    ("explore.html",         "Explore"),
-    ("crops.html",           "Crops"),
-    ("figures.html",         "Figures"),
-    ("membranes/views.html", "Membranes"),
-    ("reference.html",       "Reference"),
+    ("explore.html",   "Explore"),
+    ("crops.html",     "Crops"),
+    ("figures.html",   "Figures"),
+    ("reference.html", "Reference"),
 ]
 
 # pages that live under a nav entry rather than beside it: visiting one of these
 # lights up its parent, so the bar always shows where you are
+# the membrane pages now live under Crops, which owns the viewer
 PARENT = {
-    "membranes/inspector.html": "membranes/views.html",
-    "membranes/methods.html":   "membranes/views.html",
-    "membranes/index.html":     "membranes/views.html",
+    "membranes/views.html":     "crops.html",
+    "membranes/inspector.html": "crops.html",
+    "membranes/methods.html":   "crops.html",
+    "membranes/index.html":     "crops.html",
     "index.html":               None,
 }
 
