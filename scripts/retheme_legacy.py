@@ -27,44 +27,48 @@ MARK = "<!--rethemed-->"
 APP_TOKENS = """<link rel="stylesheet" href="../assets/app.css">
 <script src="../assets/site.js"></script>
 <style>
- /* the app's own variables now alias the site tokens, so it follows light/dark
-    with everything else; only the 3D viewport stays dark in both modes, because
-    a lit surface reads better against it */
- :root{--bg:var(--surface-0);--card:var(--surface-1);--card2:var(--surface-2);
-       --ink:var(--text-primary);--muted:var(--text-muted);--head:var(--text-primary)}
- body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-      background:var(--surface-0);color:var(--text-primary)}
- #side{background:var(--surface-1);border-right:1px solid var(--line)}
- #side h1{color:var(--text-primary)} #side p{color:var(--text-muted)}
- .grp{color:var(--text-muted)}
- .crop{background:var(--surface-2);border:1px solid var(--line);color:var(--text-primary)}
- .crop:hover{background:var(--surface-3)}
- .crop.active{background:var(--accent);border-color:var(--accent);color:#fff}
+ /* the viewer's own variables alias the site tokens, so it follows the theme;
+    only the 3D viewport stays dark in both modes, because a lit surface reads
+    better against it */
+ :root{--bg:var(--bg);--card:var(--raise);--card2:var(--sunk);
+       --ink:var(--ink);--muted:var(--ink-3);--line:var(--rule);--head:var(--ink)}
+ body{font:var(--t3)/1.6 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      background:var(--bg);color:var(--ink)}
+ #side{background:var(--bg);border-right:1px solid var(--rule);padding:var(--s4)}
+ #side h1{color:var(--ink);font-size:var(--t2);font-weight:600}
+ #side p{color:var(--ink-3);font-size:var(--t4)}
+ .grp{color:var(--ink-3);font-size:var(--t5);text-transform:uppercase;letter-spacing:.07em}
+ .crop{background:none;border:0;border-bottom:1px solid var(--rule);border-radius:0;
+       color:var(--ink);font-size:var(--t4);padding:6px 4px;margin:0}
+ .crop:hover{background:var(--sunk)}
+ .crop.active{background:var(--accent);color:#fff;border-radius:5px;border-bottom-color:transparent}
  .crop.active .chem,.crop.active .hpf{color:#fff}
- #main{background:radial-gradient(circle at 50% 40%,#1e2430,#0d1016)}
- #ctrl,#title{background:var(--surface-1);border:1px solid var(--line);color:var(--text-primary)}
- #ctrl select,.row input[type=number]{background:var(--surface-2);color:var(--text-primary);
-   border:1px solid var(--line)}
- #ctrl label,#barlab,#nanleg,#hint{color:var(--text-muted)}
+ .chem{color:var(--chem)} .hpf{color:var(--hpf)}
+ #main{background:#0d1016}
+ #ctrl,#title{background:var(--raise);border:1px solid var(--rule);color:var(--ink);
+              border-radius:var(--radius);box-shadow:0 8px 26px rgba(0,0,0,.18)}
+ #ctrl select,.row input[type=number]{background:var(--bg);color:var(--ink);
+   border:1px solid var(--rule-strong)}
+ #ctrl label,#barlab,#nanleg,#hint{color:var(--ink-3);font-size:var(--t5)}
 </style>"""
 
 DOC_STYLE = """<style>
- body{background:var(--surface-0);color:var(--text-primary)}
- .container{max-width:var(--maxw);margin:0 auto;padding:28px 20px 80px}
+ body{background:var(--bg);color:var(--ink)}
+ .container{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s7)}
  nav.bar{display:none}
- h1{font-size:25px;margin:0 0 8px;letter-spacing:-.022em}
- h2{font-size:17px;color:var(--text-primary);border-bottom:1px solid var(--line);
-    padding-bottom:6px;margin-top:36px}
- h3{color:var(--text-primary);margin:20px 0 6px;font-size:14px}
- a{color:var(--accent)}
- table{border-collapse:collapse;width:100%;font-size:13.5px}
- th,td{border-bottom:1px solid var(--line-soft);padding:7px 11px;text-align:left}
- th{color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.055em}
- code,pre{background:var(--surface-2);border-radius:5px;padding:1px 5px;font-size:12.5px}
- pre{padding:11px;overflow-x:auto}
- img{max-width:100%;border-radius:8px}
- .grid,.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
- .card,.item{background:var(--surface-1);border:1px solid var(--line);border-radius:10px;padding:12px}
+ h1{font-size:var(--t1);margin:0 0 var(--s3);letter-spacing:-.02em;font-weight:600}
+ h2{font-size:var(--t2);color:var(--ink);border-bottom:1px solid var(--rule);
+    padding-bottom:var(--s2);margin:var(--s6) 0 var(--s3);font-weight:600}
+ h3{color:var(--ink);margin:var(--s4) 0 var(--s2);font-size:var(--t3);font-weight:600}
+ p,li{color:var(--ink-2)}
+ table{border-collapse:collapse;width:100%;font-size:var(--t4);display:block;overflow-x:auto}
+ th,td{border-bottom:1px solid var(--rule);padding:8px 14px 8px 0;text-align:left}
+ th{color:var(--ink-3);font-size:var(--t5);text-transform:uppercase;letter-spacing:.07em;font-weight:500}
+ code,pre{background:var(--sunk);border-radius:5px;padding:1px 5px;font-size:var(--t4)}
+ pre{padding:var(--s3);overflow-x:auto}
+ img{max-width:100%;border-radius:var(--radius)}
+ .grid,.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:var(--s4)}
+ .card,.item{background:var(--raise);border:1px solid var(--rule);border-radius:var(--radius);padding:var(--s3)}
 </style>"""
 
 
@@ -80,10 +84,10 @@ def inject(path: Path, active: str, doc_page: bool) -> bool:
         return False
     header = sh.nav(active, 1)
     css = DOC_STYLE if doc_page else ""
+    base = ('<link rel="stylesheet" href="../assets/app.css">'
+            '<script src="../assets/site.js"></script>')
     inject_head = ('<meta name="viewport" content="width=device-width,initial-scale=1">'
-                   + ('<link rel="stylesheet" href="../assets/app.css">'
-                      '<script src="../assets/site.js"></script>' + css
-                      if doc_page else APP_TOKENS) + MARK)
+                   + (base + css if doc_page else APP_TOKENS) + MARK)
 
     if doc_page:
         html = strip_local_palette(html)

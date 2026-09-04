@@ -48,81 +48,85 @@ def build_index(long_rows, wide_rows, mets):
             f'<td class="wrap">{"<span class=flag>no comparison possible</span>" if bad else ""}</td></tr>')
 
     fams = Counter(r["metric_family"] for r in long_rows)
+    fam_labels = json.loads((DOCS / "data" / "metrics.json").read_text())["families"]
     fam_rows = ""
-    for f, n in sorted(fams.items()):
+    for f, n in sorted(fams.items(), key=lambda kv: fam_labels.get(kv[0], {}).get("label", kv[0])):
         cols = {r["metric"] for r in long_rows if r["metric_family"] == f}
-        label = f.replace("_", " ")
+        label = fam_labels.get(f, {}).get("label", f.replace("_", " "))
         fam_rows += (f'<tr><td><a href="reference.html#{f}">{esc(label)}</a></td>'
                      f'<td class="num">{len(cols)}</td><td class="num">{n:,}</td></tr>')
 
-    html = sh.head("ECS preservation — data overview", 0,
-                   "<style>.tile .n{font-variant-numeric:tabular-nums}</style>")
+    html = sh.head("ECS preservation — data overview", 0)
     html += sh.nav("index.html", 0)
     html += f"""<main>
 <h1>Extracellular space across fixation methods</h1>
-<p class="lede">Every measurement from the chemical-fixation versus rapid high-pressure
-freezing comparison, browsable rather than filed away in CSVs. Nothing here is a finished
-result &mdash; this is working data, published so it can be looked at from the outside.</p>
+<p class="lede">How much does chemical fixation distort the extracellular space, compared with
+rapid high-pressure freezing? This is every measurement behind that question &mdash; working
+data, published so it can be read from the outside. Nothing here is a finished result.</p>
 
-<div class="grid tiles">
-  <div class="card tile"><div class="n">{n_crops}</div><div class="k">annotated crops</div></div>
-  <div class="card tile"><div class="n">{n_metrics}</div><div class="k">distinct metrics</div></div>
-  <div class="card tile"><div class="n">{n_meas:,}</div><div class="k">measurements</div></div>
-  <div class="card tile"><div class="n">{len(tissues)}</div><div class="k">tissues</div></div>
+<div class="stats">
+  <div class="stat"><div class="n">{n_crops}</div><div class="k">crops</div></div>
+  <div class="stat"><div class="n">{len(tissues)}</div><div class="k">tissues</div></div>
+  <div class="stat"><div class="n">{n_metrics}</div><div class="k">metrics</div></div>
+  <div class="stat"><div class="n">{n_meas:,}</div><div class="k">measurements</div></div>
 </div>
 
-<div class="callout"><b>New here?</b> The <a href="reference.html">reference page</a> explains
-what a crop is, what the two preparations are, why every metric is computed three times, and
-what each of the {n_metrics} metrics measures.</div>
+<ul class="jump">
+  <li><a href="explore.html"><span class="t">Explore</span>
+    <span class="d">Any metric, grouped by tissue, region or anatomy. One dot per crop.</span></a></li>
+  <li><a href="crops.html"><span class="t">Crops</span>
+    <span class="d">All {n_crops} crops with their metadata and headline numbers.</span></a></li>
+  <li><a href="figures.html"><span class="t">Figures</span>
+    <span class="d">Every plot the pipeline produces, captioned.</span></a></li>
+  <li><a href="membranes/views.html"><span class="t">Membranes</span>
+    <span class="d">Membrane surfaces in 3D, and a viewer with live control of the colour range.</span></a></li>
+  <li><a href="reference.html"><span class="t">Reference</span>
+    <span class="d">What a crop is, how to read the charts, and what all {n_metrics} metrics mean.</span></a></li>
+</ul>
 
-<h2>Start here</h2>
-<div class="two">
-  <div class="card"><h3 style="margin-top:0"><a href="explore.html">Metric explorer</a></h3>
-    <p class="muted" style="margin:0">Any of the {n_metrics} metrics, grouped by tissue, region
-    or anatomy, both preparations on one scale. One dot per crop.</p></div>
-  <div class="card"><h3 style="margin-top:0"><a href="crops.html">Crop table</a></h3>
-    <p class="muted" style="margin:0">All {n_crops} crops with their metadata and headline
-    numbers, sortable and filterable.</p></div>
-  <div class="card"><h3 style="margin-top:0"><a href="figures.html">Figure gallery</a></h3>
-    <p class="muted" style="margin:0">Every plot the analysis pipeline produces.</p></div>
-  <div class="card"><h3 style="margin-top:0"><a href="membranes/views.html">3D views</a> and
-    <a href="membranes/inspector.html">inspector</a></h3>
-    <p class="muted" style="margin:0">Membrane surfaces in 3D &mdash; a quick paired gallery,
-    and a viewer with all 55 crops and live control of the colour range.</p></div>
-</div>
-
-<h2>What is measured</h2>
-<div class="two">
-  <div class="card scroll"><table>
-    <thead><tr><th>Metric family</th><th class="num">Metrics</th><th class="num">Values</th></tr></thead>
-    <tbody>{fam_rows}</tbody></table>
-    <p class="note">Each family is computed three ways &mdash; at native resolution, matched to
-    8&nbsp;nm, and across a degradation series &mdash; so a difference can be checked against
-    what resolution alone would produce. <a href="reference.html#design">What the runs mean.</a></p>
-  </div>
-  <div class="card">
-    <h3 style="margin-top:0">Preparation</h3>
-    {"".join(f'<p class="muted" style="margin:2px 0"><span class="tag {"chem" if "Chem" in k else "hpf"}">{esc(k)}</span> {v} crops</p>' for k, v in sorted(preps.items()))}
-    <h3>Tissue</h3>
-    {"".join(f'<p class="muted" style="margin:2px 0">{esc(k)} &mdash; {v} crops</p>' for k, v in sorted(tissues.items()))}
-  </div>
-</div>
-
-<h2 id="coverage">Where the comparison is supported</h2>
-<p class="lede" style="margin-bottom:12px">A region can only support a chemical-vs-HPF
-comparison if both arms have crops in it. <b>{thin} of {len(rows)} do not.</b> Kidney, where the
-direction of the effect splits by region, is where most of the gaps are.</p>
-<div class="card scroll"><table>
+<div class="sec" id="coverage">
+<h2 style="margin-top:0">Where the comparison is supported</h2>
+<p class="lede" style="margin-bottom:var(--s4)">A region supports a chemical-vs-HPF comparison
+only if both arms have crops in it. <b>{thin} of {len(rows)} do not.</b> Kidney &mdash; where the
+direction of the effect splits by region &mdash; is where most of the gaps are.</p>
+<div class="scroll"><table>
   <thead><tr><th>Tissue</th><th>Region</th><th class="num">Chemical</th>
     <th class="num">Rapid HPF</th><th class="wrap"></th></tr></thead>
   <tbody>{"".join(rows)}</tbody></table></div>
+</div>
 
-<h2>Data</h2>
-<p class="muted">Everything on this site is generated from
+<div class="sec">
+<h2 style="margin-top:0">What is measured</h2>
+<div class="grid cols-2">
+  <div>
+    <table>
+      <thead><tr><th>Metric family</th><th class="num">Metrics</th><th class="num">Values</th></tr></thead>
+      <tbody>{fam_rows}</tbody></table>
+    <p class="note">Each family is computed three ways &mdash; at native resolution, matched to
+    8&nbsp;nm, and across a degradation series &mdash; so a difference can be checked against what
+    resolution alone would produce. <a href="reference.html#design">What the runs mean.</a></p>
+  </div>
+  <div>
+    <table>
+      <thead><tr><th>Preparation</th><th class="num">Crops</th></tr></thead>
+      <tbody>{"".join(f'<tr><td><span class="tag {"chem" if "Chem" in k else "hpf"}">{esc(k)}</span></td><td class="num">{v}</td></tr>' for k, v in sorted(preps.items()))}</tbody></table>
+    <table style="margin-top:var(--s5)">
+      <thead><tr><th>Tissue</th><th class="num">Crops</th></tr></thead>
+      <tbody>{"".join(f'<tr><td>{esc(k)}</td><td class="num">{v}</td></tr>' for k, v in sorted(tissues.items()))}</tbody></table>
+    <p class="note">Roughly half the crops come from each preparation. No crop appears in both
+    arms &mdash; each is a different piece of tissue.</p>
+  </div>
+</div>
+</div>
+
+<div class="sec">
+<h2 style="margin-top:0">Data</h2>
+<p class="note" style="max-width:76ch">Everything here is generated from
 <a href="data/all_metrics_long.csv">all_metrics_long.csv</a> (one row per measurement) and
 <a href="data/all_metrics_wide.csv">all_metrics_wide.csv</a> (one row per crop, run and
 resolution), with names and units from <a href="data/metrics.json">metrics.json</a>.
 Rebuild with <code>python scripts/collect_all.py</code>.</p>
+</div>
 """
     html += sh.tail(0)
     (DOCS / "index.html").write_text(html)
@@ -148,8 +152,7 @@ def build_crops(wide_rows, mets):
     for k in cols:
         label, unit, blurb = meta(k)
         head_cells += (f'<th class="num sortable" title="{esc(blurb)}">{esc(label)}'
-                       f'<br><span style="font-weight:400;text-transform:none;letter-spacing:0">'
-                       f'{esc(unit)}</span></th>')
+                       f'<span class="u">{esc(unit) or "&nbsp;"}</span></th>')
 
     def cell(r, k):
         v = r.get(k, "")
@@ -180,13 +183,13 @@ from each metric family. Hover a column heading for what it measures; the
 membrane render.</p>
 {sh.PREP_LEGEND}
 <div class="controls"><div class="ctl"><label for="q">Filter</label>
-  <input type="search" id="q" placeholder="tissue, region, prep, crop&hellip;"></div>
+  <input type="search" id="q" placeholder="tissue, region, prep, crop&hellip;" style="min-width:260px"></div>
   <div class="ctl"><label>Showing</label><span id="count" class="muted"
-   style="font-size:13.5px;padding:6px 0">{len(native)} crops</span></div></div>
-<div class="card scroll"><table id="t"><thead><tr>
+   style="font-size:var(--t4);padding:6px 0">{len(native)} crops</span></div></div>
+<div class="scroll"><table id="t"><thead><tr>
   <th class="sortable">Crop</th><th class="sortable">Tissue</th><th class="sortable">Region</th>
   <th class="sortable wrap">Anatomy</th><th class="sortable">Prep</th>
-  <th class="num sortable">Voxel<br><span style="font-weight:400;text-transform:none">nm</span></th>
+  <th class="num sortable">Voxel<span class="u">nm</span></th>
   {head_cells}</tr></thead><tbody>{body}</tbody></table></div>
 <p class="note">Values are native resolution, so voxel size differs between rows &mdash; use the
 <a href="explore.html">explorer</a>&rsquo;s matched run to compare preparations fairly.</p>

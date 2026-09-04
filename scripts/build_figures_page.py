@@ -83,12 +83,12 @@ def main():
 
     extra = """<style>
  .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
- .fig{margin:0;background:var(--surface-1);border:1px solid var(--line);border-radius:10px;
+ .fig{margin:0;background:var(--raise);border:1px solid var(--rule);border-radius:10px;
       overflow:hidden;display:flex;flex-direction:column}
  .fig img{width:100%;display:block;background:#fff}
- .fig figcaption{padding:11px 14px;font-size:13px;color:var(--text-secondary);
-                 border-top:1px solid var(--line-soft)}
- .fig figcaption b{display:block;color:var(--text-primary);margin-bottom:2px;font-size:13.5px}
+ .fig figcaption{padding:11px 14px;font-size:13px;color:var(--ink-2);
+                 border-top:1px solid var(--rule)}
+ .fig figcaption b{display:block;color:var(--ink);margin-bottom:2px;font-size:13.5px}
 </style>"""
     html = sh.head("Figures — ECS preservation", 0, extra)
     html += sh.nav("figures.html", 0)

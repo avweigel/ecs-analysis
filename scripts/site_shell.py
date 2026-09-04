@@ -7,14 +7,21 @@ docs/membranes/) and fixes up the relative asset paths.
 from __future__ import annotations
 
 NAV = [
-    ("index.html",              "Overview"),
-    ("explore.html",            "Explorer"),
-    ("crops.html",              "Crops"),
-    ("figures.html",            "Figures"),
-    ("membranes/views.html",    "3D views"),
-    ("membranes/inspector.html", "Inspector"),
-    ("reference.html",          "Reference"),
+    ("explore.html",         "Explore"),
+    ("crops.html",           "Crops"),
+    ("figures.html",         "Figures"),
+    ("membranes/views.html", "Membranes"),
+    ("reference.html",       "Reference"),
 ]
+
+# pages that live under a nav entry rather than beside it: visiting one of these
+# lights up its parent, so the bar always shows where you are
+PARENT = {
+    "membranes/inspector.html": "membranes/views.html",
+    "membranes/methods.html":   "membranes/views.html",
+    "membranes/index.html":     "membranes/views.html",
+    "index.html":               None,
+}
 
 
 def _rel(depth: int) -> str:
@@ -35,8 +42,9 @@ def nav(active: str, depth: int = 0) -> str:
     """`active` is the NAV href of the current page."""
     r = _rel(depth)
     cur = ' aria-current="page"'
+    lit = PARENT.get(active, active)
     items = "".join(
-        '<a href="%s%s"%s>%s</a>' % (r, href, cur if href == active else "", label)
+        '<a href="%s%s"%s>%s</a>' % (r, href, cur if href == lit else "", label)
         for href, label in NAV)
     return (f'<header class="top"><div class="wrap">'
             f'<a class="brand" href="{r}index.html">ECS preservation</a>'
@@ -48,7 +56,8 @@ def nav(active: str, depth: int = 0) -> str:
 def footer(depth: int = 0) -> str:
     r = _rel(depth)
     return (f'<footer class="site">'
-            f'<span>Chemical fixation vs rapid high-pressure freezing · 55 crops</span>'
+            f'<span>Chemical fixation vs rapid high-pressure freezing &middot; 55 crops</span>'
+            f'<a href="{r}index.html">Overview</a>'
             f'<a href="{r}reference.html">How to read this</a>'
             f'<a href="{r}data/all_metrics_long.csv">Download the data</a>'
             f'<a href="https://github.com/avweigel/ecs-analysis">Source</a>'

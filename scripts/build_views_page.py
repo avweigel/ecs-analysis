@@ -32,18 +32,18 @@ OUT = ROOT / "docs" / "membranes" / "views.html"
 EXTRA = """<style>
   .pair{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:10px 0 26px}
   @media(max-width:780px){.pair{grid-template-columns:1fr}}
-  .vcard{background:var(--surface-1);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-  .vcard model-viewer{width:100%;height:300px;background:var(--surface-2);display:block}
+  .vcard{background:var(--raise);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+  .vcard model-viewer{width:100%;height:300px;background:var(--sunk);display:block}
   .vhead{display:flex;justify-content:space-between;align-items:baseline;
-         padding:10px 13px;border-bottom:1px solid var(--line-soft)}
-  .vhead .c{font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums}
-  .vfoot{padding:8px 13px;font-size:11.5px;color:var(--text-muted)}
+         padding:10px 13px;border-bottom:1px solid var(--rule)}
+  .vhead .c{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .vfoot{padding:8px 13px;font-size:11.5px;color:var(--ink-3)}
   .empty{display:flex;align-items:center;justify-content:center;height:300px;
-         color:var(--text-muted);font-size:13px;background:var(--surface-2);
+         color:var(--ink-3);font-size:13px;background:var(--sunk);
          text-align:center;padding:22px}
   h2.reg{font-size:15px;margin:26px 0 0}
-  .tis{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);
-       margin:36px 0 0;padding-top:15px;border-top:1px solid var(--line)}
+  .tis{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);
+       margin:36px 0 0;padding-top:15px;border-top:1px solid var(--rule)}
 </style>
 <script type="module" src="model-viewer.min.js"></script>"""
 

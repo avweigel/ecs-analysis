@@ -13,25 +13,49 @@ ROOT = Path(__file__).resolve().parent.parent
 DOC = json.loads((ROOT / "docs" / "data" / "metrics.json").read_text())
 
 EXTRA = """<style>
- .toc{position:sticky;top:64px;align-self:start}
- .toc a{display:block;padding:3px 0;font-size:13.5px;color:var(--text-secondary);text-decoration:none}
- .toc a:hover{color:var(--text-primary)}
+ .toc{position:sticky;top:72px;align-self:start}
+ #mq{width:100%;margin-bottom:var(--s3)}
+ .toc a{display:block;padding:3px 0;font-size:13.5px;color:var(--ink-2);text-decoration:none}
+ .toc a:hover{color:var(--ink)}
  .layout{display:grid;grid-template-columns:190px 1fr;gap:34px}
  @media(max-width:900px){.layout{grid-template-columns:1fr}.toc{position:static}}
- .fam{border:1px solid var(--line);border-radius:10px;background:var(--surface-1);
-      padding:16px 18px;margin:14px 0}
+ .fam{border-top:1px solid var(--rule);padding:var(--s5) 0 var(--s4);margin:0}
+ .fam details{margin-top:var(--s3)}
+ .fam summary{cursor:pointer;font-size:var(--t4);color:var(--accent);list-style:none;
+   display:inline-flex;gap:6px;align-items:center}
+ .fam summary::-webkit-details-marker{display:none}
+ .fam summary::before{content:"▸";transition:transform .15s;display:inline-block}
+ .fam details[open] summary::before{transform:rotate(90deg)}
  .fam h3{margin:0 0 4px;font-size:15px}
- .fam .short{color:var(--text-muted);font-size:13px;margin:0 0 9px}
- .mrow{display:grid;grid-template-columns:230px 92px 1fr;gap:12px;padding:7px 0;
-       border-top:1px solid var(--line-soft);font-size:13.5px;align-items:baseline}
+ .fam .short{color:var(--ink-3);font-size:13px;margin:0 0 9px}
+ .mrow{display:grid;grid-template-columns:250px 96px 1fr;gap:var(--s3);padding:7px 0;
+       border-top:1px solid var(--rule);font-size:var(--t4);align-items:baseline}
+ .mrow:hover{background:var(--sunk)}
  @media(max-width:760px){.mrow{grid-template-columns:1fr}}
- .mrow code{font-size:11.5px;color:var(--text-muted);display:block;
+ .mrow code{font-size:var(--t5);color:var(--ink-3);display:block;
             font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
- .mrow .u{color:var(--text-muted);font-size:12.5px}
+ .mrow .u{color:var(--ink-3);font-size:var(--t4)}
  dl.runs{margin:0}
- dl.runs dt{font-weight:640;margin-top:13px}
- dl.runs dd{margin:2px 0 0;color:var(--text-secondary)}
+ dl.runs dt{font-weight:600;margin-top:var(--s4)}
+ dl.runs dd{margin:2px 0 0;color:var(--ink-2)}
 </style>"""
+
+
+DICT_JS = """<script>
+const mq=document.getElementById('mq');
+mq.addEventListener('input',()=>{
+  const v=mq.value.toLowerCase().trim();
+  document.querySelectorAll('.fam').forEach(fam=>{
+    let hits=0;
+    fam.querySelectorAll('.mrow').forEach(r=>{
+      const on=!v||r.textContent.toLowerCase().includes(v);
+      r.style.display=on?'':'none'; if(on)hits++;});
+    fam.style.display=(v&&!hits)?'none':'';
+    const d=fam.querySelector('details');
+    if(d) d.open = !!v;
+  });
+});
+</script>"""
 
 
 def esc(t):
@@ -60,7 +84,7 @@ def main():
                  f'<p class="short">{esc(f["short"])} · {len(cols)} metrics</p>'
                  f'<p style="margin:0 0 4px">{esc(f["blurb"])}</p>'
                  f'<div class="callout warn"><b>Read with care.</b> {esc(f["caveat"])}</div>'
-                 f'{rows}</div>')
+                 f'<details><summary>{len(cols)} metrics</summary>{rows}</details></div>')
 
     runs_html = "".join(
         f'<dt>{esc(v["label"])}</dt><dd>{esc(v["blurb"])} <span class="muted">'
@@ -78,14 +102,14 @@ usually the reason.</p>
 <div class="two">
   <div class="card">
     <h3 style="margin-top:0">The question</h3>
-    <p style="margin:0;color:var(--text-secondary)">Chemical fixation is the standard way to
+    <p style="margin:0;color:var(--ink-2)">Chemical fixation is the standard way to
     preserve tissue for electron microscopy, and it is known to distort the extracellular
     space. Rapid high-pressure freezing should distort it less. This dataset measures how
     much the two differ, tissue by tissue and region by region.</p>
   </div>
   <div class="card">
     <h3 style="margin-top:0">The unit</h3>
-    <p style="margin:0;color:var(--text-secondary)">A <b>crop</b> is a small annotated cube of
+    <p style="margin:0;color:var(--ink-2)">A <b>crop</b> is a small annotated cube of
     volume EM in which every cell and the extracellular space between them has been
     segmented. There are 55, across cortex, heart, kidney and liver, roughly half from each
     preparation. Each is measured independently; no crop appears in both arms.</p>
@@ -111,7 +135,7 @@ one you should look at depends on what you are asking.</p>
     <span class="item"><i class="sw line" style="background:var(--chem)"></i>group median</span>
     <span class="item"><b class="flag">1</b>&nbsp;an arm with one crop or none</span>
   </div>
-  <p style="color:var(--text-secondary);margin:10px 0 0">In the
+  <p style="color:var(--ink-2);margin:10px 0 0">In the
   <a href="explore.html">explorer</a>, every dot is one crop and every row is a group of
   crops sharing a tissue, region or anatomy. Chemical sits above the line, HPF below.
   Groups share one horizontal scale so they can be compared against each other, not just
@@ -124,10 +148,14 @@ one you should look at depends on what you are asking.</p>
 </div>
 
 <h2 id="metrics">Metric dictionary</h2>
-<p class="lede">{len(mets)} metrics in {len(order)} families. The name in grey under each
-entry is the column name in the CSVs.</p>
-<div class="layout"><div class="toc">{toc}</div><div>{body}</div></div>
+<p class="lede">{len(mets)} metrics in {len(order)} families. The grey name under each entry is
+its column name in the CSVs. Use the filter to find one by name, unit or wording.</p>
+<div class="layout"><div class="toc">
+  <input type="search" id="mq" placeholder="Filter metrics&hellip;">{toc}</div>
+  <div id="dict">{body}</div></div>
+<!--DICTJS-->
 """
+    html = html.replace("<!--DICTJS-->", DICT_JS)
     html += sh.tail(0)
     (ROOT / "docs" / "reference.html").write_text(html)
     print(f"built docs/reference.html ({len(mets)} metrics)")

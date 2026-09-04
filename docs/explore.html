@@ -4,33 +4,33 @@
 <link rel="stylesheet" href="assets/app.css">
 <script src="assets/site.js"></script>
 <style>
- .strip{background:var(--surface-1);border:1px solid var(--line);border-radius:10px;
-        padding:14px 18px 8px}
- .row{display:grid;grid-template-columns:210px 1fr 104px;gap:14px;align-items:center;
-      padding:8px 0;border-bottom:1px solid var(--line-soft)}
+ .strip{padding:0}
+ .row{display:grid;grid-template-columns:200px 1fr 96px;gap:var(--s4);align-items:center;
+      padding:9px 0;border-bottom:1px solid var(--rule)}
+ .row:hover{background:var(--sunk)}
  .row:last-child{border-bottom:0}
- .row .gname{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
- .row .gname small{color:var(--text-muted);display:block;font-size:11.5px}
- .row .ns{font-size:12px;color:var(--text-muted);text-align:right;font-variant-numeric:tabular-nums}
+ .row .gname{font-size:var(--t4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .row .gname small{color:var(--ink-3);display:block;font-size:var(--t5)}
+ .row .ns{font-size:var(--t5);color:var(--ink-3);text-align:right;font-variant-numeric:tabular-nums}
  @media(max-width:760px){.row{grid-template-columns:1fr;gap:4px}.row .ns{text-align:left}}
  svg{display:block}
- .axis text{font-size:11px;fill:var(--text-muted)}
- .gl{stroke:var(--line-soft)}
+ .axis text{font-size:10.5px;fill:var(--ink-3)}
+ .gl{stroke:var(--rule)}
  #about{margin:2px 0 14px}
- #about h2{margin:0 0 3px;font-size:17px}
- #about .u{color:var(--text-muted);font-size:12.5px;margin-bottom:6px}
- #about p{margin:0;color:var(--text-secondary);font-size:14px;max-width:78ch}
+ #about h2{margin:0 0 3px;font-size:var(--t2)}
+ #about .u{color:var(--ink-3);font-size:var(--t4);margin-bottom:var(--s2)}
+ #about p{margin:0;color:var(--ink-2);font-size:var(--t3);max-width:72ch}
  details.cav{margin-top:9px}
- details.cav summary{cursor:pointer;font-size:13px;color:var(--accent);
+ details.cav summary{cursor:pointer;font-size:var(--t4);color:var(--accent);
    list-style:none;display:inline-flex;align-items:center;gap:6px;padding:3px 0}
  details.cav summary::-webkit-details-marker{display:none}
  details.cav summary::before{content:"▸";display:inline-block;transition:transform .15s}
  details.cav[open] summary::before{transform:rotate(90deg)}
  .cavbody{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
- .cavbody .callout{margin:0;font-size:13px;padding:11px 13px}
+ .cavbody .callout{margin:0}
  @media(max-width:900px){.cavbody{grid-template-columns:1fr}}
  circle[data-c]{cursor:crosshair}
-</style></head><body><header class="top"><div class="wrap"><a class="brand" href="index.html">ECS preservation</a><nav><a href="index.html">Overview</a><a href="explore.html" aria-current="page">Explorer</a><a href="crops.html">Crops</a><a href="figures.html">Figures</a><a href="membranes/views.html">3D views</a><a href="membranes/inspector.html">Inspector</a><a href="reference.html">Reference</a></nav><button id="themetog" type="button">Auto</button></div></header><main>
+</style></head><body><header class="top"><div class="wrap"><a class="brand" href="index.html">ECS preservation</a><nav><a href="explore.html" aria-current="page">Explore</a><a href="crops.html">Crops</a><a href="figures.html">Figures</a><a href="membranes/views.html">Membranes</a><a href="reference.html">Reference</a></nav><button id="themetog" type="button">Auto</button></div></header><main>
 <h1>Metric explorer</h1>
 <p class="lede">Every per-crop measurement the pipeline has produced. Pick a metric; each dot is
 one crop, chemical above the line and HPF below, with groups sharing one scale so they can be
@@ -52,7 +52,7 @@ read against each other. <a href="reference.html#reading">How to read this.</a><
 <div class="legend">
   <span class="item"><i class="sw" style="background:var(--chem)"></i>Chemical, one crop</span>
   <span class="item"><i class="sw" style="background:var(--hpf)"></i>Rapid HPF, one crop</span>
-  <span class="item"><i class="sw line" style="background:var(--text-muted)"></i>group median</span>
+  <span class="item"><i class="sw line" style="background:var(--ink-3)"></i>group median</span>
   <span class="item"><b class="flag">n</b>&nbsp;arm with one crop or none</span>
 </div>
 
@@ -61,7 +61,7 @@ read against each other. <a href="reference.html#reading">How to read this.</a><
 
 <h2>Table view</h2>
 <div class="card scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
-<footer class="site"><span>Chemical fixation vs rapid high-pressure freezing · 55 crops</span><a href="reference.html">How to read this</a><a href="data/all_metrics_long.csv">Download the data</a><a href="https://github.com/avweigel/ecs-analysis">Source</a></footer></main><div id="tip"></div>
+<footer class="site"><span>Chemical fixation vs rapid high-pressure freezing &middot; 55 crops</span><a href="index.html">Overview</a><a href="reference.html">How to read this</a><a href="data/all_metrics_long.csv">Download the data</a><a href="https://github.com/avweigel/ecs-analysis">Source</a></footer></main><div id="tip"></div>
 <script>
 const $=id=>document.getElementById(id);
 const PREP={Chemical:'chem','Rapid HPF':'hpf'};
@@ -149,11 +149,11 @@ function draw(){
 
   let html='';
   const ticks=[lo,(lo+hi)/2,hi];
-  html+=`<div class="row" style="border-bottom:1px solid var(--line);padding-bottom:6px">
+  html+=`<div class="row" style="border-bottom:1px solid var(--rule);padding-bottom:6px">
     <div></div><div><svg width="${W}" height="15" viewBox="0 0 ${W} 15" class="axis">
     ${ticks.map((t,i)=>{const a=i===0?'start':(i===2?'end':'middle');
       return `<text x="${X(t).toFixed(1)}" y="11" text-anchor="${a}">${fmt(t)}</text>`}).join('')}
-    </svg><div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:-2px">
+    </svg><div style="font-size:11px;color:var(--ink-3);text-align:center;margin-top:-2px">
     ${unit($('met').value)||''}</div></div>
     <div class="ns">n chem / hpf</div></div>`;
 
@@ -165,7 +165,7 @@ function draw(){
       const arr=by[prep]; if(!arr.length)continue;
       const col=`var(--${PREP[prep]})`, y=prep==='Chemical'?H*.33:H*.67;
       arr.forEach(r=>{marks+=`<circle cx="${X(r.value).toFixed(2)}" cy="${y.toFixed(1)}" r="${R}"
-        fill="${col}" fill-opacity=".72" stroke="var(--surface-1)" stroke-width="2"
+        fill="${col}" fill-opacity=".72" stroke="var(--raise)" stroke-width="2"
         data-c="${r.crop}" data-p="${prep}" data-v="${r.value}" data-a="${r.anatomy||''}"
         data-x="${r.analysis_voxel_nm||''}"></circle>`;});
       if(arr.length<2)continue;
