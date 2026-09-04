@@ -56,7 +56,10 @@ def build_index(long_rows, wide_rows, mets):
         fam_rows += (f'<tr><td><a href="reference.html#{f}">{esc(label)}</a></td>'
                      f'<td class="num">{len(cols)}</td><td class="num">{n:,}</td></tr>')
 
-    html = sh.head("ECS preservation — data overview", 0)
+    # the hero is a <model-viewer> element, which is inert without its script:
+    # the page rendered the caption and nothing above it
+    html = sh.head("ECS preservation — data overview", 0,
+                   '<script type="module" src="assets/model-viewer.min.js"></script>')
     html += sh.nav("index.html", 0)
     html += f"""
 <div class="hero"><div class="inner">

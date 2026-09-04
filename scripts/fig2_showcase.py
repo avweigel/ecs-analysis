@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
-Fig 2 showcase: effect-size matrix across the full metric suite.
+Effect-size matrix across the full metric suite.
+
+Nothing here is a numbered figure. Nothing is a figure at all yet -- there is
+no manuscript, and naming a panel "Fig 2" in a draft is how a provisional
+picture quietly becomes the one everybody argues from.
 
 Reads results/stats_native.csv and renders the anatomy-matched regions
 (both arms n>=2) as rows, the headline metric of each analysis family as
@@ -9,7 +13,7 @@ from Mann-Whitney is marked, and the cell text is the delta. This is the
 "all the cool stuff in one view" panel: it shows where every metric agrees
 (liver) and where they contradict / are underpowered (heart, kidney).
 
-Writes figures/fig2_effect_matrix.png.
+Writes figures/effect_matrix.png.
 """
 from __future__ import annotations
 
@@ -24,7 +28,7 @@ import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SRC = REPO_ROOT / "results" / "stats_native.csv"
-OUT = REPO_ROOT / "figures" / "fig2_effect_matrix.png"
+OUT = REPO_ROOT / "figures" / "effect_matrix.png"
 
 # (tissue, region_group) rows with usable n on both arms, in display order.
 REGIONS = [
@@ -107,7 +111,7 @@ def main() -> None:
         if REGIONS[i][0] != REGIONS[i - 1][0]:
             ax.axhline(i - 0.5, color="black", lw=1.5)
 
-    ax.set_title("Fig 2 showcase — Cliff's δ (Chem vs HPF) across the metric suite\n"
+    ax.set_title("Cliff's δ (Chem vs HPF) across the metric suite\n"
                  "red = Chem>HPF, blue = HPF>Chem;  * exact p<0.05, † p<0.1\n"
                  "small n per matched region floors the exact p (≥0.057 at n=3v4, "
                  "≥0.333 at 2v2) — read δ (effect size), not p",

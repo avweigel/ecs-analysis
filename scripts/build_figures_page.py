@@ -14,7 +14,7 @@ FIGDIR = ROOT / "docs" / "figures"
 
 SECTIONS = [
     ("Effect sizes at a glance", [
-        ("fig2_effect_matrix.png", "Effect-size matrix",
+        ("effect_matrix.png", "Effect-size matrix",
          "Cliff's delta for every metric family across the region-matched comparison. "
          "Delta runs from -1 to 1; zero means the two preparations are indistinguishable. "
          "This is a summary of direction and size, not of significance — read it "

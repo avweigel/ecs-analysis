@@ -531,8 +531,8 @@ per-metric Chemical-vs-HPF plots (volume fraction, ECS width, Voronoi gap, SA:V,
 both native and resolution-matched) plus region vignettes and 3D renders is in
 the <a href="../figures.html">figures gallery</a>.
 </p>
-<figure class=fig><a href="fig2_effect_matrix.png" target=_blank>
-<img src="fig2_effect_matrix.png" alt="Cliff's delta effect-size matrix"></a>
+<figure class=fig><a href="effect_matrix.png" target=_blank>
+<img src="effect_matrix.png" alt="Cliff's delta effect-size matrix"></a>
 <figcaption>Cliff's δ effect-size matrix across the region-matched comparisons
 (warm = Chemical&nbsp;&gt;&nbsp;HPF, cool = HPF&nbsp;&gt;&nbsp;Chemical).</figcaption></figure>
 <figure class=fig><a href="native_topology.png" target=_blank>
@@ -846,7 +846,7 @@ def main() -> None:
     # paths resolve both locally and on the deployed site (membranes/).
     # Append a content-hash query string so browsers re-fetch on change.
     import hashlib
-    for fname in ("fig2_effect_matrix.png", "native_topology.png",
+    for fname in ("effect_matrix.png", "native_topology.png",
                   "native_anatomy_matched.png"):
         src = REPO_ROOT / "figures" / fname
         if src.exists():
