@@ -52,6 +52,29 @@ def cut(im: Image.Image) -> Image.Image:
     return Image.fromarray(a.astype("uint8"))
 
 
+def thumbs(size: int = 240) -> int:
+    """One small transparent render per crop, for the crop table.
+
+    Panel 2 (gap to nearest cell, viridis) reads best at this size — the
+    diverging curvature panel goes muddy once it is small.
+    """
+    tdir = OUT / "thumbs"
+    tdir.mkdir(parents=True, exist_ok=True)
+    n = 0
+    for src in sorted((ROOT / "docs" / "membranes").glob("membrane_crop*.png")):
+        crop = src.stem.replace("membrane_", "")
+        im = cut(panel(Image.open(src), 2))
+        im.thumbnail((size, size), Image.LANCZOS)
+        # centre on a square canvas so every row in the table is the same height
+        sq = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        sq.paste(im, ((size - im.size[0]) // 2, (size - im.size[1]) // 2))
+        sq.save(tdir / f"{crop}.png", optimize=True)
+        n += 1
+    total = sum(f.stat().st_size for f in tdir.glob("*.png")) / 1048576
+    print(f"  thumbs/         {n} crops, {total:.1f} MB total")
+    return n
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for src, idx, name in PICKS:
@@ -68,6 +91,9 @@ def main():
         im.save(OUT / name, optimize=True)
         kb = (OUT / name).stat().st_size / 1024
         print(f"  {name:16s} {im.size[0]}x{im.size[1]}  {kb:.0f} KB")
+
+
+    thumbs()
 
 
 if __name__ == "__main__":

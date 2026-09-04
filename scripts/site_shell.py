@@ -101,6 +101,17 @@ def pagehead(title: str, lede: str = "", wide: bool = False) -> str:
     return f'<div class="{cls}"><div class="inner">{body}</div></div>'
 
 
+def pagehead_art(title: str, lede: str = "", wide: bool = False,
+                 art: str = "assets/art/hero-curv.png", depth: int = 0) -> str:
+    """Title band with a render floated on the right."""
+    cls = "pagehead wide" if wide else "pagehead"
+    r = _rel(depth)
+    return (f'<div class="{cls} has-art"><div class="inner">'
+            f'<div><h1>{title}</h1>' + (f'<p>{lede}</p>' if lede else "") + '</div>'
+            f'<div class="ph-art"><img src="{r}{art}" alt="" loading="eager"></div>'
+            f'</div></div>')
+
+
 PREP_LEGEND = (
     '<div class="legend">'
     '<span class="item"><i class="sw" style="background:var(--chem)"></i>Chemical fixation</span>'

@@ -87,15 +87,20 @@ data, published so it can be read from the outside &mdash; every metric, every c
 caveats that go with them.</p>
 
 <ul class="jump">
-  <li><a href="explore.html"><span class="t">Explore</span>
+  <li><a href="explore.html"><img src="assets/art/thumbs/crop1146.png" alt="" loading="lazy">
+    <span class="t">Explore</span>
     <span class="d">Any metric, grouped by tissue, region or anatomy. One dot per crop.</span></a></li>
-  <li><a href="crops.html"><span class="t">Crops</span>
+  <li><a href="crops.html"><img src="assets/art/thumbs/crop1038.png" alt="" loading="lazy">
+    <span class="t">Crops</span>
     <span class="d">All {n_crops} crops with their metadata and headline numbers.</span></a></li>
-  <li><a href="figures.html"><span class="t">Figures</span>
+  <li><a href="figures.html"><img src="assets/art/thumbs/crop1126.png" alt="" loading="lazy">
+    <span class="t">Figures</span>
     <span class="d">Every plot the pipeline produces, captioned.</span></a></li>
-  <li><a href="membranes/views.html"><span class="t">Membranes</span>
+  <li><a href="membranes/views.html"><img src="assets/art/thumbs/crop1039.png" alt="" loading="lazy">
+    <span class="t">Membranes</span>
     <span class="d">Membrane surfaces in 3D, and a viewer with live control of the colour range.</span></a></li>
-  <li><a href="reference.html"><span class="t">Reference</span>
+  <li><a href="reference.html"><img src="assets/art/thumbs/crop1072.png" alt="" loading="lazy">
+    <span class="t">Reference</span>
     <span class="d">What a crop is, how to read the charts, and what all {n_metrics} metrics mean.</span></a></li>
 </ul>
 
@@ -210,7 +215,10 @@ def build_crops(wide_rows, mets):
     body = ""
     for r in sorted(native, key=lambda x: x["crop"]):
         cls = "chem" if r["prep"] == "Chemical" else "hpf"
-        body += (f'<tr><td><a href="membranes/membrane_{r["crop"]}.png">{r["crop"]}</a></td>'
+        body += (f'<tr><td class="thumbcell">'
+                 f'<a href="membranes/membrane_{r["crop"]}.png">'
+                 f'<img class="thumb" src="assets/art/thumbs/{r["crop"]}.png" alt="" '
+                 f'loading="lazy" width="34" height="34">{r["crop"]}</a></td>'
                  f'<td>{esc(r["tissue"])}</td><td>{esc(r["region_group"])}</td>'
                  f'<td class="wrap">{esc(r["anatomy"])}</td>'
                  f'<td><span class="tag {cls}">{esc(r["prep"])}</span></td>'

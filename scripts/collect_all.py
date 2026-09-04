@@ -102,8 +102,23 @@ def main():
                     prev[k] = v
             meta_seen[crop] = prev
 
-            key = (crop, run, anal_v)
+            # The native run is one measurement of one crop, so it must be one
+            # row. Its families disagree about "analysis voxel" — the core
+            # metrics report the crop's real voxel, the mesh-based membrane
+            # topology reports the scale its patch was built at, and the bm
+            # sensitivity check reports none — so keying native on the voxel
+            # split each crop into up to three rows. Only the matched and
+            # degradation runs are genuinely per-resolution.
+            key = (crop, run) if run == "native" else (crop, run, anal_v)
             w = wide.setdefault(key, dict(meta, run=run))
+            if run == "native":
+                # The crop's acquisition voxel comes from the core metric files,
+                # which are read first. Later sources report something else --
+                # membrane topology reports the scale its mesh patch was built
+                # at (16 nm for every crop), bm sensitivity reports none -- so
+                # take the first value seen and let nothing overwrite it.
+                if not w.get("analysis_voxel_nm") and native_v is not None:
+                    w["analysis_voxel_nm"] = native_v
             for col, val in row.items():
                 if col in META:
                     continue
@@ -142,13 +157,18 @@ def main():
     with wfl.open("w", newline="") as fh:
         wr = csv.DictWriter(fh, fieldnames=head, extrasaction="ignore")
         wr.writeheader()
-        for key in sorted(wide, key=lambda k: (k[0], k[1], k[2] or 0)):
+        for key in sorted(wide, key=lambda k: (k[0], k[1], (k[2] if len(k) > 2 else 0) or 0)):
             w = dict(wide[key])
             best = meta_seen.get(key[0], {})
             for k in ("tissue", "prep", "region_group", "anatomy"):
                 if not w.get(k):
                     w[k] = best.get(k, "")
             wr.writerow(w)
+
+    # one crop, one native row — the invariant this file exists to hold
+    nat = [k for k in wide if k[1] == "native"]
+    assert len(nat) == len({k[0] for k in nat}), (
+        f"native run has {len(nat)} rows for {len({k[0] for k in nat})} crops")
 
     print(f"\nwrote {lf.relative_to(ROOT)}  ({len(long_rows)} rows)")
     print(f"wrote {wfl.relative_to(ROOT)}  ({len(wide)} rows x {len(metric_cols)} metrics)")

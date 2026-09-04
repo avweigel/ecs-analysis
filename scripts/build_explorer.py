@@ -108,6 +108,24 @@ function draw(){
   if(s.tis&&s.tis!=='All tissues')d=d.filter(r=>r.tissue===s.tis);
   if(s.vox&&s.vox!=='All')d=d.filter(r=>String(r.analysis_voxel_nm)===s.vox);
   describe();
+  // the headline comparison: both medians and the gap between them
+  const RO=$('readout');
+  const cm=med(d.filter(r=>r.prep==='Chemical').map(r=>r.value));
+  const hm=med(d.filter(r=>r.prep==='Rapid HPF').map(r=>r.value));
+  const u=unit(s.met);
+  if(Number.isFinite(cm)&&Number.isFinite(hm)){
+    const diff=cm-hm, pct=hm!==0?(diff/Math.abs(hm))*100:NaN;
+    const dir=diff>0?'higher':'lower';
+    RO.innerHTML=
+      `<div class="side"><span class="lbl"><i class="sw" style="background:var(--chem)"></i>Chemical</span>
+        <span class="big chem">${fmt(cm)}</span><span class="sub">${u||'median'}</span></div>`+
+      `<div class="side"><span class="lbl"><i class="sw" style="background:var(--hpf)"></i>Rapid HPF</span>
+        <span class="big hpf">${fmt(hm)}</span><span class="sub">${u||'median'}</span></div>`+
+      `<div class="side delta"><span class="lbl">Difference</span>
+        <span class="big">${diff>0?'+':''}${fmt(diff)}</span>
+        <span class="sub">${Number.isFinite(pct)?Math.abs(pct).toFixed(0)+'% '+dir+' under chemical fixation':'&nbsp;'}</span></div>`;
+  } else { RO.innerHTML=''; }
+
   const plot=$('plot');
   if(!d.length){plot.innerHTML='<p class="muted" style="padding:22px 0">No data for this combination.</p>';
     $('tbl').querySelector('thead').innerHTML='';$('tbl').querySelector('tbody').innerHTML='';
@@ -124,7 +142,7 @@ function draw(){
   const pad=(hi-lo)*.06; lo-=pad; hi+=pad;
   if(dmin>=0&&lo<0)lo=0;
   if(dmax<=0&&hi>0)hi=0;
-  const M=11, X=v=>M+((v-lo)/(hi-lo))*(W-2*M), H=32, R=4.5;
+  const M=11, X=v=>M+((v-lo)/(hi-lo))*(W-2*M), H=36, R=5.5;
 
   let html='';
   const ticks=[lo,(lo+hi)/2,hi];
@@ -144,7 +162,7 @@ function draw(){
       const arr=by[prep]; if(!arr.length)continue;
       const col=`var(--${PREP[prep]})`, y=prep==='Chemical'?H*.33:H*.67;
       arr.forEach(r=>{marks+=`<circle cx="${X(r.value).toFixed(2)}" cy="${y.toFixed(1)}" r="${R}"
-        fill="${col}" fill-opacity=".72" stroke="var(--raise)" stroke-width="2"
+        fill="${col}" fill-opacity=".8" stroke="var(--bg)" stroke-width="1.8"
         data-c="${r.crop}" data-p="${prep}" data-v="${r.value}" data-a="${r.anatomy||''}"
         data-x="${r.analysis_voxel_nm||''}"></circle>`;});
       if(arr.length<2)continue;
@@ -209,7 +227,7 @@ Promise.all([
 def main():
     html = sh.head("Metric explorer — ECS preservation", 0, EXTRA)
     html += sh.nav("explore.html", 0)
-    html += sh.pagehead("Metric explorer",
+    html += sh.pagehead_art("Metric explorer",
         "Every per-crop measurement the pipeline has produced. Each dot is one crop, chemical "
         "above the line and HPF below, with groups sharing one scale so they can be read against "
         'each other. <a href="reference.html#reading">How to read this.</a>')
@@ -227,6 +245,7 @@ def main():
 </div>
 
 <div id="about"></div>
+<div class="readout" id="readout"></div>
 
 <div class="legend">
   <span class="item"><i class="sw" style="background:var(--chem)"></i>Chemical, one crop</span>

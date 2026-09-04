@@ -143,11 +143,32 @@ header.top nav a[aria-current]{color:var(--ink);border-bottom-color:var(--ink)}
 .pagehead{background:linear-gradient(180deg,var(--night-2),var(--night));
   color:var(--night-ink);border-bottom:1px solid var(--night-rule)}
 .pagehead .inner{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s5)}
+.pagehead.has-art .inner{display:grid;grid-template-columns:1fr 210px;gap:var(--s5);
+  align-items:center}
+.ph-art img{display:block;width:100%;max-width:210px;height:auto;
+  filter:drop-shadow(0 14px 34px rgba(0,0,0,.5)) saturate(1.05)}
+@media(max-width:820px){.pagehead.has-art .inner{grid-template-columns:1fr}.ph-art{display:none}}
 .pagehead.wide .inner{max-width:1420px}
 .pagehead h1{color:var(--night-ink);font-size:clamp(30px,3.6vw,40px);margin:0 0 var(--s2)}
 .pagehead p{color:var(--night-ink-2);max-width:68ch;margin:0;font-size:15px}
 .pagehead a{color:#9dc4ff}
 main.after-head{padding-top:var(--s5)}
+
+/* ── comparison readout ─────────────────────────────────────
+   The explorer needed a focal point: the two medians, side by side, at a size
+   you can read from across the room. */
+.readout{display:flex;align-items:flex-end;gap:var(--s6);flex-wrap:wrap;
+  padding:var(--s4) 0 var(--s5)}
+.readout .side{display:flex;flex-direction:column;gap:2px}
+.readout .lbl{font-size:var(--t5);text-transform:uppercase;letter-spacing:.09em;
+  display:flex;align-items:center;gap:7px;color:var(--ink-3)}
+.readout .big{font-family:"Instrument Serif",Georgia,serif;font-size:40px;line-height:1;
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.readout .big.chem{color:var(--chem)} .readout .big.hpf{color:var(--hpf)}
+.readout .delta{padding-left:var(--s5);border-left:1px solid var(--rule)}
+.readout .delta .big{color:var(--ink)}
+.readout .sub{font-size:var(--t5);color:var(--ink-3);margin-top:3px}
+@media(max-width:700px){.readout{gap:var(--s4)}.readout .delta{border-left:0;padding-left:0}}
 
 /* ── page ───────────────────────────────────────────────── */
 main{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s7)}
@@ -186,11 +207,15 @@ p{margin:0 0 var(--s3)}
 .jump{list-style:none;padding:0;margin:0;border-top:1px solid var(--rule)}
 .jump li{border-bottom:1px solid var(--rule)}
 .jump li:last-child{border-bottom:0}
-.jump a{display:flex;gap:var(--s4);align-items:baseline;padding:var(--s3) 0;color:var(--ink)}
+.jump a{display:flex;gap:var(--s4);align-items:center;padding:var(--s3) 0;color:var(--ink)}
+.jump img{width:46px;height:46px;object-fit:contain;flex:none;
+  filter:saturate(1.05) drop-shadow(0 2px 6px rgba(0,0,0,.18));
+  transition:transform .18s ease}
+.jump a:hover img{transform:scale(1.12) rotate(-2deg)}
 .jump a:hover{text-decoration:none;color:var(--accent)}
-.jump .t{font-weight:600;font-size:var(--t3);min-width:170px}
+.jump .t{font-weight:600;font-size:var(--t3);min-width:140px}
 .jump .d{color:var(--ink-3);font-size:var(--t4)}
-@media(max-width:640px){.jump a{flex-direction:column;gap:2px}}
+@media(max-width:640px){.jump a{flex-wrap:wrap;gap:var(--s3)}.jump .d{flex-basis:100%}}
 
 /* ── callout ────────────────────────────────────────────── */
 .callout{border-left:2px solid var(--rule-strong);padding:0 0 0 var(--s4);
@@ -230,6 +255,14 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:v
 tbody tr:hover{background:var(--sunk)}
 .scroll table th,.scroll table td{white-space:nowrap}
 td.wrap,th.wrap{white-space:normal}
+
+/* crop-table renders */
+.thumbcell a{display:flex;align-items:center;gap:10px;color:var(--ink)}
+.thumbcell a:hover{color:var(--accent);text-decoration:none}
+img.thumb{width:34px;height:34px;object-fit:contain;flex:none;border-radius:5px;
+  background:var(--sunk);transition:transform .16s ease}
+.thumbcell a:hover img.thumb{transform:scale(1.9);position:relative;z-index:5;
+  box-shadow:0 8px 24px rgba(0,0,0,.3)}
 
 .tag{display:inline-block;padding:1px 7px;border-radius:99px;font-size:var(--t5);font-weight:600}
 .tag.chem{background:color-mix(in srgb,var(--chem) 15%,transparent);color:var(--chem)}
