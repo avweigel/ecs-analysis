@@ -26,16 +26,24 @@ from ecs.config import CROPS
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "docs" / "data" / "neuroglancer.json"
 
+# Change this one line to move to a different bucket; nothing else depends on it.
+PUBLIC_S3_BASE = "https://janelia-cosem-datasets.s3.amazonaws.com"
+
 SOURCES = {
     "nrs": {
         "label": "Janelia (NRS)",
         "base": "https://cellmap-vm1.int.janelia.org/nrs/data",
         "note": "Works on the Janelia network or VPN only.",
     },
+    # Public object store. The path layout below the bucket is identical to NRS,
+    # so pointing at a different bucket is a change of this one string and
+    # nothing else — which matters if the data should sit in object storage
+    # without appearing in the OpenOrganelle portal, since this bucket is the
+    # portal's own.
     "s3": {
-        "label": "OpenOrganelle (S3)",
-        "base": "https://janelia-cosem-datasets.s3.amazonaws.com",
-        "note": "Public, no VPN. Only the datasets already migrated will load.",
+        "label": "Public S3",
+        "base": PUBLIC_S3_BASE,
+        "note": "Public, no VPN. Only the datasets already uploaded will load.",
     },
 }
 
