@@ -199,16 +199,23 @@
     for (const k of ['A', 'B']) $('p' + k).classList.toggle('active', k === active);
   }
   function currentRange() { return [parseFloat($('vlo').value), parseFloat($('vhi').value)]; }
+  /* which surface, coloured by what. `scalar` is null for the bare mesh, and
+     the colour-range controls have nothing to say then, so they go away. */
+  function curScalar() { return (V.VIEW[$('vview').value] || {}).scalar || null; }
   function autoRange() {
-    const sc = $('vscalar').value;
+    const sc = curScalar(); if (!sc) return;
     const es = [selected.A, selected.B].filter(Boolean).map(c => MANI[c]).filter(Boolean);
     if (!es.length) return;
-    const d = es.map(e => e.ranges[sc].default);
+    const d = es.map(e => e.ranges[sc] && e.ranges[sc].default).filter(Boolean);
+    if (!d.length) return;
     const lo = Math.min(...d.map(x => x[0])), hi = Math.max(...d.map(x => x[1]));
     $('vlo').value = +lo.toPrecision(4); $('vhi').value = +hi.toPrecision(4);
   }
   function paintBar() {
-    const sc = $('vscalar').value, [lo, hi] = currentRange();
+    const sc = curScalar();
+    $('vrange').hidden = !sc;
+    if (!sc) return;
+    const [lo, hi] = currentRange();
     V.drawBar($('vbar'), sc, lo, hi);
     $('vlolab').textContent = fmt(lo) + ' ' + V.SCALARS[sc].unit;
     $('vhilab').textContent = fmt(hi) + ' ' + V.SCALARS[sc].unit;
@@ -218,7 +225,7 @@
     selected[slot] = crop;
     $('p' + slot).querySelector('.pick').value = crop;
     if (!Number.isFinite(parseFloat($('vlo').value))) autoRange();
-    const sc = $('vscalar').value, [lo, hi] = currentRange();
+    const sc = curScalar(), [lo, hi] = currentRange();
     await panels[slot].show(e, sc, lo, hi);
     // the manifest's voxel_nm is the scale the mesh patch was built at (16 nm for
     // every crop), not the crop's acquisition voxel — take that from the table row
@@ -233,7 +240,7 @@
     paintBar(); render();
   }
   function recolorAll() {
-    const sc = $('vscalar').value, [lo, hi] = currentRange();
+    const sc = curScalar(), [lo, hi] = currentRange();
     for (const s of ['A', 'B']) if (panels[s] && panels[s].entry) panels[s].recolor(sc, lo, hi);
     paintBar();
   }
@@ -299,7 +306,11 @@
     g.addEventListener('dblclick', () => setTableWidth(460));
   })();
 
-  $('vscalar').onchange = () => { autoRange(); recolorAll(); };
+  V.mountViewSelect($('vview'), 'mem-gap');
+  $('vview').onchange = () => {
+    $('vlo').value = ''; $('vhi').value = '';   // each view has its own sensible range
+    autoRange(); recolorAll();
+  };
   $('vlo').oninput = recolorAll; $('vhi').oninput = recolorAll;
   $('vauto').onclick = () => { autoRange(); recolorAll(); };
   $('vcompare').onclick = toggleCompare;
@@ -373,12 +384,8 @@
   const $ = id => document.getElementById(id);
   // 'auto' takes the public copy wherever it is genuinely servable and falls
   // back to Janelia for the rest, so a link is public whenever it can be
-  let NG = null, source = 'auto';
-  try { source = localStorage.getItem('ecs-ngsource') || 'auto'; } catch (e) {}
-  const baseFor = d => {
-    const key = source === 'auto' ? (d.s3_ready ? 's3' : 'nrs') : source;
-    return NG.sources[key].base;
-  };
+  let NG = null;
+  const baseFor = d => NG.sources[d.s3_ready ? 's3' : 'nrs'].base;
 
   function state(crop) {
     const dsName = NG.crop_dataset[crop]; if (!dsName) return null;
@@ -408,34 +415,10 @@
     return 'https://neuroglancer-demo.appspot.com/#!' +
       encodeURIComponent(JSON.stringify(s));
   };
-  window.ngSource = () => source;
   window.ngReady = () => !!NG;
-
-  function mountToggle() {
-    const host = $('ngsource'); if (!host || !NG) return;
-    const ready = Object.values(NG.datasets).filter(d => d.s3_ready).length;
-    const total = Object.keys(NG.datasets).length;
-    const opts = [['auto', 'Public where available',
-                   `Uses OpenOrganelle for the ${ready} of ${total} datasets fully migrated, ` +
-                   'and Janelia for the rest.']]
-      .concat(Object.entries(NG.sources).map(([k, v]) => [k, v.label, v.note]));
-    host.innerHTML = opts.map(([k, label, note]) =>
-      `<button type="button" class="chip${k === source ? ' on' : ''}" data-src="${k}"
-        title="${note}">${label}</button>`).join('');
-    host.onclick = e => {
-      const b = e.target.closest('[data-src]'); if (!b) return;
-      source = b.dataset.src;
-      try { localStorage.setItem('ecs-ngsource', source); } catch (_) {}
-      mountToggle();
-      note();
-      if (window.refreshNgLinks) window.refreshNgLinks();
-    };
-    note();
-  }
 
   function note() {
     const n = document.getElementById('ngnote'); if (!n) return;
-    if (source !== 'auto') { n.textContent = NG.sources[source].note; return; }
     const per = Object.entries(NG.datasets);
     const pub = per.filter(([, d]) => d.s3_ready).map(([k]) => k);
     n.innerHTML = pub.length
@@ -446,7 +429,7 @@
   }
 
   fetch('data/neuroglancer.json').then(r => r.json()).then(j => {
-    NG = j; mountToggle();
+    NG = j; note();
     if (window.refreshNgLinks) window.refreshNgLinks();
   }).catch(() => {});
 })();

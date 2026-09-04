@@ -114,11 +114,13 @@ EXTRA = """<script src="membranes/three.min.js"></script>
     act on, instead of floating above the whole page */
  .vbar{grid-area:bar;display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;
    padding:6px 10px;border-bottom:1px solid var(--rule);background:var(--raise)}
- .vbar select{max-width:180px}
  .vbar select,.vbar input[type=number]{font:inherit;font-size:var(--t5);padding:3px 6px;
    background:var(--bg);color:var(--ink);border:1px solid var(--rule-strong);border-radius:5px}
  .vbar input[type=number]{width:76px}
- .vbar .rng{display:flex;gap:5px;align-items:center}
+ .vbar .rng{display:flex;gap:var(--s3);align-items:center}
+ .vbar .rng[hidden]{display:none!important}
+ .vbar select{max-width:none}
+ .vbar optgroup{font-style:normal}
  .vbar .key{font-size:10.5px}
  .grow{flex:1 1 auto}
  .swatchbar{display:inline-flex;flex-direction:column;gap:2px}
@@ -136,9 +138,6 @@ EXTRA = """<script src="membranes/three.min.js"></script>
  .toolbar input[type=search]{font:inherit;font-size:var(--t4);padding:5px 9px;min-width:240px;
    background:var(--raise);color:var(--ink);border:1px solid var(--rule-strong);border-radius:6px}
  .toolbar .tcount{font-size:var(--t4);color:var(--ink-3);font-variant-numeric:tabular-nums}
- .toolbar .ngsrc{display:flex;gap:6px;align-items:center}
- .toolbar .ngsrc label{font-size:var(--t5);color:var(--ink-3);
-   text-transform:uppercase;letter-spacing:.07em}
  .drawer{border:1px solid var(--rule);border-radius:var(--radius);
    background:var(--raise);margin:0 0 var(--s3);padding:var(--s3) var(--s4)}
  summary .n{margin-left:6px;font-variant-numeric:tabular-nums;opacity:.75}
@@ -241,9 +240,6 @@ def main():
   <details class="tools" data-panel="ranges"><summary>Numeric ranges</summary></details>
   <details class="tools" data-panel="colpick"><summary>Columns</summary></details>
   <button class="btn" id="reset" type="button">Reset</button>
-  <span class="grow"></span>
-  <span class="ngsrc"><label>Neuroglancer</label>
-    <span id="ngsource" style="display:flex;gap:5px"></span></span>
 </div>
 <div class="facets drawer" id="facets" hidden></div>
 <div class="ranges drawer" id="ranges" hidden></div>
@@ -254,16 +250,12 @@ def main():
   </div>
   <div class="gutter" id="gutter" title="Drag to resize the table"></div>
   <div class="vbar">
-    <select id="vscalar" title="Which value colours the surface">
-      <option value="gap">Gap to nearest cell</option>
-      <option value="curvature">Signed curvature</option>
-      <option value="deviation">Protrusion / indentation</option>
-    </select>
-    <span class="rng"><input type="number" id="vlo" step="any" title="Colour range, low">
+    <select id="vview" title="Which surface, and what it is coloured by"></select>
+    <span class="rng" id="vrange"><input type="number" id="vlo" step="any" title="Colour range, low">
       <input type="number" id="vhi" step="any" title="Colour range, high">
-      <button class="btn" id="vauto" type="button">Auto</button></span>
-    <span class="swatchbar"><canvas id="vbar"></canvas>
-      <span class="ends"><span id="vlolab"></span><span id="vhilab"></span></span></span>
+      <button class="btn" id="vauto" type="button">Auto</button>
+      <span class="swatchbar"><canvas id="vbar"></canvas>
+        <span class="ends"><span id="vlolab"></span><span id="vhilab"></span></span></span></span>
     <span class="grow"></span>
     <button class="btn on" id="vlink" type="button"
       title="Both patches share one camera, so they stay at the same scale">Linked</button>

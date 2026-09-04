@@ -10,6 +10,41 @@
     deviation: { label: 'Protrusion / indentation', cmap: 'RdBu_r', unit: 'nm' },
   };
   const NAN_GREY = [0.30, 0.31, 0.35];
+  const PLAIN = 0xb9b2a3;          // unpainted surface: warm bone, reads in both themes
+
+  /* What you can put in a panel. `surface` is which mesh, `scalar` is what
+     colours it (null = the bare mesh). `ready:false` entries are listed but
+     disabled: the ECS surfaces are coming and the menu should say so rather
+     than pretend the analysis is membrane-only. Turning one on is a one-line
+     change here once its data ships. */
+  const VIEWS = [
+    { id: 'mem',      group: 'Membrane surface', label: 'Mesh only',
+      surface: 'membrane', scalar: null, ready: true },
+    { id: 'mem-curv', group: 'Membrane surface', label: 'Curvature — morphology',
+      surface: 'membrane', scalar: 'curvature', ready: true },
+    { id: 'mem-dev',  group: 'Membrane surface', label: 'Protrusion / indentation — morphology',
+      surface: 'membrane', scalar: 'deviation', ready: true },
+    { id: 'mem-gap',  group: 'Membrane surface', label: 'Gap to nearest cell — distance',
+      surface: 'membrane', scalar: 'gap', ready: true },
+    { id: 'ecs',      group: 'ECS surface (not built yet)', label: 'Mesh only',
+      surface: 'ecs', scalar: null, ready: false },
+    { id: 'ecs-curv', group: 'ECS surface (not built yet)', label: 'Curvature — morphology',
+      surface: 'ecs', scalar: 'curvature', ready: false },
+    { id: 'ecs-wid',  group: 'ECS surface (not built yet)', label: 'Local width — thickness',
+      surface: 'ecs', scalar: 'width', ready: false },
+  ];
+  const VIEW = Object.fromEntries(VIEWS.map(v => [v.id, v]));
+
+  function mountViewSelect(sel, current) {
+    let g = null, html = '';
+    for (const v of VIEWS) {
+      if (v.group !== g) { if (g) html += '</optgroup>'; g = v.group;
+        html += `<optgroup label="${g}">`; }
+      html += `<option value="${v.id}"${v.ready ? '' : ' disabled'}${
+        v.id === current ? ' selected' : ''}>${v.label}</option>`;
+    }
+    sel.innerHTML = html + '</optgroup>';
+  }
   const cache = new Map();
 
   async function loadBin(base, entry) {
@@ -91,7 +126,20 @@
     }
     recolor(scalar, lo, hi) {
       if (!this.geom) return;
+      // the bare mesh: one material colour, so shape is all you read
+      if (!scalar) {
+        this.mesh.material.vertexColors = false;
+        this.mesh.material.color.setHex(PLAIN);
+        this.mesh.material.needsUpdate = true;
+        return;
+      }
+      if (!this.mesh.material.vertexColors) {
+        this.mesh.material.vertexColors = true;
+        this.mesh.material.color.setHex(0xffffff);
+        this.mesh.material.needsUpdate = true;
+      }
       const vals = this.data.scal[scalar];
+      if (!vals) return;
       const lut = window.CMAPS[SCALARS[scalar].cmap], n = lut.length - 1;
       const N = vals.length, col = new Float32Array(N * 3), span = (hi - lo) || 1e-9;
       for (let i = 0; i < N; i++) {
@@ -111,7 +159,7 @@
     }
   }
 
-  window.ECSViewer = { Panel, SCALARS, drawBar };
+  window.ECSViewer = { Panel, SCALARS, VIEWS, VIEW, mountViewSelect, drawBar };
 
   function drawBar(canvas, scalar, lo, hi) {
     const w = canvas.clientWidth || 220;

@@ -51,6 +51,20 @@ Published from `docs/` (see `docs/README.md`). Overview, a metric explorer over
 all 94 metrics, a crop table, the figure gallery and the membrane inspector.
 Replaces the local HTML files so it can be shared by link.
 
+The crop page's viewer takes a **view**: which surface, coloured by what. Four
+membrane views work today (bare mesh, curvature, protrusion/indentation, gap to
+nearest cell). Three ECS views are listed and disabled, waiting on data:
+
+| view | needs |
+| --- | --- |
+| ECS mesh only | an ECS surface per crop in the `.bin` layout `docs/membranes/inspect/` uses: positions `f32[nv*3]`, indices `u32[nf*3]`, then one `f32[nv]` block per scalar |
+| ECS morphology | per-vertex curvature on that surface |
+| ECS thickness | per-vertex local width on that surface |
+
+`scripts/render_ecs_3d.py` already marching-cubes the ECS mask (needs the zarr,
+so VPN and a cluster job). Turning a view on is one line in `VIEWS` in
+`docs/assets/viewer.js` once its `.bin` and manifest ranges exist.
+
 ## Data situation
 
 Analyses split cleanly by whether they need the voxel data:
