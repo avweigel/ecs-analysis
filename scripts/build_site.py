@@ -84,11 +84,43 @@ data, published so it can be read from the outside. Nothing here is a finished r
     <span class="d">What a crop is, how to read the charts, and what all {n_metrics} metrics mean.</span></a></li>
 </ul>
 
+<div class="sec">
+<h2 style="margin-top:0">What you are looking at</h2>
+<div class="grid cols-3">
+  <div>
+    <h3 style="margin-top:0">A crop</h3>
+    <p class="small muted" style="margin:0">A small cube of volume electron microscopy in which
+    every cell, and the space between the cells, has been traced by hand. One crop is one piece of
+    tissue. There are {n_crops}, and no crop appears in both arms of the comparison.</p>
+  </div>
+  <div>
+    <h3 style="margin-top:0">The two preparations</h3>
+    <p class="small muted" style="margin:0 0 var(--s2)">Two ways of preserving tissue before
+    imaging. Chemical fixation is standard and is known to distort the extracellular space;
+    rapid freezing should distort it less. These colours mean these two things on every chart
+    on this site.</p>
+    <div class="legend" style="margin:0">
+      <span class="item"><i class="sw" style="background:var(--chem)"></i>Chemical</span>
+      <span class="item"><i class="sw" style="background:var(--hpf)"></i>Rapid HPF</span>
+    </div>
+  </div>
+  <div>
+    <h3 style="margin-top:0">Regions</h3>
+    <p class="small muted" style="margin:0">Crops are labelled by where in the tissue they came
+    from &mdash; bile canaliculus, glomerulus, intercalated disc. Comparing like with like means
+    comparing within a region, which is why the counts below matter.</p>
+  </div>
+</div>
+<p class="note"><a href="reference.html">The reference page</a> goes further: why every metric is
+computed three times, and what all {n_metrics} of them measure.</p>
+</div>
+
 <div class="sec" id="coverage">
 <h2 style="margin-top:0">Where the comparison is supported</h2>
-<p class="lede" style="margin-bottom:var(--s4)">A region supports a chemical-vs-HPF comparison
-only if both arms have crops in it. <b>{thin} of {len(rows)} do not.</b> Kidney &mdash; where the
-direction of the effect splits by region &mdash; is where most of the gaps are.</p>
+<p class="lede" style="margin-bottom:var(--s4)">A region can only support a comparison if both
+preparations have crops in it. <b>{thin} of {len(rows)} do not.</b> Kidney &mdash; where the
+direction of the effect splits by region &mdash; is where most of the gaps are, so read kidney
+carefully.</p>
 <div class="scroll"><table>
   <thead><tr><th>Tissue</th><th>Region</th><th class="num">Chemical</th>
     <th class="num">Rapid HPF</th><th class="wrap"></th></tr></thead>
@@ -113,8 +145,6 @@ direction of the effect splits by region &mdash; is where most of the gaps are.<
     <table style="margin-top:var(--s5)">
       <thead><tr><th>Tissue</th><th class="num">Crops</th></tr></thead>
       <tbody>{"".join(f'<tr><td>{esc(k)}</td><td class="num">{v}</td></tr>' for k, v in sorted(tissues.items()))}</tbody></table>
-    <p class="note">Roughly half the crops come from each preparation. No crop appears in both
-    arms &mdash; each is a different piece of tissue.</p>
   </div>
 </div>
 </div>
