@@ -41,6 +41,58 @@ EXTRA = """<style>
 </style>"""
 
 
+DATASET_JS = """<script>
+/* The dataset table is built in the browser from the same neuroglancer.json the
+   crop page uses, so the two can never disagree about what exists where. */
+(function () {
+  const TISSUE = { cortex: 'Cortex', heart: 'Heart', kidney: 'Kidney', liver: 'Liver' };
+  fetch('data/neuroglancer.json').then(r => r.json()).then(NG => {
+    const tb = document.querySelector('#dstable tbody'); if (!tb) return;
+    const rowsFor = ds => NG.datasets[ds];
+    const names = Object.keys(NG.datasets).sort();
+    tb.innerHTML = names.map(ds => {
+      const d = rowsFor(ds);
+      const tissue = TISSUE[Object.keys(TISSUE).find(k => ds.includes(k))] || '';
+      const ready = d.s3_ready === true ? '<span class="tag hpf">migrated</span>'
+        : d.s3_ready === 'em-only' ? '<span class="muted">image only</span>'
+        : '<span class="muted">not yet</span>';
+      const first = d.crops[0];
+      return `<tr><td><code>${ds}</code></td><td>${tissue}</td>
+        <td>${/-(2|4|6|8)$/.test(ds) && !/kidney$|liver$/.test(ds) ? '' : ''}</td>
+        <td class="num">${d.voxel_nm ?? ''}</td><td class="num">${d.crops.length}</td>
+        <td><code>${d.em || ''}</code></td><td>${ready}</td>
+        <td><a class="nglink" href="#" data-ds="${first}">NG</a></td></tr>`;
+    }).join('');
+    // reuse the crop page's URL builder if it is present; otherwise build here
+    document.querySelectorAll('#dstable a.nglink').forEach(a => {
+      a.target = '_blank'; a.rel = 'noopener';
+      a.href = ngURLLocal(NG, a.dataset.ds);
+    });
+    document.getElementById('dsnote').innerHTML =
+      'Links open the whole volume with every annotated crop in it as a layer. ' +
+      'They point at the Janelia host, which needs the VPN; the ' +
+      '<a href="crops.html">crop page</a> has a switch for the public OpenOrganelle copy, ' +
+      'which currently carries ' +
+      Object.values(NG.datasets).filter(d => d.s3_ready === true).length +
+      ' of these ' + names.length + ' volumes.';
+  }).catch(() => {});
+
+  function ngURLLocal(NG, crop) {
+    const dsName = NG.crop_dataset[crop], d = NG.datasets[dsName];
+    const base = `zarr://${NG.sources.nrs.base}/${dsName}/${dsName}.zarr/recon-1`;
+    const em = { type: 'image', source: `${base}/em/${d.em}`, name: 'em' };
+    if (d.shader) { em.shaderControls = d.shader; em.tab = 'rendering'; }
+    const layers = [em].concat(d.crops.map(c => ({ type: 'segmentation',
+      source: `${base}/labels/groundtruth/${c}/all`, name: c, visible: true })));
+    const s = { layers, layout: '4panel' };
+    const c = NG.centre_nm[crop], v = d.voxel_nm || 8;
+    if (c) { s.dimensions = { x: [v*1e-9,'m'], y: [v*1e-9,'m'], z: [v*1e-9,'m'] };
+             s.position = c.map(x => +(x / v).toFixed(1)); }
+    return 'https://neuroglancer-demo.appspot.com/#!' + encodeURIComponent(JSON.stringify(s));
+  }
+})();
+</script>"""
+
 DICT_JS = """<script>
 const mq=document.getElementById('mq');
 mq.addEventListener('input',()=>{
@@ -67,7 +119,8 @@ def main():
     order = ["volume_fraction", "ecs_width", "voronoi_gap", "sa_v",
              "topology", "membrane_topology", "bm_sensitivity"]
 
-    toc = "".join(f'<a href="#{k}">{esc(fams[k]["label"])}</a>' for k in order if k in fams)
+    toc = ('<a href="#datasets">The datasets</a>'
+           + "".join(f'<a href="#{k}">{esc(fams[k]["label"])}</a>' for k in order if k in fams))
 
     body = ""
     for k in order:
@@ -147,6 +200,16 @@ one you should look at depends on what you are asking.</p>
   row, and the <a href="index.html#coverage">coverage table</a> lists them.</div>
 </div>
 
+<h2 id="datasets">The datasets</h2>
+<p class="lede">The 55 crops come from nine imaged volumes. A crop is a hand-annotated cube
+inside one of these; the volume itself is the raw electron microscopy it was cut from.</p>
+<div class="scroll"><table id="dstable">
+  <thead><tr><th>Dataset</th><th>Tissue</th><th>Preparation</th>
+    <th class="num">Voxel<span class="u">nm</span></th><th class="num">Crops</th>
+    <th>EM array</th><th>OpenOrganelle</th><th>Open</th></tr></thead>
+  <tbody></tbody></table></div>
+<p class="note" id="dsnote"></p>
+
 <h2 id="metrics">Metric dictionary</h2>
 <p class="lede">{len(mets)} metrics in {len(order)} families. The grey name under each entry is
 its column name in the CSVs. Use the filter to find one by name, unit or wording.</p>
@@ -155,7 +218,7 @@ its column name in the CSVs. Use the filter to find one by name, unit or wording
   <div id="dict">{body}</div></div>
 <!--DICTJS-->
 """
-    html = html.replace("<!--DICTJS-->", DICT_JS)
+    html = html.replace("<!--DICTJS-->", DICT_JS + DATASET_JS)
     html += sh.tail(0)
     (ROOT / "docs" / "reference.html").write_text(html)
     print(f"built docs/reference.html ({len(mets)} metrics)")

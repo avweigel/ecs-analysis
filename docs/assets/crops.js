@@ -113,6 +113,7 @@
     th.innerHTML = '<tr>' +
       head.map(h => `<th class="sortable${h === 'voxel' ? ' num' : ''}" data-k="${h}">${
         h === 'voxel' ? 'Voxel<span class="u">nm</span>' : h[0].toUpperCase() + h.slice(1)}</th>`).join('') +
+      '<th title="Open in Neuroglancer">View</th>' +
       cols.map(c => `<th class="num sortable" data-k="${c}" title="${(COLS[c].blurb || '').replace(/"/g, '&quot;')}">${
         COLS[c].label}<span class="u">${COLS[c].unit || '&nbsp;'}</span></th>`).join('') + '</tr>';
 
@@ -130,6 +131,8 @@
         <td class="thumbcell"><span style="display:flex;align-items:center;gap:9px">
           <img class="thumb" src="assets/art/thumbs/${r.crop}.png" alt="" loading="lazy" width="34" height="34">
           ${r.crop}<span class="cmp" data-slot="B">compare →</span></span></td>
+        <td class="ngcell"><a class="nglink" data-crop="${r.crop}" target="_blank"
+          rel="noopener" title="Open this dataset in Neuroglancer, centred here">NG</a></td>
         <td>${r.tissue}</td><td>${r.region || ''}</td><td class="wrap">${r.anatomy || ''}</td>
         <td><span class="tag ${PREP[r.prep]}">${r.prep}</span></td>
         <td class="num">${r.voxel || ''}</td>` +
@@ -138,9 +141,11 @@
         '</tr>';
     }).join('');
     $('count').textContent = `${list.length} of ${rows.length} crops`;
+    if (window.refreshNgLinks) window.refreshNgLinks();
   }
 
   $('t').addEventListener('click', e => {
+    if (e.target.closest('a.nglink')) return;      // let the link do its job
     const cmp = e.target.closest('.cmp');
     const tr = e.target.closest('tr[data-crop]'); if (!tr) return;
     const crop = tr.dataset.crop;
@@ -312,3 +317,75 @@
     await load('B', first[1] || first[0]);
   })();
 })();
+
+/* ---------- Neuroglancer links ----------------------------------------
+   A crop's link opens its whole dataset: the EM image plus every annotated
+   crop in that dataset as its own layer, centred on the crop you clicked. */
+(function () {
+  const $ = id => document.getElementById(id);
+  let NG = null, source = 'nrs';
+  try { source = localStorage.getItem('ecs-ngsource') || 'nrs'; } catch (e) {}
+
+  function state(crop) {
+    const dsName = NG.crop_dataset[crop]; if (!dsName) return null;
+    const d = NG.datasets[dsName]; if (!d) return null;
+    const base = `zarr://${NG.sources[source].base}/${dsName}/${dsName}.zarr/recon-1`;
+    const em = { type: 'image', source: `${base}/em/${d.em}`, name: 'em' };
+    if (d.shader) { em.shaderControls = d.shader; em.tab = 'rendering'; }
+    const layers = [em];
+    for (const c of d.crops) {
+      layers.push({ type: 'segmentation',
+        source: `${base}/labels/groundtruth/${c}/all`,
+        name: c, visible: true, ...(c === crop ? { tab: 'segments' } : {}) });
+    }
+    const s = { layers, selectedLayer: { layer: crop }, layout: '4panel' };
+    const c = NG.centre_nm[crop];
+    if (c) {
+      const v = d.voxel_nm || 8;
+      s.dimensions = { x: [v * 1e-9, 'm'], y: [v * 1e-9, 'm'], z: [v * 1e-9, 'm'] };
+      s.position = c.map(x => +(x / v).toFixed(1));   // nm -> dataset voxels
+    }
+    return s;
+  }
+
+  window.ngURL = crop => {
+    if (!NG) return null;
+    const s = state(crop); if (!s) return null;
+    return 'https://neuroglancer-demo.appspot.com/#!' +
+      encodeURIComponent(JSON.stringify(s));
+  };
+  window.ngSource = () => source;
+  window.ngReady = () => !!NG;
+
+  function mountToggle() {
+    const host = $('ngsource'); if (!host || !NG) return;
+    host.innerHTML = Object.entries(NG.sources).map(([k, v]) =>
+      `<button type="button" class="chip${k === source ? ' on' : ''}" data-src="${k}"
+        title="${v.note}">${v.label}</button>`).join('');
+    host.onclick = e => {
+      const b = e.target.closest('[data-src]'); if (!b) return;
+      source = b.dataset.src;
+      try { localStorage.setItem('ecs-ngsource', source); } catch (_) {}
+      mountToggle();
+      const n = document.getElementById('ngnote');
+      if (n) n.textContent = NG.sources[source].note;
+      if (window.refreshNgLinks) window.refreshNgLinks();
+    };
+    const n = document.getElementById('ngnote');
+    if (n) n.textContent = NG.sources[source].note;
+  }
+
+  fetch('data/neuroglancer.json').then(r => r.json()).then(j => {
+    NG = j; mountToggle();
+    if (window.refreshNgLinks) window.refreshNgLinks();
+  }).catch(() => {});
+})();
+
+window.refreshNgLinks = function () {
+  if (!window.ngReady || !window.ngReady()) return;
+  document.querySelectorAll('a.nglink').forEach(a => {
+    const u = window.ngURL(a.dataset.crop);
+    if (u) { a.href = u; a.removeAttribute('aria-disabled'); }
+    else { a.removeAttribute('href'); a.setAttribute('aria-disabled', 'true'); }
+  });
+};

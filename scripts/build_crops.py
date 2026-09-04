@@ -96,6 +96,11 @@ EXTRA = """<script src="membranes/three.min.js"></script>
  td .cmp{opacity:0;font-size:10px;border:1px solid var(--rule-strong);border-radius:4px;
    padding:1px 6px;margin-left:8px;color:var(--ink-3)}
  tr:hover td .cmp{opacity:1}
+ .ngcell{width:1%}
+ a.nglink{display:inline-block;border:1px solid var(--rule-strong);border-radius:5px;
+   padding:1px 7px;font-size:10.5px;letter-spacing:.06em;color:var(--ink-2)}
+ a.nglink:hover{border-color:var(--accent);color:var(--accent);text-decoration:none}
+ a.nglink[aria-disabled]{opacity:.35;pointer-events:none}
 </style>"""
 
 
@@ -161,7 +166,10 @@ def main():
     <details class="tools" style="margin:0"><summary>Numeric ranges</summary></details></div>
   <div class="ctl"><label>&nbsp;</label>
     <details class="tools" style="margin:0"><summary>Columns</summary></details></div>
+  <div class="ctl"><label>Neuroglancer source</label>
+    <span id="ngsource" style="display:flex;gap:5px;padding:3px 0"></span></div>
 </div>
+<p class="note" id="ngnote" style="margin-top:0"></p>
 <div class="ranges" id="ranges" hidden></div>
 <div class="colpick" id="colpick" hidden></div>
 
