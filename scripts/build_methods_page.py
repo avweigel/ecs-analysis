@@ -838,7 +838,7 @@ def main() -> None:
             "<a href='../home.html'>⌂ project home</a>"
             "<a href='membranes_3d.html'>interactive 3D gallery</a>"
             "<a href='index.html'>static map gallery</a>"
-            "<a href='inspector.html'>adjustable-scale inspector</a>"
+            "<a href='../crops.html'>crop page viewer</a>"
             "</nav>\n"
             "<div class=container>" + body + "</div>\n")
     OUT.parent.mkdir(parents=True, exist_ok=True)

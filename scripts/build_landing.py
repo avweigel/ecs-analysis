@@ -34,7 +34,7 @@ SECTIONS = [
         ("membranes/index.html", "Static map gallery",
          "Three quantitative maps per crop as images (curvature / protrusion-indentation "
          "/ contact gap), grouped tissue → region → prep.", ""),
-        ("membranes/inspector.html", "Adjustable-scale inspector",
+        ("crops.html", "The crop viewer",
          "Single-mesh viewer with live colormap min/max sliders and a colorbar legend "
          "for rescaling any scalar in real time.", ""),
         ("membranes/methods.html", "Full methods &amp; results",

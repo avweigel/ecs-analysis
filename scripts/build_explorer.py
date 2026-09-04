@@ -193,7 +193,7 @@ function draw(){
     +(unit(s.met)?' <span style="font-weight:400;text-transform:none">('+unit(s.met)+')</span>':'')
     +'</th></tr>';
   tb.innerHTML=d.slice().sort((a,b)=>a.crop.localeCompare(b.crop)).map(r=>
-    `<tr><td>${r.crop}</td><td>${r.tissue}</td><td>${r.region_group||''}</td>
+    `<tr><td><a href="crops.html?crop=${r.crop}" title="Open ${r.crop} in the viewer">${r.crop}</a></td><td>${r.tissue}</td><td>${r.region_group||''}</td>
      <td class="wrap">${r.anatomy||''}</td>
      <td><span class="tag ${PREP[r.prep]}">${r.prep}</span></td>
      <td class="num">${r.analysis_voxel_nm||''}</td><td class="num">${fmt(r.value)}</td></tr>`).join('');

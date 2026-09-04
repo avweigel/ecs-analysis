@@ -108,7 +108,7 @@ def main():
     html += sh.pagehead("3D views",
         "One representative crop per region and preparation, membrane surface coloured by "
         "curvature. Drag to rotate, scroll to zoom. These are pre-rendered for a quick look; "
-        'the <a href="inspector.html">inspector</a> has all 55 crops, all three scalars, and '
+        'the <a href="../crops.html">crop page</a> has all 55, both surfaces, two at a time, and '
         "live control of the colour range.", wide=True)
     html += INTRO.replace("<!--BODY-->", body)
     html += sh.tail(1)

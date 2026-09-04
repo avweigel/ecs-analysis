@@ -144,11 +144,11 @@ def restamp(path: Path):
 
 
 def main():
-    inject(MEM / "inspector.html", "membranes/inspector.html", doc_page=False)
-    fix_inspector_height()
+    # inspector.html is no longer a legacy page: it is a pointer to the crop
+    # viewer, built from the shell like everything else
     inject(MEM / "methods.html", "membranes/inspector.html", doc_page=True)
     inject(MEM / "index.html", "membranes/views.html", doc_page=True)
-    for name in ("inspector.html", "methods.html", "index.html"):
+    for name in ("methods.html", "index.html"):
         restamp(MEM / name)
 
 

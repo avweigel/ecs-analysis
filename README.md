@@ -3,7 +3,7 @@
 Comparing extracellular space (ECS) geometry between two tissue-preparation
 methods — Chemical fixation vs Rapid High-Pressure Freezing (HPF) — across
 CellMap groundtruth crops in four mouse tissues (Kidney, Heart, Liver,
-Cortex). 52 active crops, ~1,500 cells. All four tissues now have both
+Cortex). 55 active crops, ~1,500 cells. All four tissues now have both
 Chemical and HPF crops (Heart HPF added 2026-05 via `jrc_mus-heart-4`).
 
 ## Browse the data
@@ -43,7 +43,7 @@ Two follow-ups remain for the analysis (not blocking reproducibility):
    pending expert annotation — the expert could not confidently resolve
    the cortex HPF crops. Once added, re-run `pixi run summarize` /
    `pixi run figures` to pick them up — no per-crop recompute needed.
-   (All other 50 active crops are annotated.)
+   (All other 53 active crops are annotated.)
 2. `matched_volume_fraction.csv` is intentionally absent because the
    fast-path reads zarr metadata only valid at native resolution. If
    you want voxel-count ratios at the 8 nm matched resolution, add a
@@ -76,10 +76,10 @@ ecs/
 docs/                   the published site (GitHub Pages serves this folder)
   index.html            overview, scope, and where the comparison is supported
   explore.html          metric explorer over all 94 metrics
-  crops.html            per-crop table
+  crops.html            per-crop table and the viewer, both surfaces
   reference.html        study design, how to read the charts, metric dictionary
-  figures.html          quantification: every plot the pipeline draws
-  membranes/            3D views, the membrane inspector, methods
+  figures.html          quantification: the effect matrix, region vignettes, renders
+  membranes/            all 55 patches, paired 3D views, the methods in full
   data/                 the CSVs and metrics.json the pages read
   README.md             what is published, what is deliberately left out
 
@@ -87,10 +87,13 @@ scripts/
   collect_all.py        merge every per-crop metric into results/all_metrics_*
   build_metric_dictionary.py  names, units and caveats for all 94 metrics
   site_shell.py         shared header, nav and footer for every page
-  build_site.py         -> docs/index.html, docs/crops.html
+  build_site.py         -> docs/index.html
   build_explorer.py     -> docs/explore.html
   build_reference.py    -> docs/reference.html
+  build_crops.py        -> docs/crops.html (+ the inspector pointer)
   build_figures_page.py -> docs/figures.html
+  make_ecs_surfaces.py  -> docs/membranes/ecs/*.bin, the ECS surfaces
+  make_ecs_hero.py      -> docs/assets/art/hero.glb
   build_views_page.py   -> docs/membranes/views.html
   retheme_legacy.py     puts the older membrane pages on the shared shell
 
@@ -115,7 +118,7 @@ figures/                rendered PNGs from make_figures.py
 archive/                old code and CSVs from a prior pipeline (kept
                         for reference; not part of the new flow)
 
-crop_annotations.csv    anatomy labels per crop. Covers 50 of 52 active
+crop_annotations.csv    anatomy labels per crop. Covers 53 of 55 active
                         crops; only the 2 cortex HPF crops (1116, 1141)
                         remain unannotated. Once added, anatomy-matched
                         comparisons auto-update — no code change needed.

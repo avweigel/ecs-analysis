@@ -21,10 +21,10 @@ NAV = [
 # lights up its parent, so the bar always shows where you are
 # the membrane pages now live under Crops, which owns the viewer
 PARENT = {
-    "membranes/views.html":     "crops.html",
-    "membranes/inspector.html": "crops.html",
-    "membranes/methods.html":   "crops.html",
-    "membranes/index.html":     "crops.html",
+    "membranes/index.html":     "crops.html",     # the contact sheet of all 55
+    "membranes/views.html":     "figures.html",   # paired 3D views per region
+    "membranes/methods.html":   "reference.html", # the methods in full
+    "membranes/inspector.html": "crops.html",     # superseded; kept as a redirect
     "index.html":               None,
 }
 

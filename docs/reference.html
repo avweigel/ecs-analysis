@@ -4,8 +4,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=541bcceb">
-<script src="assets/site.js?v=541bcceb"></script>
+<link rel="stylesheet" href="assets/app.css?v=3ca5fa82">
+<script src="assets/site.js?v=3ca5fa82"></script>
 <style>
  .toc{position:sticky;top:72px;align-self:start}
  #mq{width:100%;margin-bottom:var(--s3)}
@@ -86,44 +86,37 @@ one you should look at depends on what you are asking.</p>
 <h2 id="surfaces">The two surfaces in the viewer</h2>
 <p class="lede">The <a href="crops.html">crop page</a> can show either side of the same
 boundary. They are built differently, and the difference matters when you compare them.</p>
-<div class="grid cols-2">
+<div class="grid cols-2 tops">
   <div class="card">
     <h3 style="margin-top:0">Membrane</h3>
-    <p style="color:var(--ink-2)">One cell's ECS-facing skin, in the crop's own frame. The
-    cell with the most ECS-facing surface is meshed at 16 nm, and the patch is the part of it
-    that faces extracellular space. Coloured by signed curvature, protrusion / indentation
-    against a 60 nm smoothed reference, or the gap to the nearest neighbouring cell.</p>
-    <p class="note" style="margin:0">Faces at the crop wall are trimmed: marching cubes caps
-    the volume there, and the cap is not membrane.</p>
+    <p style="color:var(--ink-2)">One cell's ECS-facing skin, in the crop's own frame. The cell
+    with the most ECS-facing surface is meshed at 16 nm; the patch is the part of it that faces
+    extracellular space.</p>
+    <p style="color:var(--ink-2)">Coloured by signed curvature, protrusion / indentation against
+    a 60 nm smoothed reference, or the gap to the nearest neighbouring cell.</p>
+    <p class="note" style="margin:0">Faces at the crop wall are trimmed: marching cubes caps the
+    volume there, and the cap is not membrane.</p>
   </div>
   <div class="card">
     <h3 style="margin-top:0">ECS</h3>
-    <p style="color:var(--ink-2)">The space itself, meshed at 8 nm from an 800 nm cube of
-    every crop &mdash; equal volume, so two crops can be compared with a shared camera. The
-    cube is not the middle of the crop: it is the position whose ECS fraction is closest to
-    the whole crop's, because the middle of a liver crop can sit inside one hepatocyte and
-    hold no ECS at all. Coloured by curvature, protrusion / indentation, or local channel
-    width. Curvature is averaged over a 24 nm neighbourhood before it is shown: at 8 nm the
-    marching-cubes staircase carries a signed single-vertex wobble that a diverging colour
-    scale renders as a herringbone over everything, and the mask itself cannot be smoothed
-    harder without dissolving the thin sheets that are the point.</p>
-    <p class="note" style="margin:0"><b>Thickness</b> is the chord: start on the surface,
-    march the normal through the space, stop at the far wall. It marches the same smoothed
-    occupancy field the surface came from and interpolates the crossing, so it is not
-    quantised to whole voxels. <b>Width</b> is a different question &mdash; the diameter of
-    the largest ball that fits, which the nearest wall in any direction bounds, so it stays
-    small where sheets meet while the chord follows its one line. They disagree usefully;
-    both are here. Either way, where the ray leaves the cube before finding the far wall the
-    answer would be the box's rather than the tissue's, so the vertex is grey.</p>
-    <p class="note" style="margin:var(--s2) 0 0">The flat faces where the crop was cut are
-    kept, in a darker grey, so the space reads as the solid object it is instead of a set of
-    empty shells &mdash; <b>Cut faces open</b> in the viewer drops them when they are in the
-    way. Nothing is measured on them.</p>
+    <p style="color:var(--ink-2)">The space itself, meshed at 8 nm from an 800 nm cube of every
+    crop &mdash; equal volume, so two crops can be compared on a shared camera. The cube is not
+    the middle of the crop: it is the position whose ECS fraction is closest to the whole crop's,
+    because the middle of a liver crop can sit inside one hepatocyte and hold no ECS at all.</p>
+    <p style="color:var(--ink-2)">Coloured by curvature, protrusion / indentation, thickness or
+    width. <b>Thickness</b> is the chord &mdash; march the normal through the space to the far
+    wall. <b>Width</b> is the largest ball that fits, which the nearest wall in any direction
+    bounds, so it stays smaller where sheets meet.</p>
+    <p class="note" style="margin:0">The cut faces are kept, in a darker grey, so the space reads
+    as the solid it is. Curvature is averaged over 24 nm before it is drawn.
+    <a href="membranes/methods.html">The methods in full</a> has the rest.</p>
   </div>
 </div>
-<p class="note">Both surfaces use one sign convention: positive curvature and positive
-deviation mean the membrane bulges <b>into</b> the extracellular space. The shared geometry
-code is calibrated on a cell mask, so the ECS values are negated to put them on that scale.</p>
+<p class="note">Both surfaces use one sign convention: positive curvature and positive deviation
+mean the membrane bulges <b>into</b> the extracellular space. Where a reading cannot be trusted
+&mdash; a kernel that reached the crop wall, a ray that left the box &mdash; the vertex is grey
+rather than wrong, and at 8 nm the narrowest resolvable channel is 16 nm, so the low end of the
+thickness scale is the sampling and not the tissue.</p>
 
 <h2 id="datasets">The datasets</h2>
 <p class="lede">The 55 crops come from nine imaged volumes. A crop is a hand-annotated cube

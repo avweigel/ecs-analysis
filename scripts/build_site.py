@@ -136,9 +136,9 @@ def build_index(long_rows, wide_rows, mets):
       auto-rotate-delay="1200" rotation-per-second="14deg" interaction-prompt="none"
       touch-action="pan-y" exposure="1.15" shadow-intensity="0"
       camera-orbit="auto auto 88%" min-field-of-view="12deg"
-      alt="A cardiac membrane surface coloured by distance to the nearest neighbouring cell,
-      studded with caveolae. Drag to rotate."></model-viewer>
-    <span class="cap">crop1146 &middot; heart, chemical &middot; gap to nearest cell</span>
+      alt="The extracellular space of a cortex crop as a solid object, coloured by how far it is
+      through the space. Drag to rotate."></model-viewer>
+    <span class="cap">crop1033 &middot; cortex, chemical &middot; thickness through the space</span>
   </div>
 </div></div>
 
@@ -156,10 +156,7 @@ caveats that go with them.</p>
     <span class="d">All {n_crops} crops, filterable, with the membrane and the space itself in the viewer.</span></a></li>
   <li><a href="figures.html">{ICO_QUANT}
     <span class="t">Quantification</span>
-    <span class="d">Every plot the pipeline draws, captioned — including the cross-metric effect matrix.</span></a></li>
-  <li><a href="figures.html#3d">{ICO_RENDERS}
-    <span class="t">Renders</span>
-    <span class="d">Paired 3D views per region, and the methods behind the membrane measurements.</span></a></li>
+    <span class="d">What one dot plot cannot show: every metric at once, one region at a time, and the geometry itself.</span></a></li>
   <li><a href="reference.html">{ICO_REFERENCE}
     <span class="t">Reference</span>
     <span class="d">What a crop is, how to read the charts, and what all {n_metrics} metrics mean.</span></a></li>

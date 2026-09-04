@@ -13,50 +13,27 @@ ROOT = Path(__file__).resolve().parent.parent
 FIGDIR = ROOT / "docs" / "figures"
 
 SECTIONS = [
-    ("Effect sizes at a glance", [
+    # What the explorer cannot be. Twelve per-metric panels used to sit here
+    # (native_* and matched_*) and every one of them was a worse version of a
+    # dot plot the explorer draws live, for any metric, at any grouping. They
+    # are gone. What is left is the three things one dot plot cannot do: all
+    # the metrics at once, all the metrics for one region at once, and a
+    # picture of the geometry itself.
+    ("Every metric at once", [
         ("effect_matrix.png", "Effect-size matrix",
          "Cliff's delta for every metric family across the region-matched comparison. "
          "Delta runs from -1 to 1; zero means the two preparations are indistinguishable. "
-         "This is a summary of direction and size, not of significance — read it "
-         "alongside the group sizes, because several regions have an arm of one."),
+         "Direction and size, not significance &mdash; several regions have an arm of one, "
+         "so read the effect, not the p."),
     ]),
-    ("Per metric, native resolution", [
-        ("native_volume_fraction.png", "Volume fraction",
-         "ECS and cell volume fractions per crop. The most resolution-robust family, so this "
-         "is the one native-resolution panel that can be read fairly directly."),
-        ("native_ecs_width.png", "ECS width",
-         "Distance from each extracellular voxel to the nearest cell. Remember this is "
-         "distance to the wall, not channel width — roughly a quarter of it."),
-        ("native_voronoi_gap.png", "Cell-to-cell gap",
-         "Gap between neighbouring cells. Has a hard floor of three voxels, so the left tail "
-         "is a property of the measurement rather than the tissue."),
-        ("native_sa_v.png", "Surface area to volume",
-         "ECS-facing membrane per unit cell volume, pooled across cells in each crop."),
-        ("native_topology.png", "Membrane shape",
-         "Curvature, roughness and protrusion density on the ECS-facing membrane."),
-        ("native_anatomy_matched.png", "Anatomy-matched summary",
-         "The same metrics restricted to region groups where both preparations have crops."),
-    ]),
-    ("Resolution-controlled, matched to 8 nm", [
-        ("matched_ecs_width.png", "ECS width, matched",
-         "Every crop downsampled to 8 nm before measuring. Differences that survive here are "
-         "not explained by voxel size."),
-        ("matched_voronoi_gap.png", "Cell-to-cell gap, matched",
-         "At 8 nm the gap floor is 24 nm, so anything below that is measurement, not biology."),
-        ("matched_sa_v.png", "Surface area to volume, matched", "Pooled SA:V at common resolution."),
-        ("matched_topology.png", "Membrane shape, matched",
-         "Shape statistics at 8 nm. The 30 nm roughness scale is not honestly resolvable here."),
-        ("matched_anatomy_matched.png", "Anatomy-matched, matched resolution",
-         "Both controls at once: same regions, same voxel size. The most conservative view."),
-    ]),
-    ("Region vignettes", [
+    ("One region, every metric", [
         ("vignette_bile_canaliculus.png", "Bile canaliculus", "Liver, chemical vs HPF."),
         ("vignette_hepatocyte_lateral.png", "Hepatocyte lateral", "Liver, the largest matched group."),
         ("vignette_glomerular.png", "Glomerular", "Kidney."),
         ("vignette_cardiac_interstitial.png", "Cardiac interstitial", "Heart."),
         ("vignette_intercalated_disc.png", "Intercalated disc", "Heart."),
     ]),
-    ("3D renders", [
+    ("Pictures of the geometry", [
         ("ecs3d_bile_canaliculus.png", "Extracellular space in 3D",
          "The space itself rendered as a solid, rather than the membranes around it."),
         ("cellsurf_crop1039_cell1.png", "Cell surface", "A single segmented cell."),
@@ -64,6 +41,19 @@ SECTIONS = [
         ("membrane_crop1072_cell1.png", "Membrane patch, crop1072", "The same view in another crop."),
     ]),
 ]
+
+
+EXTRA_LINE = {
+    "Pictures of the geometry":
+        '<p class="lede" style="margin-bottom:var(--s4)">These are stills. '
+        '<a href="membranes/views.html">Paired 3D views</a> puts one crop of each '
+        'preparation side by side per region, and the <a href="crops.html">crop page</a> '
+        'will load any two of the 55 into a viewer you can turn.</p>',
+}
+
+SLUGS = {"Every metric at once": "matrix",
+         "One region, every metric": "vignettes",
+         "Pictures of the geometry": "renders"}
 
 
 def main():
@@ -79,7 +69,9 @@ def main():
                       f'<img src="figures/{fn}" loading="lazy" alt="{label}"></a>'
                       f'<figcaption><b>{label}</b><span>{blurb}</span></figcaption></figure>')
         if cards:
-            body += f'<h2>{title}</h2><div class="figs">{cards}</div>'
+            slug = SLUGS.get(title, "")
+            head = f'<h2 id="{slug}">{title}</h2>' if slug else f'<h2>{title}</h2>'
+            body += head + EXTRA_LINE.get(title, "") + f'<div class="figs">{cards}</div>'
 
     extra = """<style>
  .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}

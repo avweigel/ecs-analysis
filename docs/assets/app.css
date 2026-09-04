@@ -204,6 +204,9 @@ p{margin:0 0 var(--s3)}
 .grid{display:grid;gap:var(--s4)}
 .cols-2{grid-template-columns:1fr 1fr}
 .cols-3{grid-template-columns:repeat(3,1fr)}
+/* cards of unequal length should each be their own height, not one tall box
+   beside a mostly empty one */
+.grid.tops{align-items:start}
 @media(max-width:820px){.cols-2,.cols-3{grid-template-columns:1fr}}
 
 /* stat row — no boxes, just numbers on a rule */
@@ -237,9 +240,13 @@ p{margin:0 0 var(--s3)}
 .callout.warn{border-left-color:var(--flag)}
 
 /* ── controls ───────────────────────────────────────────── */
-.controls{display:flex;gap:var(--s4);flex-wrap:wrap;align-items:flex-end;
+/* a grid, not a flex wrap: six controls of different label lengths were
+   breaking into a tidy row of five and one orphan on a line of its own */
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));
+  gap:var(--s3) var(--s4);align-items:end;
   padding:0 0 var(--s4);border-bottom:1px solid var(--rule);margin-bottom:var(--s4)}
-.ctl{display:flex;flex-direction:column;gap:3px}
+.ctl{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ctl select,.ctl input{width:100%;min-width:0}
 .ctl label{font-size:var(--t5);color:var(--ink-3);text-transform:uppercase;letter-spacing:.07em}
 select,input[type=search]{background:var(--raise);color:var(--ink);
   border:1px solid var(--rule-strong);border-radius:6px;padding:6px 9px;

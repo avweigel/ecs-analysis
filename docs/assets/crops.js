@@ -333,6 +333,7 @@
       if (other && other.entry) panels[slot].syncFrom(other);
     }
     paintBar(); render();
+    if (window.writeURLReady) writeURL();
   }
   function recolorAll() {
     const sc = curScalar(), [lo, hi] = currentRange();
@@ -431,7 +432,7 @@
     if (compare) await load('B', b);
     for (const s of ['A', 'B']) panels[s] && panels[s].frame();
     syncCaps();
-    autoRange(); recolorAll();
+    autoRange(); recolorAll(); writeURL();
   }
   $('vsurface').onclick = e => {
     const b = e.target.closest('[data-surface]');
@@ -449,7 +450,7 @@
 
   $('vview').onchange = () => {
     $('vlo').value = ''; $('vhi').value = '';   // each view has its own range
-    autoRange(); recolorAll();
+    autoRange(); recolorAll(); writeURL();
   };
   $('vlo').oninput = recolorAll; $('vhi').oninput = recolorAll;
   $('vauto').onclick = () => { autoRange(); recolorAll(); };
@@ -510,11 +511,41 @@
   initPanels(); fillPicks();
   fitHub();
   addEventListener('resize', resizeSoon);
+  /* ---------- shareable state ----------
+     Every page on the site can now point at a crop -- the explorer's table
+     does -- and what you are looking at survives a copied URL. */
+  function readURL() {
+    const q = new URLSearchParams(location.search);
+    const want = q.get('view');
+    if (want && V.VIEW[want]) {
+      const sf = V.VIEW[want].surface;
+      if (haveSurface(sf)) {
+        surfaceShown = sf;
+        V.mountSurfaceToggle($('vsurface'), sf, haveSurface);
+        V.mountScalarSelect($('vview'), sf, want);
+        fillPicks();
+      }
+    }
+    const M = MANI(), keys = Object.keys(M).sort();
+    const a = M[q.get('crop')] ? q.get('crop') : keys[0];
+    const b = M[q.get('crop2')] ? q.get('crop2') : (keys[1] || keys[0]);
+    return [a, b];
+  }
+  function writeURL() {
+    const q = new URLSearchParams();
+    if (selected.A) q.set('crop', selected.A);
+    if (compare && selected.B) q.set('crop2', selected.B);
+    q.set('view', $('vview').value);
+    history.replaceState(null, '', location.pathname + '?' + q.toString());
+  }
+
   (async () => {
-    const first = Object.keys(MANI()).sort();
-    await load('A', first[0]);
-    await load('B', first[1] || first[0]);
+    const [a, b] = readURL();
+    await load('A', a);
+    await load('B', b);
     syncCaps();
+    window.writeURLReady = true;
+    writeURL();
   })();
 })();
 

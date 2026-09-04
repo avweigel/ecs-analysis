@@ -216,6 +216,36 @@ def esc(t):
     return (t or "").replace("&", "&amp;").replace("<", "&lt;").replace('"', "&quot;")
 
 
+def write_inspector_pointer():
+    """The old single-panel inspector, kept as a pointer.
+
+    Its URL is in notes and emails, so it should not 404, but the page itself
+    is superseded by the viewer on this one. Generated here, with the rest, so
+    it never drifts out of date against the stylesheet.
+    """
+    html = sh.head("Moved — ECS membrane inspector", 1)
+    html += sh.nav("membranes/inspector.html", 1)
+    html += sh.pagehead("The inspector moved",
+        "This was a single-panel membrane viewer. The "
+        '<a href="../crops.html">crop page</a> replaces it: the same 55 crops and the same '
+        "scalars, plus the extracellular space itself, two crops side by side on one camera, "
+        "and the table to pick them from.")
+    html += """<main class="after-head">
+<p class="lede">Nothing is lost &mdash; the geometry and the colour maps are the same files.
+The old page is in the repository's history if you need it.</p>
+<ul class="jump">
+  <li><a href="../crops.html"><span class="t">Crops</span>
+    <span class="d">The viewer, with both surfaces and a filterable table.</span></a></li>
+  <li><a href="index.html"><span class="t">All 55 patches</span>
+    <span class="d">Three static maps per crop, on one page.</span></a></li>
+  <li><a href="methods.html"><span class="t">Methods</span>
+    <span class="d">How the patch is cut and the scalars are computed.</span></a></li>
+</ul>
+"""
+    html += sh.tail(1)
+    (DOCS / "membranes" / "inspector.html").write_text(html)
+
+
 def main():
     wide = [r for r in csv.DictReader((DOCS / "data" / "all_metrics_wide.csv").open())
             if r["run"] == "native"]
@@ -319,6 +349,9 @@ def main():
   </div>
 </div>
 <p class="note" id="ngnote"></p>
+<p class="note"><a href="membranes/index.html">All 55 membrane patches on one page</a>
+&mdash; three maps each, no waiting for a mesh to load &mdash; and
+<a href="membranes/methods.html">how the membrane measurements are made</a>.</p>
 <p class="note">Two greys, and they mean different things. The <b>darker</b> one is a
 cut face: the crop ended there, so it is not a surface at all and nothing is measured on it.
 The <b>lighter</b> one is a real surface with a number we do not trust — a kernel that reached
@@ -334,6 +367,7 @@ linking them. <b>Fit</b> recentres a patch; double-clicking a panel does the sam
     html += '<script src="assets/crops.js?v=' + sh.VER + '"></script>\n'
     html += "</body></html>"
     (DOCS / "crops.html").write_text(html)
+    write_inspector_pointer()
     print(f"built docs/crops.html ({len(rows)} crops, {len(metric_cols)} columns available)")
 
 
