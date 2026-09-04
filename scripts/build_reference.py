@@ -53,9 +53,8 @@ DATASET_JS = """<script>
     tb.innerHTML = names.map(ds => {
       const d = rowsFor(ds);
       const tissue = TISSUE[Object.keys(TISSUE).find(k => ds.includes(k))] || '';
-      const ready = d.s3_ready === true ? '<span class="tag hpf">migrated</span>'
-        : d.s3_ready === 'em-only' ? '<span class="muted">image only</span>'
-        : '<span class="muted">not yet</span>';
+      const ready = d.s3_ready ? '<span class="tag hpf">public</span>'
+        : `<span class="muted">${d.s3_note || 'not yet'}</span>`;
       const first = d.crops[0];
       return `<tr><td><code>${ds}</code></td><td>${tissue}</td>
         <td>${/-(2|4|6|8)$/.test(ds) && !/kidney$|liver$/.test(ds) ? '' : ''}</td>
@@ -70,11 +69,11 @@ DATASET_JS = """<script>
     });
     document.getElementById('dsnote').innerHTML =
       'Links open the whole volume with every annotated crop in it as a layer. ' +
-      'They point at the Janelia host, which needs the VPN; the ' +
-      '<a href="crops.html">crop page</a> has a switch for the public OpenOrganelle copy, ' +
-      'which currently carries ' +
-      Object.values(NG.datasets).filter(d => d.s3_ready === true).length +
-      ' of these ' + names.length + ' volumes.';
+      'Each link carries only the crops used in this analysis, not every crop in the volume. ' +
+      'Where the public OpenOrganelle copy holds the image <em>and</em> all of those crops, ' +
+      'links use it and need no VPN; otherwise they fall back to Janelia. That is ' +
+      Object.values(NG.datasets).filter(d => d.s3_ready).length +
+      ' of ' + names.length + ' volumes today.';
   }).catch(() => {});
 
   function ngURLLocal(NG, crop) {

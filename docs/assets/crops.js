@@ -323,13 +323,19 @@
    crop in that dataset as its own layer, centred on the crop you clicked. */
 (function () {
   const $ = id => document.getElementById(id);
-  let NG = null, source = 'nrs';
-  try { source = localStorage.getItem('ecs-ngsource') || 'nrs'; } catch (e) {}
+  // 'auto' takes the public copy wherever it is genuinely servable and falls
+  // back to Janelia for the rest, so a link is public whenever it can be
+  let NG = null, source = 'auto';
+  try { source = localStorage.getItem('ecs-ngsource') || 'auto'; } catch (e) {}
+  const baseFor = d => {
+    const key = source === 'auto' ? (d.s3_ready ? 's3' : 'nrs') : source;
+    return NG.sources[key].base;
+  };
 
   function state(crop) {
     const dsName = NG.crop_dataset[crop]; if (!dsName) return null;
     const d = NG.datasets[dsName]; if (!d) return null;
-    const base = `zarr://${NG.sources[source].base}/${dsName}/${dsName}.zarr/recon-1`;
+    const base = `zarr://${baseFor(d)}/${dsName}/${dsName}.zarr/recon-1`;
     const em = { type: 'image', source: `${base}/em/${d.em}`, name: 'em' };
     if (d.shader) { em.shaderControls = d.shader; em.tab = 'rendering'; }
     const layers = [em];
@@ -359,20 +365,36 @@
 
   function mountToggle() {
     const host = $('ngsource'); if (!host || !NG) return;
-    host.innerHTML = Object.entries(NG.sources).map(([k, v]) =>
+    const ready = Object.values(NG.datasets).filter(d => d.s3_ready).length;
+    const total = Object.keys(NG.datasets).length;
+    const opts = [['auto', 'Public where available',
+                   `Uses OpenOrganelle for the ${ready} of ${total} datasets fully migrated, ` +
+                   'and Janelia for the rest.']]
+      .concat(Object.entries(NG.sources).map(([k, v]) => [k, v.label, v.note]));
+    host.innerHTML = opts.map(([k, label, note]) =>
       `<button type="button" class="chip${k === source ? ' on' : ''}" data-src="${k}"
-        title="${v.note}">${v.label}</button>`).join('');
+        title="${note}">${label}</button>`).join('');
     host.onclick = e => {
       const b = e.target.closest('[data-src]'); if (!b) return;
       source = b.dataset.src;
       try { localStorage.setItem('ecs-ngsource', source); } catch (_) {}
       mountToggle();
-      const n = document.getElementById('ngnote');
-      if (n) n.textContent = NG.sources[source].note;
+      note();
       if (window.refreshNgLinks) window.refreshNgLinks();
     };
-    const n = document.getElementById('ngnote');
-    if (n) n.textContent = NG.sources[source].note;
+    note();
+  }
+
+  function note() {
+    const n = document.getElementById('ngnote'); if (!n) return;
+    if (source !== 'auto') { n.textContent = NG.sources[source].note; return; }
+    const per = Object.entries(NG.datasets);
+    const pub = per.filter(([, d]) => d.s3_ready).map(([k]) => k);
+    n.innerHTML = pub.length
+      ? `Public copy for <code>${pub.join('</code>, <code>')}</code>; the other ` +
+        `${per.length - pub.length} still need the Janelia VPN. ` +
+        `<a href="reference.html#datasets">Per-dataset status.</a>`
+      : 'None of these datasets are on the public bucket yet, so every link needs the Janelia VPN.';
   }
 
   fetch('data/neuroglancer.json').then(r => r.json()).then(j => {
