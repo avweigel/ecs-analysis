@@ -9,14 +9,17 @@
     curvature: { label: 'Signed curvature',    cmap: 'RdBu_r',  unit: '1/nm' },
     deviation: { label: 'Protrusion / indentation', cmap: 'RdBu_r', unit: 'nm' },
     width:     { label: 'Local channel width', cmap: 'viridis', unit: 'nm' },
+    thickness: { label: 'Thickness, wall to wall', cmap: 'viridis', unit: 'nm' },
   };
   // each surface is a directory of .bin files and the scalars they carry, in
   // the order they are written
   const SURFACES = {
     membrane: { dir: 'inspect/', scalars: ['curvature', 'deviation', 'gap'] },
-    ecs:      { dir: 'ecs/',     scalars: ['curvature', 'deviation', 'width'] },
+    ecs:      { dir: 'ecs/', caps: true,
+                scalars: ['curvature', 'deviation', 'thickness', 'width'] },
   };
-  const NAN_GREY = [0.30, 0.31, 0.35];
+  const NAN_GREY = [0.30, 0.31, 0.35];   // a real surface, an unreliable number
+  const CUT_GREY = [0.20, 0.21, 0.24];   // not a surface at all: the crop ended here
   const PLAIN = 0xb9b2a3;          // unpainted surface: warm bone, reads in both themes
 
   /* What you can put in a panel. `surface` is which mesh, `scalar` is what
@@ -38,7 +41,9 @@
       surface: 'ecs', scalar: 'curvature', ready: true },
     { id: 'ecs-dev',  group: 'ECS surface', label: 'Protrusion / indentation',
       surface: 'ecs', scalar: 'deviation', ready: true },
-    { id: 'ecs-wid',  group: 'ECS surface', label: 'Local channel width',
+    { id: 'ecs-thk',  group: 'ECS surface', label: 'Thickness — wall to wall',
+      surface: 'ecs', scalar: 'thickness', ready: true },
+    { id: 'ecs-wid',  group: 'ECS surface', label: 'Width — largest ball that fits',
       surface: 'ecs', scalar: 'width', ready: true },
   ];
   const VIEW = Object.fromEntries(VIEWS.map(v => [v.id, v]));
@@ -123,6 +128,42 @@
       this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
     }
+    /* The cut faces.
+
+       Marching cubes closes the space against the cube wall, and those faces
+       are what make the ECS read as a solid object rather than a set of empty
+       shells. They are also flat panels that hide the surface behind them, so
+       they can be dropped: a vertex sitting on the mesh's own bounding box, to
+       within a voxel, is on a cut. Nothing is measured on them either way. */
+    _capIndex(pos, idx, voxel) {
+      const n = pos.length / 3;
+      const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < n; i++)
+        for (let a = 0; a < 3; a++) {
+          const v = pos[i * 3 + a];
+          if (v < lo[a]) lo[a] = v;
+          if (v > hi[a]) hi[a] = v;
+        }
+      const tol = (voxel || 8) * 1.01;
+      const cap = new Uint8Array(n);
+      for (let i = 0; i < n; i++)
+        for (let a = 0; a < 3; a++)
+          if (pos[i * 3 + a] - lo[a] < tol || hi[a] - pos[i * 3 + a] < tol) { cap[i] = 1; break; }
+      this.capFlag = cap;
+      const open = [];
+      for (let f = 0; f < idx.length; f += 3)
+        if (!cap[idx[f]] && !cap[idx[f + 1]] && !cap[idx[f + 2]])
+          open.push(idx[f], idx[f + 1], idx[f + 2]);
+      return new Uint32Array(open);
+    }
+    setCaps(on) {
+      this.capsOn = on !== false;
+      if (!this.geom || !this.idxAll) return;
+      const want = this.capsOn ? this.idxAll : (this.idxOpen || this.idxAll);
+      this.geom.setIndex(new THREE.BufferAttribute(want, 1));
+      this.geom.groups = [];
+      this.geom.setDrawRange(0, want.length);
+    }
     async show(entry, scalar, lo, hi, surface) {
       this.entry = entry; this.surface = surface || 'membrane';
       const d = await loadBin(this.base, entry, this.surface);
@@ -132,6 +173,11 @@
       g.setIndex(new THREE.BufferAttribute(d.idx, 1));
       g.computeVertexNormals();
       this.geom = g; this.data = d;
+      this.idxAll = d.idx;
+      this.capFlag = null;
+      this.idxOpen = SURFACES[this.surface].caps
+        ? this._capIndex(d.pos, d.idx, entry.voxel_nm) : null;
+      if (this.idxOpen && this.capsOn === false) this.setCaps(false);
       this.mesh = new THREE.Mesh(g, new THREE.MeshPhongMaterial({
         vertexColors: true, side: THREE.DoubleSide, flatShading: false, shininess: 12 }));
       this.scene.add(this.mesh);
@@ -167,8 +213,10 @@
       if (!vals) return;
       const lut = window.CMAPS[SCALARS[scalar].cmap], n = lut.length - 1;
       const N = vals.length, col = new Float32Array(N * 3), span = (hi - lo) || 1e-9;
+      const cap = (this.surface && SURFACES[this.surface].caps) ? this.capFlag : null;
       for (let i = 0; i < N; i++) {
         const v = vals[i];
+        if (cap && cap[i]) { col[i*3] = CUT_GREY[0]; col[i*3+1] = CUT_GREY[1]; col[i*3+2] = CUT_GREY[2]; continue; }
         if (v !== v) { col[i*3] = NAN_GREY[0]; col[i*3+1] = NAN_GREY[1]; col[i*3+2] = NAN_GREY[2]; continue; }
         let t = (v - lo) / span; t = t < 0 ? 0 : t > 1 ? 1 : t;
         const c = lut[Math.round(t * n)];
@@ -184,7 +232,7 @@
     }
   }
 
-  window.ECSViewer = { Panel, SCALARS, VIEWS, VIEW, SURFACE_LABEL,
+  window.ECSViewer = { Panel, SCALARS, VIEWS, VIEW, SURFACES, SURFACE_LABEL,
                      mountSurfaceToggle, mountScalarSelect, drawBar };
 
   function drawBar(canvas, scalar, lo, hi) {

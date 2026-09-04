@@ -13,7 +13,8 @@ Binary layout, little-endian, in this order:
     indices    uint32  [nfaces*3]
     curvature  float32 [nverts]     signed mean curvature, 1/nm
     deviation  float32 [nverts]     protrusion / indentation, nm
-    width      float32 [nverts]     local channel width, nm
+    thickness  float32 [nverts]     wall-to-wall chord through the space, nm
+    width      float32 [nverts]     largest ball that fits in the channel, nm
 NaN marks a value we do not trust; the viewer paints those vertices grey.
 
 Sign convention: both curvature and deviation are negated relative to what
@@ -47,7 +48,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import numpy as np
 import zarr
-from scipy.ndimage import distance_transform_edt
+from scipy.ndimage import distance_transform_edt, gaussian_filter, map_coordinates
 
 from ecs import config as cfg
 from ecs.geometry import (CellMesh, signed_mean_curvature,
@@ -199,6 +200,75 @@ def diffuse_on_mesh(field, tm, V, scale_nm, lamb=0.5):
     return x
 
 
+def chord_thickness_nm(V, normals, field, vx, max_probe_nm, step_nm):
+    """How far it is through the space, wall to wall, at each surface point.
+
+    Start on the surface, march along the normal into the ECS, and stop where
+    the space ends: the distance travelled is the thickness there. This is what
+    calipers on a section would measure, and it is the number that grows when a
+    channel opens up.
+
+    It marches through the SMOOTHED occupancy field the isosurface itself came
+    from, sampled trilinearly, and finds the far crossing of 0.5 by linear
+    interpolation between the last two samples. Marching the binary mask
+    instead quantises every chord to a whole voxel, and the moire that puts
+    across a surface is not tissue.
+
+    Differs from the inscribed-ball width on purpose: the ball is bounded by
+    the nearest wall in ANY direction, so it stays small at a junction where
+    sheets meet; the chord follows one line and says how far the space extends
+    along it. Both are kept because they disagree informatively.
+
+    Returns (thickness, uncertain), the second flagging rays that left the cube
+    before finding the far wall -- there the answer would be the box's.
+    """
+    vxa = np.asarray(vx)
+    shape = np.asarray(field.shape)
+    hi = (shape - 1) * vxa
+
+    def sample(p):
+        return map_coordinates(field, (p / vxa).T, order=1, mode="nearest")
+
+    def in_box(p):
+        return ((p >= 0.0) & (p <= hi)).all(axis=1)
+
+    # which way is into the space? Ask, rather than trusting the mesh's
+    # orientation -- one probe half a voxel off the surface each way.
+    eps = 0.5 * float(vxa[0])
+    fwd = sample(V + eps * normals)
+    bwd = sample(V - eps * normals)
+    sgn = np.where(fwd > bwd, 1.0, -1.0)
+    sgn[np.maximum(fwd, bwd) <= 0.5] = 0.0            # neither way is inside
+    sgn = sgn[:, None]
+
+    thick = np.full(len(V), np.nan)
+    running = sgn[:, 0] != 0
+    uncertain = ~running
+    prev_v = np.where(running, np.maximum(fwd, bwd), 0.0)
+    prev_t = np.full(len(V), eps)
+    t = eps
+    while t < max_probe_nm and running.any():
+        t += step_nm
+        p = V + (sgn * t) * normals
+        ok = in_box(p)
+        v = sample(p)
+        crossed = running & ok & (v <= 0.5)
+        if crossed.any():
+            # linear interpolation onto the 0.5 crossing, so the chord is not
+            # quantised to the marching step
+            f = (prev_v[crossed] - 0.5) / np.maximum(prev_v[crossed] - v[crossed], 1e-9)
+            thick[crossed] = prev_t[crossed] + f * step_nm
+        gone = running & ~ok                            # left the cube first
+        uncertain |= gone
+        thick[gone] = t
+        running &= ~(crossed | gone)
+        prev_v = np.where(running, v, prev_v)
+        prev_t = np.where(running, t, prev_t)
+    thick[running] = max_probe_nm                       # never found a far wall
+    uncertain |= running
+    return thick, uncertain
+
+
 def extract_patch(V, F, keep_face):
     fk = F[keep_face]
     used = np.unique(fk)
@@ -208,7 +278,7 @@ def extract_patch(V, F, keep_face):
 
 
 def build(crop, voxel_nm, sigma_nm, cube_nm, scale_nm, margin_vox,
-          max_probe_nm, probe_step_nm, curv_scale_nm):
+          max_probe_nm, probe_step_nm, curv_scale_nm, chord_probe_nm):
     mask, vx = load_ecs_mask(crop, voxel_nm)
     full_frac = float(mask.mean())
     origin = (0, 0, 0)
@@ -240,9 +310,18 @@ def build(crop, voxel_nm, sigma_nm, cube_nm, scale_nm, margin_vox,
     # negated: see the module docstring on the sign convention
     H, dev = -H, -dev
 
+    normals = np.asarray(tm.vertex_normals)
     dt = distance_transform_edt(mask, sampling=vx)
-    width = local_width_nm(V, np.asarray(tm.vertex_normals), dt, vx,
+    width = local_width_nm(V, normals, dt, vx,
                            mask.shape, max_probe_nm, probe_step_nm)
+    # the same occupancy field CellMesh.from_mask isosurfaces at 0.5
+    field = gaussian_filter(mask.astype(np.float32),
+                            tuple(sigma_nm / v for v in vx))
+    thick, thick_uncertain = chord_thickness_nm(V, normals, field, vx,
+                                                chord_probe_nm, probe_step_nm / 2)
+    # residual speckle comes from vertex-normal jitter, not from the tissue;
+    # settle it over the same neighbourhood curvature uses
+    thick = diffuse_on_mesh(thick, tm, V, curv_scale_nm)
 
     # The transform cannot see past the volume wall, so a channel that leaves
     # the cube reads as wider than it is. Flag anything whose half-width
@@ -253,15 +332,16 @@ def build(crop, voxel_nm, sigma_nm, cube_nm, scale_nm, margin_vox,
                                 V[:, 2], vol_nm[2] - V[:, 2]])
     width_uncertain = (width / 2.0) > d_wall
 
-    # Marching cubes caps the mask at the wall with a flat face; that cap is
-    # not membrane, and its rim reads as extreme curvature. Drop it, and drop
-    # the curvature/deviation values whose kernels reached into it.
+    # The caps STAY. Marching cubes closes the mask against the cube wall with
+    # a flat face, and the first version threw those faces away -- which is
+    # true to the measurement (a cut face is not tissue) and a lie about the
+    # object: the ECS is a solid, and without its cut faces it renders as a
+    # collection of empty shells you can see through. Keeping them, with every
+    # scalar blanked so they draw in the neutral grey, shows a solid block with
+    # visibly artificial faces where the crop ends. Nothing is measured on
+    # them.
     m = margin_vox * vx[0]
-    near = (V <= m).any(axis=1) | (V >= (vol_nm - m)).any(axis=1)
-    keep = ~near[F].any(axis=1)
-    if keep.sum() < 4:
-        raise ValueError("nothing left after trimming the wall")
-    Vp, Fp, used = extract_patch(V, F, keep)
+    Vp, Fp, used = V, F, np.arange(len(V))
 
     # Blank each scalar over its own reach, not over the widest one. Curvature
     # only feels the wall through the 24 nm relaxation; deviation feels it over
@@ -275,6 +355,8 @@ def build(crop, voxel_nm, sigma_nm, cube_nm, scale_nm, margin_vox,
     cur = H[used].astype("<f4"); cur[near_wall(max(m, curv_scale_nm))] = np.nan
     dvn = dev[used].astype("<f4"); dvn[near_wall(max(m, scale_nm))] = np.nan
     wid = width[used].astype("<f4"); wid[width_uncertain[used]] = np.nan
+    thk = thick[used].astype("<f4")
+    thk[thick_uncertain[used] | near_wall(m)] = np.nan
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     out = OUT_DIR / f"{crop.crop}.bin"
@@ -282,7 +364,7 @@ def build(crop, voxel_nm, sigma_nm, cube_nm, scale_nm, margin_vox,
         for arr in (np.ascontiguousarray(Vp, "<f4"),
                     np.ascontiguousarray(Fp, "<u4"),
                     np.ascontiguousarray(cur), np.ascontiguousarray(dvn),
-                    np.ascontiguousarray(wid)):
+                    np.ascontiguousarray(thk), np.ascontiguousarray(wid)):
             f.write(arr.tobytes())
 
     def rng(a, symmetric):
@@ -307,10 +389,12 @@ def build(crop, voxel_nm, sigma_nm, cube_nm, scale_nm, margin_vox,
         "window_origin_nm": [round(float(o * vx[i]), 1) for i, o in enumerate(origin)],
         "ecs_frac": round(frac, 4), "ecs_frac_full_crop": round(full_frac, 4),
         "width_uncertain_frac": round(float(width_uncertain[used].mean()), 3),
+        "thickness_uncertain_frac": round(float(thick_uncertain[used].mean()), 3),
+        "cap_frac": round(float(near_wall(m).mean()), 3),
         "curv_scale_nm": float(curv_scale_nm), "dev_scale_nm": float(scale_nm),
         "sigma_nm": float(sigma_nm),
         "ranges": {"curvature": rng(cur, True), "deviation": rng(dvn, True),
-                   "width": rng(wid, False)},
+                   "thickness": rng(thk, False), "width": rng(wid, False)},
     }
 
 
@@ -327,6 +411,8 @@ def main():
     ap.add_argument("--margin", type=float, default=2.0, help="wall trim, voxels")
     ap.add_argument("--probe", type=float, default=200.0, help="max half-width probed, nm")
     ap.add_argument("--probe-step", type=float, default=4.0)
+    ap.add_argument("--chord-probe", type=float, default=400.0,
+                    help="longest chord measured before giving up, nm")
     args = ap.parse_args()
 
     sigma = args.sigma if args.sigma is not None else args.voxel * 1.5
@@ -347,7 +433,8 @@ def main():
         t = time.time()
         try:
             e = build(crop, args.voxel, sigma, args.cube or None, args.scale,
-                      args.margin, args.probe, args.probe_step, args.curv_scale)
+                      args.margin, args.probe, args.probe_step, args.curv_scale,
+                      args.chord_probe)
             e["built_s"] = round(time.time() - t, 1)
             entries[cid] = e
             print(f"  {cid}: {e['nverts']:>7,} verts  {e['nfaces']:>7,} faces  "

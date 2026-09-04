@@ -64,6 +64,17 @@ remembering:
   fraction is closest to the whole crop's. The centre of crop1072 sits inside
   one hepatocyte and holds no ECS at all. Median error against the whole crop
   is 0.3%, p90 2.8%.
+- **Thickness is the chord, width is the ball.** Thickness marches the normal
+  through the space to the far wall — what calipers on a section would measure,
+  and what grows when a channel opens. It marches the smoothed occupancy field
+  the isosurface came from and interpolates the 0.5 crossing, so it is not
+  quantised to whole voxels. Width is the largest ball that fits, bounded by the
+  nearest wall in any direction. They answer different questions and are both
+  shipped: on crop1026, thickness p50 127 nm against width p50 75 nm.
+- **The cut faces are kept.** Marching cubes closes the space against the cube
+  wall; dropping those faces is true to the measurement and a lie about the
+  object, which renders as empty shells. They are kept in a darker grey than the
+  uncertain-value grey, and the viewer can drop them when they are in the way.
 - **Width is an estimate.** Distance to the nearest cell is zero on the ECS
   surface by construction, so width is the diameter of the largest ball that
   fits in the channel, found by walking the normal into the space. The walk

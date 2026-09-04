@@ -241,6 +241,7 @@
     if (!Number.isFinite(parseFloat($('vlo').value))) autoRange();
     const sc = curScalar(), [lo, hi] = currentRange();
     await panels[slot].show(e, sc, lo, hi, view.surface);
+    panels[slot].setCaps(capsOn);
     // the manifest's voxel_nm is the scale the mesh patch was built at (16 nm for
     // every crop), not the crop's acquisition voxel — take that from the table row
     const row = rows.find(r => r.crop === crop);
@@ -337,7 +338,7 @@
     // keep the same kind of colouring across the switch where it exists:
     // curvature stays curvature, and gap and width are both "how far apart"
     const same = { curvature: 'curvature', deviation: 'deviation',
-                   gap: 'width', width: 'gap', '': '' };
+                   gap: 'thickness', thickness: 'gap', width: 'gap', '': '' };
     const want = same[curScalar() || ''] || '';
     const match = V.VIEWS.find(v => v.surface === sf && v.ready &&
                                     (v.scalar || '') === want);
@@ -352,12 +353,23 @@
     await load('A', a);
     if (compare) await load('B', b);
     for (const s of ['A', 'B']) panels[s] && panels[s].frame();
+    syncCaps();
     autoRange(); recolorAll();
   }
   $('vsurface').onclick = e => {
     const b = e.target.closest('[data-surface]');
     if (b && !b.disabled) switchSurface(b.dataset.surface);
   };
+  let capsOn = true;
+  function syncCaps() {
+    const has = !!(V.SURFACES && V.SURFACES[surfaceShown] || {}).caps;
+    $('vcaps').hidden = !has;
+    $('vcaps').classList.toggle('on', capsOn);
+    $('vcaps').textContent = capsOn ? 'Cut faces solid' : 'Cut faces open';
+    for (const s of ['A', 'B']) if (panels[s]) panels[s].setCaps(capsOn);
+  }
+  $('vcaps').onclick = () => { capsOn = !capsOn; syncCaps(); };
+
   $('vview').onchange = () => {
     $('vlo').value = ''; $('vhi').value = '';   // each view has its own range
     autoRange(); recolorAll();
@@ -425,6 +437,7 @@
     const first = Object.keys(MANI()).sort();
     await load('A', first[0]);
     await load('B', first[1] || first[0]);
+    syncCaps();
   })();
 })();
 

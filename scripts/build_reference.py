@@ -223,14 +223,18 @@ boundary. They are built differently, and the difference matters when you compar
     marching-cubes staircase carries a signed single-vertex wobble that a diverging colour
     scale renders as a herringbone over everything, and the mask itself cannot be smoothed
     harder without dissolving the thin sheets that are the point.</p>
-    <p class="note" style="margin:0">Width is the diameter of the largest ball that fits in
-    the channel: walk the surface normal into the space, keep the largest distance-transform
-    value met, double it. The walk <b>stops at the far wall</b> &mdash; run it past the wall
-    and it reports whatever channel it finds on the other side. Exact for a slab or a tube,
-    an estimate elsewhere, since the ball has to be centred on the normal. At 8 nm the
-    narrowest resolvable channel is 16 nm and the median crop sits at 32 nm, so the low end
-    of this scale is the sampling, not the tissue. Where a channel leaves the cube the
-    reading would be a guess, so those vertices are grey.</p>
+    <p class="note" style="margin:0"><b>Thickness</b> is the chord: start on the surface,
+    march the normal through the space, stop at the far wall. It marches the same smoothed
+    occupancy field the surface came from and interpolates the crossing, so it is not
+    quantised to whole voxels. <b>Width</b> is a different question &mdash; the diameter of
+    the largest ball that fits, which the nearest wall in any direction bounds, so it stays
+    small where sheets meet while the chord follows its one line. They disagree usefully;
+    both are here. Either way, where the ray leaves the cube before finding the far wall the
+    answer would be the box's rather than the tissue's, so the vertex is grey.</p>
+    <p class="note" style="margin:var(--s2) 0 0">The flat faces where the crop was cut are
+    kept, in a darker grey, so the space reads as the solid object it is instead of a set of
+    empty shells &mdash; <b>Cut faces open</b> in the viewer drops them when they are in the
+    way. Nothing is measured on them.</p>
   </div>
 </div>
 <p class="note">Both surfaces use one sign convention: positive curvature and positive

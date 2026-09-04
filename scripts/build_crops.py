@@ -279,6 +279,8 @@ def main():
       <span class="swatchbar"><canvas id="vbar"></canvas>
         <span class="ends"><span id="vlolab"></span><span id="vhilab"></span></span></span></span>
     <span class="grow"></span>
+    <button class="btn on" id="vcaps" type="button"
+      title="The flat faces where the crop was cut. Solid shows the object; open lets you see in.">Cut faces solid</button>
     <button class="btn on" id="vlink" type="button"
       title="Both patches share one camera, so they stay at the same scale">Linked</button>
     <button class="btn" id="vswap" type="button" title="Swap the two panels">Swap</button>

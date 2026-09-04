@@ -6,10 +6,10 @@
   "prep": "Chemical",
   "region_group": "Glomerular",
   "anatomy": "Glomerular interstitium",
-  "nverts": 58832,
-  "nfaces": 115118,
+  "nverts": 79794,
+  "nfaces": 159580,
   "bin": "crop1026.bin",
-  "bytes": 2793384,
+  "bytes": 4149192,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -29,7 +29,9 @@
   ],
   "ecs_frac": 0.3558,
   "ecs_frac_full_crop": 0.3555,
-  "width_uncertain_frac": 0.166,
+  "width_uncertain_frac": 0.379,
+  "thickness_uncertain_frac": 0.258,
+  "cap_frac": 0.263,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -54,6 +56,16 @@
      6.105400943756103
     ]
    },
+   "thickness": {
+    "bounds": [
+     24.693172454833984,
+     397.2876281738281
+    ],
+    "default": [
+     0.0,
+     336.5695764160156
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -65,7 +77,7 @@
     ]
    }
   },
-  "built_s": 29.7
+  "built_s": 30.3
  },
  {
   "crop": "crop1027",
@@ -74,10 +86,10 @@
   "prep": "Chemical",
   "region_group": "Glomerular",
   "anatomy": "Glomerular interstitium",
-  "nverts": 80127,
-  "nfaces": 157161,
+  "nverts": 114480,
+  "nfaces": 229036,
   "bin": "crop1027.bin",
-  "bytes": 3808980,
+  "bytes": 5953872,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -97,7 +109,9 @@
   ],
   "ecs_frac": 0.4423,
   "ecs_frac_full_crop": 0.4434,
-  "width_uncertain_frac": 0.182,
+  "width_uncertain_frac": 0.422,
+  "thickness_uncertain_frac": 0.343,
+  "cap_frac": 0.3,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -122,6 +136,16 @@
      6.861993312835693
     ]
    },
+   "thickness": {
+    "bounds": [
+     15.310172080993652,
+     374.66754150390625
+    ],
+    "default": [
+     0.0,
+     302.78188781738277
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -133,7 +157,7 @@
     ]
    }
   },
-  "built_s": 85.2
+  "built_s": 39.3
  },
  {
   "crop": "crop1028",
@@ -142,10 +166,10 @@
   "prep": "Chemical",
   "region_group": "PCT brush border",
   "anatomy": "PCT brush border",
-  "nverts": 74756,
-  "nfaces": 146463,
+  "nverts": 115466,
+  "nfaces": 231032,
   "bin": "crop1028.bin",
-  "bytes": 3551700,
+  "bytes": 6005432,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -165,7 +189,9 @@
   ],
   "ecs_frac": 0.6148,
   "ecs_frac_full_crop": 0.5974,
-  "width_uncertain_frac": 0.086,
+  "width_uncertain_frac": 0.396,
+  "thickness_uncertain_frac": 0.455,
+  "cap_frac": 0.353,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -190,6 +216,16 @@
      10.428876399993898
     ]
    },
+   "thickness": {
+    "bounds": [
+     16.674251556396484,
+     399.44952392578125
+    ],
+    "default": [
+     0.0,
+     235.895621032715
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -197,11 +233,11 @@
     ],
     "default": [
      0.0,
-     244.7529296875
+     242.65200805664062
     ]
    }
   },
-  "built_s": 17.5
+  "built_s": 10.9
  },
  {
   "crop": "crop1029",
@@ -210,10 +246,10 @@
   "prep": "Chemical",
   "region_group": "PCT brush border",
   "anatomy": "PCT brush border",
-  "nverts": 54218,
-  "nfaces": 106196,
+  "nverts": 103094,
+  "nfaces": 206304,
   "bin": "crop1029.bin",
-  "bytes": 2575584,
+  "bytes": 5362280,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -233,7 +269,9 @@
   ],
   "ecs_frac": 0.7436,
   "ecs_frac_full_crop": 0.7453,
-  "width_uncertain_frac": 0.098,
+  "width_uncertain_frac": 0.512,
+  "thickness_uncertain_frac": 0.586,
+  "cap_frac": 0.474,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -258,6 +296,16 @@
      9.517154693603516
     ]
    },
+   "thickness": {
+    "bounds": [
+     8.93159294128418,
+     384.71893310546875
+    ],
+    "default": [
+     0.0,
+     232.8722344970703
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -265,11 +313,11 @@
     ],
     "default": [
      0.0,
-     246.0359545898433
+     243.5152502441403
     ]
    }
   },
-  "built_s": 24.7
+  "built_s": 12.7
  },
  {
   "crop": "crop1030",
@@ -278,10 +326,10 @@
   "prep": "Chemical",
   "region_group": "DCT base",
   "anatomy": "DCT base",
-  "nverts": 30524,
-  "nfaces": 59592,
+  "nverts": 43596,
+  "nfaces": 87108,
   "bin": "crop1030.bin",
-  "bytes": 1447680,
+  "bytes": 2265984,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -301,7 +349,9 @@
   ],
   "ecs_frac": 0.1934,
   "ecs_frac_full_crop": 0.1945,
-  "width_uncertain_frac": 0.215,
+  "width_uncertain_frac": 0.441,
+  "thickness_uncertain_frac": 0.354,
+  "cap_frac": 0.3,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -326,6 +376,16 @@
      11.068046760559083
     ]
    },
+   "thickness": {
+    "bounds": [
+     7.362643241882324,
+     352.9418640136719
+    ],
+    "default": [
+     0.0,
+     255.05430541992203
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -337,7 +397,7 @@
     ]
    }
   },
-  "built_s": 46.5
+  "built_s": 37.0
  },
  {
   "crop": "crop1031",
@@ -346,10 +406,10 @@
   "prep": "Chemical",
   "region_group": "PCT lateral",
   "anatomy": "PCT lateral",
-  "nverts": 7252,
-  "nfaces": 13991,
+  "nverts": 9538,
+  "nfaces": 19072,
   "bin": "crop1031.bin",
-  "bytes": 341940,
+  "bytes": 495928,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -369,7 +429,9 @@
   ],
   "ecs_frac": 0.0143,
   "ecs_frac_full_crop": 0.0144,
-  "width_uncertain_frac": 0.027,
+  "width_uncertain_frac": 0.212,
+  "thickness_uncertain_frac": 0.143,
+  "cap_frac": 0.24,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -394,6 +456,16 @@
      3.2373613357543944
     ]
    },
+   "thickness": {
+    "bounds": [
+     11.931239128112793,
+     56.751197814941406
+    ],
+    "default": [
+     0.0,
+     43.570084991455076
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -405,7 +477,7 @@
     ]
    }
   },
-  "built_s": 32.9
+  "built_s": 13.8
  },
  {
   "crop": "crop1032",
@@ -414,10 +486,10 @@
   "prep": "Chemical",
   "region_group": "PCT base",
   "anatomy": "PCT base",
-  "nverts": 27520,
-  "nfaces": 53669,
+  "nverts": 46549,
+  "nfaces": 93010,
   "bin": "crop1032.bin",
-  "bytes": 1304508,
+  "bytes": 2419492,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -437,7 +509,9 @@
   ],
   "ecs_frac": 0.3039,
   "ecs_frac_full_crop": 0.3033,
-  "width_uncertain_frac": 0.376,
+  "width_uncertain_frac": 0.622,
+  "thickness_uncertain_frac": 0.595,
+  "cap_frac": 0.409,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -462,6 +536,16 @@
      7.085209369659424
     ]
    },
+   "thickness": {
+    "bounds": [
+     21.153383255004883,
+     395.7578125
+    ],
+    "default": [
+     0.0,
+     363.1216015625
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -473,7 +557,7 @@
     ]
    }
   },
-  "built_s": 67.3
+  "built_s": 29.1
  },
  {
   "crop": "crop1033",
@@ -482,10 +566,10 @@
   "prep": "Chemical",
   "region_group": "",
   "anatomy": "Unmyelinated nerve fibers",
-  "nverts": 19280,
-  "nfaces": 37843,
+  "nverts": 20904,
+  "nfaces": 41528,
   "bin": "crop1033.bin",
-  "bytes": 916836,
+  "bytes": 1083648,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -505,7 +589,9 @@
   ],
   "ecs_frac": 0.0505,
   "ecs_frac_full_crop": 0.0482,
-  "width_uncertain_frac": 0.002,
+  "width_uncertain_frac": 0.055,
+  "thickness_uncertain_frac": 0.041,
+  "cap_frac": 0.077,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -530,6 +616,16 @@
      14.787523078918456
     ]
    },
+   "thickness": {
+    "bounds": [
+     5.618899822235107,
+     83.42939758300781
+    ],
+    "default": [
+     0.0,
+     56.994113006591796
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -541,7 +637,7 @@
     ]
    }
   },
-  "built_s": 46.1
+  "built_s": 8.9
  },
  {
   "crop": "crop1034",
@@ -550,10 +646,10 @@
   "prep": "Chemical",
   "region_group": "",
   "anatomy": "Neuropil (synaptic cleft)",
-  "nverts": 43141,
-  "nfaces": 85001,
+  "nverts": 47397,
+  "nfaces": 94710,
   "bin": "crop1034.bin",
-  "bytes": 2055396,
+  "bytes": 2463636,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -573,7 +669,9 @@
   ],
   "ecs_frac": 0.0873,
   "ecs_frac_full_crop": 0.0873,
-  "width_uncertain_frac": 0.006,
+  "width_uncertain_frac": 0.075,
+  "thickness_uncertain_frac": 0.059,
+  "cap_frac": 0.09,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -598,6 +696,16 @@
      13.886441802978517
     ]
    },
+   "thickness": {
+    "bounds": [
+     6.590641498565674,
+     190.84547424316406
+    ],
+    "default": [
+     0.0,
+     115.08021789550791
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -605,11 +713,11 @@
     ],
     "default": [
      0.0,
-     50.99157196043988
+     50.59644317626953
     ]
    }
   },
-  "built_s": 40.0
+  "built_s": 17.7
  },
  {
   "crop": "crop1035",
@@ -618,10 +726,10 @@
   "prep": "Chemical",
   "region_group": "",
   "anatomy": "Neuronal cell processes",
-  "nverts": 11092,
-  "nfaces": 21420,
+  "nverts": 13480,
+  "nfaces": 26936,
   "bin": "crop1035.bin",
-  "bytes": 523248,
+  "bytes": 700672,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -641,7 +749,9 @@
   ],
   "ecs_frac": 0.04,
   "ecs_frac_full_crop": 0.0429,
-  "width_uncertain_frac": 0.008,
+  "width_uncertain_frac": 0.12,
+  "thickness_uncertain_frac": 0.06,
+  "cap_frac": 0.177,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -666,6 +776,16 @@
      13.459164524078368
     ]
    },
+   "thickness": {
+    "bounds": [
+     7.204326629638672,
+     168.3628387451172
+    ],
+    "default": [
+     0.0,
+     114.51773254394531
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -677,7 +797,7 @@
     ]
    }
   },
-  "built_s": 37.1
+  "built_s": 14.4
  },
  {
   "crop": "crop1036",
@@ -686,10 +806,10 @@
   "prep": "Chemical",
   "region_group": "",
   "anatomy": "Glial-neuronal (synaptic clefts)",
-  "nverts": 67834,
-  "nfaces": 133084,
+  "nverts": 77876,
+  "nfaces": 155896,
   "bin": "crop1036.bin",
-  "bytes": 3225024,
+  "bytes": 4051280,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -709,7 +829,9 @@
   ],
   "ecs_frac": 0.1074,
   "ecs_frac_full_crop": 0.1074,
-  "width_uncertain_frac": 0.004,
+  "width_uncertain_frac": 0.101,
+  "thickness_uncertain_frac": 0.056,
+  "cap_frac": 0.129,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -734,6 +856,16 @@
      10.578681945800781
     ]
    },
+   "thickness": {
+    "bounds": [
+     9.559966087341309,
+     222.82046508789062
+    ],
+    "default": [
+     0.0,
+     104.62272354125977
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -745,7 +877,7 @@
     ]
    }
   },
-  "built_s": 26.5
+  "built_s": 14.8
  },
  {
   "crop": "crop1037",
@@ -754,10 +886,10 @@
   "prep": "Chemical",
   "region_group": "",
   "anatomy": "Neurovascular (endothelium/glia/neurons)",
-  "nverts": 13559,
-  "nfaces": 26496,
+  "nverts": 36086,
+  "nfaces": 72168,
   "bin": "crop1037.bin",
-  "bytes": 643368,
+  "bytes": 1876424,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -777,7 +909,9 @@
   ],
   "ecs_frac": 0.3229,
   "ecs_frac_full_crop": 0.3353,
-  "width_uncertain_frac": 0.574,
+  "width_uncertain_frac": 0.837,
+  "thickness_uncertain_frac": 0.928,
+  "cap_frac": 0.624,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -802,6 +936,16 @@
      3.290516757965088
     ]
    },
+   "thickness": {
+    "bounds": [
+     224.5044708251953,
+     390.8952331542969
+    ],
+    "default": [
+     0.0,
+     367.26544616699215
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -813,7 +957,7 @@
     ]
    }
   },
-  "built_s": 73.6
+  "built_s": 33.1
  },
  {
   "crop": "crop1038",
@@ -822,10 +966,10 @@
   "prep": "Chemical",
   "region_group": "Space of Disse",
   "anatomy": "Space of Disse",
-  "nverts": 92007,
-  "nfaces": 180199,
+  "nverts": 133627,
+  "nfaces": 267318,
   "bin": "crop1038.bin",
-  "bytes": 4370556,
+  "bytes": 6949372,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -845,7 +989,9 @@
   ],
   "ecs_frac": 0.5488,
   "ecs_frac_full_crop": 0.5497,
-  "width_uncertain_frac": 0.163,
+  "width_uncertain_frac": 0.413,
+  "thickness_uncertain_frac": 0.396,
+  "cap_frac": 0.311,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -870,6 +1016,16 @@
      8.456145286560059
     ]
    },
+   "thickness": {
+    "bounds": [
+     9.941164016723633,
+     398.2319641113281
+    ],
+    "default": [
+     0.0,
+     338.0718170166015
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -877,11 +1033,11 @@
     ],
     "default": [
      0.0,
-     222.85421752929688
+     222.2790985107422
     ]
    }
   },
-  "built_s": 39.4
+  "built_s": 20.7
  },
  {
   "crop": "crop1039",
@@ -890,10 +1046,10 @@
   "prep": "Chemical",
   "region_group": "Bile canaliculus",
   "anatomy": "Bile canaliculus",
-  "nverts": 68745,
-  "nfaces": 135494,
+  "nverts": 85514,
+  "nfaces": 171168,
   "bin": "crop1039.bin",
-  "bytes": 3275808,
+  "bytes": 4448408,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -913,7 +1069,9 @@
   ],
   "ecs_frac": 0.1922,
   "ecs_frac_full_crop": 0.1922,
-  "width_uncertain_frac": 0.04,
+  "width_uncertain_frac": 0.212,
+  "thickness_uncertain_frac": 0.223,
+  "cap_frac": 0.196,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -938,6 +1096,16 @@
      12.437814140319825
     ]
    },
+   "thickness": {
+    "bounds": [
+     8.147501945495605,
+     342.8282165527344
+    ],
+    "default": [
+     0.0,
+     170.8420248413085
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -949,7 +1117,7 @@
     ]
    }
   },
-  "built_s": 31.1
+  "built_s": 14.7
  },
  {
   "crop": "crop1040",
@@ -958,10 +1126,10 @@
   "prep": "Chemical",
   "region_group": "Bile canaliculus",
   "anatomy": "Bile canaliculus",
-  "nverts": 36092,
-  "nfaces": 71259,
+  "nverts": 52785,
+  "nfaces": 105618,
   "bin": "crop1040.bin",
-  "bytes": 1721316,
+  "bytes": 2745396,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -981,7 +1149,9 @@
   ],
   "ecs_frac": 0.2288,
   "ecs_frac_full_crop": 0.226,
-  "width_uncertain_frac": 0.132,
+  "width_uncertain_frac": 0.401,
+  "thickness_uncertain_frac": 0.534,
+  "cap_frac": 0.316,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1006,6 +1176,16 @@
      10.627744197845459
     ]
    },
+   "thickness": {
+    "bounds": [
+     13.104846954345703,
+     396.9350280761719
+    ],
+    "default": [
+     0.0,
+     315.48934326171883
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1013,11 +1193,11 @@
     ],
     "default": [
      0.0,
-     244.7529296875
+     244.22940063476562
     ]
    }
   },
-  "built_s": 29.1
+  "built_s": 13.7
  },
  {
   "crop": "crop1041",
@@ -1026,10 +1206,10 @@
   "prep": "Chemical",
   "region_group": "Space of Disse",
   "anatomy": "Space of Disse",
-  "nverts": 63062,
-  "nfaces": 123921,
+  "nverts": 82112,
+  "nfaces": 164268,
   "bin": "crop1041.bin",
-  "bytes": 3000540,
+  "bytes": 4270352,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1049,7 +1229,9 @@
   ],
   "ecs_frac": 0.2682,
   "ecs_frac_full_crop": 0.268,
-  "width_uncertain_frac": 0.112,
+  "width_uncertain_frac": 0.309,
+  "thickness_uncertain_frac": 0.231,
+  "cap_frac": 0.232,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1074,6 +1256,16 @@
      9.092126846313477
     ]
    },
+   "thickness": {
+    "bounds": [
+     5.378690719604492,
+     392.4211730957031
+    ],
+    "default": [
+     0.0,
+     325.3213623046875
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1085,7 +1277,7 @@
     ]
    }
   },
-  "built_s": 32.0
+  "built_s": 14.8
  },
  {
   "crop": "crop1042",
@@ -1094,10 +1286,10 @@
   "prep": "Chemical",
   "region_group": "Bile canaliculus",
   "anatomy": "Bile canaliculus",
-  "nverts": 75611,
-  "nfaces": 148256,
+  "nverts": 94052,
+  "nfaces": 188248,
   "bin": "crop1042.bin",
-  "bytes": 3593736,
+  "bytes": 4892432,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1117,7 +1309,9 @@
   ],
   "ecs_frac": 0.1757,
   "ecs_frac_full_crop": 0.1763,
-  "width_uncertain_frac": 0.029,
+  "width_uncertain_frac": 0.205,
+  "thickness_uncertain_frac": 0.127,
+  "cap_frac": 0.196,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1142,6 +1336,16 @@
      9.840262413024904
     ]
    },
+   "thickness": {
+    "bounds": [
+     10.839975357055664,
+     321.8280029296875
+    ],
+    "default": [
+     0.0,
+     149.3109381103513
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1149,11 +1353,11 @@
     ],
     "default": [
      0.0,
-     73.32121276855469
+     71.5541763305664
     ]
    }
   },
-  "built_s": 23.0
+  "built_s": 11.5
  },
  {
   "crop": "crop1043",
@@ -1162,10 +1366,10 @@
   "prep": "Chemical",
   "region_group": "Space of Disse",
   "anatomy": "Space of Disse",
-  "nverts": 78785,
-  "nfaces": 154978,
+  "nverts": 102100,
+  "nfaces": 204320,
   "bin": "crop1043.bin",
-  "bytes": 3750576,
+  "bytes": 5310640,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1185,7 +1389,9 @@
   ],
   "ecs_frac": 0.2675,
   "ecs_frac_full_crop": 0.2657,
-  "width_uncertain_frac": 0.09,
+  "width_uncertain_frac": 0.283,
+  "thickness_uncertain_frac": 0.239,
+  "cap_frac": 0.228,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1210,6 +1416,16 @@
      9.84034290313721
     ]
    },
+   "thickness": {
+    "bounds": [
+     12.121633529663086,
+     390.9145812988281
+    ],
+    "default": [
+     0.0,
+     255.67850921630856
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1221,7 +1437,7 @@
     ]
    }
   },
-  "built_s": 24.1
+  "built_s": 15.2
  },
  {
   "crop": "crop1044",
@@ -1230,10 +1446,10 @@
   "prep": "Chemical",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Hepatocyte lateral",
-  "nverts": 34240,
-  "nfaces": 66664,
+  "nverts": 53084,
+  "nfaces": 106192,
   "bin": "crop1044.bin",
-  "bytes": 1621728,
+  "bytes": 2760656,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1253,7 +1469,9 @@
   ],
   "ecs_frac": 0.22,
   "ecs_frac_full_crop": 0.2201,
-  "width_uncertain_frac": 0.158,
+  "width_uncertain_frac": 0.439,
+  "thickness_uncertain_frac": 0.409,
+  "cap_frac": 0.355,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1278,6 +1496,16 @@
      8.47794589996338
     ]
    },
+   "thickness": {
+    "bounds": [
+     15.714495658874512,
+     399.1582336425781
+    ],
+    "default": [
+     0.0,
+     331.1283044433594
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1285,11 +1513,11 @@
     ],
     "default": [
      0.0,
-     227.96490478515625
+     227.40272521972656
     ]
    }
   },
-  "built_s": 20.4
+  "built_s": 13.4
  },
  {
   "crop": "crop1045",
@@ -1298,10 +1526,10 @@
   "prep": "Chemical",
   "region_group": "",
   "anatomy": "Neurovascular (mixed nerve fibers)",
-  "nverts": 63934,
-  "nfaces": 125239,
+  "nverts": 80576,
+  "nfaces": 161036,
   "bin": "crop1045.bin",
-  "bytes": 3037284,
+  "bytes": 4188560,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1321,7 +1549,9 @@
   ],
   "ecs_frac": 0.1766,
   "ecs_frac_full_crop": 0.1427,
-  "width_uncertain_frac": 0.104,
+  "width_uncertain_frac": 0.271,
+  "thickness_uncertain_frac": 0.207,
+  "cap_frac": 0.206,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1346,6 +1576,16 @@
      11.259148597717289
     ]
    },
+   "thickness": {
+    "bounds": [
+     5.33515739440918,
+     119.5233383178711
+    ],
+    "default": [
+     0.0,
+     67.5501449584959
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1357,7 +1597,7 @@
     ]
    }
   },
-  "built_s": 59.1
+  "built_s": 25.7
  },
  {
   "crop": "crop1046",
@@ -1366,10 +1606,10 @@
   "prep": "Chemical",
   "region_group": "",
   "anatomy": "Neurovascular (myelinated/unmyelinated fibers)",
-  "nverts": 82680,
-  "nfaces": 162563,
+  "nverts": 94407,
+  "nfaces": 188982,
   "bin": "crop1046.bin",
-  "bytes": 3935076,
+  "bytes": 4911180,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1389,7 +1629,9 @@
   ],
   "ecs_frac": 0.146,
   "ecs_frac_full_crop": 0.1645,
-  "width_uncertain_frac": 0.012,
+  "width_uncertain_frac": 0.112,
+  "thickness_uncertain_frac": 0.061,
+  "cap_frac": 0.124,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1414,6 +1656,16 @@
      9.633133029937747
     ]
    },
+   "thickness": {
+    "bounds": [
+     7.935643672943115,
+     196.77923583984375
+    ],
+    "default": [
+     0.0,
+     104.60909118652329
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1425,7 +1677,7 @@
     ]
    }
   },
-  "built_s": 39.9
+  "built_s": 19.9
  },
  {
   "crop": "crop1071",
@@ -1434,10 +1686,10 @@
   "prep": "Rapid HPF",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Hepatocyte lateral",
-  "nverts": 71464,
-  "nfaces": 140418,
+  "nverts": 92688,
+  "nfaces": 185616,
   "bin": "crop1071.bin",
-  "bytes": 3400152,
+  "bytes": 4822656,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1457,7 +1709,9 @@
   ],
   "ecs_frac": 0.2807,
   "ecs_frac_full_crop": 0.2809,
-  "width_uncertain_frac": 0.095,
+  "width_uncertain_frac": 0.29,
+  "thickness_uncertain_frac": 0.238,
+  "cap_frac": 0.229,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1482,6 +1736,16 @@
      9.664006233215332
     ]
    },
+   "thickness": {
+    "bounds": [
+     6.178463459014893,
+     386.9439392089844
+    ],
+    "default": [
+     0.0,
+     325.7420343017578
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1489,11 +1753,11 @@
     ],
     "default": [
      0.0,
-     181.72506713867188
+     181.0193328857422
     ]
    }
   },
-  "built_s": 17.9
+  "built_s": 9.2
  },
  {
   "crop": "crop1072",
@@ -1502,10 +1766,10 @@
   "prep": "Rapid HPF",
   "region_group": "Bile canaliculus",
   "anatomy": "Bile canaliculus",
-  "nverts": 8846,
-  "nfaces": 17029,
+  "nverts": 13583,
+  "nfaces": 27182,
   "bin": "crop1072.bin",
-  "bytes": 416652,
+  "bytes": 706508,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1525,7 +1789,9 @@
   ],
   "ecs_frac": 0.0387,
   "ecs_frac_full_crop": 0.0391,
-  "width_uncertain_frac": 0.071,
+  "width_uncertain_frac": 0.363,
+  "thickness_uncertain_frac": 0.255,
+  "cap_frac": 0.348,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1550,6 +1816,16 @@
      11.010512351989748
     ]
    },
+   "thickness": {
+    "bounds": [
+     18.62080955505371,
+     219.5171661376953
+    ],
+    "default": [
+     0.0,
+     185.01491088867186
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1557,11 +1833,11 @@
     ],
     "default": [
      0.0,
-     87.63561248779297
+     86.16263580322266
     ]
    }
   },
-  "built_s": 3.4
+  "built_s": 3.6
  },
  {
   "crop": "crop1073",
@@ -1570,10 +1846,10 @@
   "prep": "Rapid HPF",
   "region_group": "Bile canaliculus",
   "anatomy": "Bile canaliculus",
-  "nverts": 51108,
-  "nfaces": 100081,
+  "nverts": 66638,
+  "nfaces": 133292,
   "bin": "crop1073.bin",
-  "bytes": 2427564,
+  "bytes": 3465368,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1593,7 +1869,9 @@
   ],
   "ecs_frac": 0.1428,
   "ecs_frac_full_crop": 0.1428,
-  "width_uncertain_frac": 0.056,
+  "width_uncertain_frac": 0.261,
+  "thickness_uncertain_frac": 0.185,
+  "cap_frac": 0.233,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1618,6 +1896,16 @@
      7.616795063018799
     ]
    },
+   "thickness": {
+    "bounds": [
+     16.108407974243164,
+     324.34033203125
+    ],
+    "default": [
+     0.0,
+     154.0384793090817
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1629,7 +1917,7 @@
     ]
    }
   },
-  "built_s": 13.4
+  "built_s": 7.3
  },
  {
   "crop": "crop1074",
@@ -1638,10 +1926,10 @@
   "prep": "Rapid HPF",
   "region_group": "Bile canaliculus",
   "anatomy": "Bile canaliculus",
-  "nverts": 19328,
-  "nfaces": 37516,
+  "nverts": 32154,
+  "nfaces": 64320,
   "bin": "crop1074.bin",
-  "bytes": 914064,
+  "bytes": 1672152,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1661,7 +1949,9 @@
   ],
   "ecs_frac": 0.101,
   "ecs_frac_full_crop": 0.1016,
-  "width_uncertain_frac": 0.168,
+  "width_uncertain_frac": 0.481,
+  "thickness_uncertain_frac": 0.462,
+  "cap_frac": 0.399,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1686,6 +1976,16 @@
      9.961757850646974
     ]
    },
+   "thickness": {
+    "bounds": [
+     18.67755699157715,
+     324.0645446777344
+    ],
+    "default": [
+     0.0,
+     229.3057427978512
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1693,11 +1993,11 @@
     ],
     "default": [
      0.0,
-     167.80941772460938
+     167.04490661621094
     ]
    }
   },
-  "built_s": 8.5
+  "built_s": 4.7
  },
  {
   "crop": "crop1075",
@@ -1706,10 +2006,10 @@
   "prep": "Rapid HPF",
   "region_group": "Bile canaliculus",
   "anatomy": "Bile canaliculus",
-  "nverts": 22588,
-  "nfaces": 44294,
+  "nverts": 27620,
+  "nfaces": 55236,
   "bin": "crop1075.bin",
-  "bytes": 1073640,
+  "bytes": 1436192,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1729,7 +2029,9 @@
   ],
   "ecs_frac": 0.0463,
   "ecs_frac_full_crop": 0.0451,
-  "width_uncertain_frac": 0.064,
+  "width_uncertain_frac": 0.213,
+  "thickness_uncertain_frac": 0.089,
+  "cap_frac": 0.182,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1754,6 +2056,16 @@
      2.905083656311035
     ]
    },
+   "thickness": {
+    "bounds": [
+     17.568233489990234,
+     125.7099380493164
+    ],
+    "default": [
+     0.0,
+     87.80076049804687
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1765,7 +2077,7 @@
     ]
    }
   },
-  "built_s": 8.3
+  "built_s": 4.6
  },
  {
   "crop": "crop1116",
@@ -1774,10 +2086,10 @@
   "prep": "Rapid HPF",
   "region_group": "",
   "anatomy": "Neuropil (mixed nerve fibers)",
-  "nverts": 68024,
-  "nfaces": 133862,
+  "nverts": 80850,
+  "nfaces": 161764,
   "bin": "crop1116.bin",
-  "bytes": 3238920,
+  "bytes": 4204968,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1797,7 +2109,9 @@
   ],
   "ecs_frac": 0.1998,
   "ecs_frac_full_crop": 0.1998,
-  "width_uncertain_frac": 0.043,
+  "width_uncertain_frac": 0.18,
+  "thickness_uncertain_frac": 0.117,
+  "cap_frac": 0.159,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1822,6 +2136,16 @@
      8.1392617225647
     ]
    },
+   "thickness": {
+    "bounds": [
+     7.492856025695801,
+     369.9131774902344
+    ],
+    "default": [
+     0.0,
+     223.63792907714847
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1833,7 +2157,7 @@
     ]
    }
   },
-  "built_s": 34.4
+  "built_s": 21.4
  },
  {
   "crop": "crop1118",
@@ -1842,10 +2166,10 @@
   "prep": "Chemical",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Hepatocyte lateral",
-  "nverts": 40134,
-  "nfaces": 79241,
+  "nverts": 44164,
+  "nfaces": 88292,
   "bin": "crop1118.bin",
-  "bytes": 1914108,
+  "bytes": 2296096,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1865,7 +2189,9 @@
   ],
   "ecs_frac": 0.0469,
   "ecs_frac_full_crop": 0.046,
-  "width_uncertain_frac": 0.053,
+  "width_uncertain_frac": 0.12,
+  "thickness_uncertain_frac": 0.159,
+  "cap_frac": 0.091,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1890,6 +2216,16 @@
      5.018000602722168
     ]
    },
+   "thickness": {
+    "bounds": [
+     7.470101356506348,
+     170.31349182128906
+    ],
+    "default": [
+     0.0,
+     61.91280982971186
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1897,11 +2233,11 @@
     ],
     "default": [
      0.0,
-     113.1370849609375
+     112.0
     ]
    }
   },
-  "built_s": 3.8
+  "built_s": 2.9
  },
  {
   "crop": "crop1119",
@@ -1910,10 +2246,10 @@
   "prep": "Chemical",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Hepatocyte lateral",
-  "nverts": 22901,
-  "nfaces": 45207,
+  "nverts": 26530,
+  "nfaces": 53084,
   "bin": "crop1119.bin",
-  "bytes": 1092108,
+  "bytes": 1379848,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -1933,7 +2269,9 @@
   ],
   "ecs_frac": 0.0435,
   "ecs_frac_full_crop": 0.0431,
-  "width_uncertain_frac": 0.078,
+  "width_uncertain_frac": 0.191,
+  "thickness_uncertain_frac": 0.144,
+  "cap_frac": 0.137,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -1958,6 +2296,16 @@
      9.009111404418945
     ]
    },
+   "thickness": {
+    "bounds": [
+     6.361047267913818,
+     198.9023895263672
+    ],
+    "default": [
+     0.0,
+     137.307240600586
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -1965,11 +2313,11 @@
     ],
     "default": [
      0.0,
-     82.39245635986396
+     81.58431243896484
     ]
    }
   },
-  "built_s": 4.6
+  "built_s": 3.8
  },
  {
   "crop": "crop1120",
@@ -1978,10 +2326,10 @@
   "prep": "Chemical",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Hepatocyte lateral",
-  "nverts": 21657,
-  "nfaces": 42369,
+  "nverts": 25980,
+  "nfaces": 51752,
   "bin": "crop1120.bin",
-  "bytes": 1028196,
+  "bytes": 1348464,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2001,7 +2349,9 @@
   ],
   "ecs_frac": 0.0473,
   "ecs_frac_full_crop": 0.0471,
-  "width_uncertain_frac": 0.068,
+  "width_uncertain_frac": 0.212,
+  "thickness_uncertain_frac": 0.186,
+  "cap_frac": 0.166,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2026,6 +2376,16 @@
      8.88513116836548
     ]
    },
+   "thickness": {
+    "bounds": [
+     8.147845268249512,
+     208.57376098632812
+    ],
+    "default": [
+     0.0,
+     162.4618222045898
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2037,7 +2397,7 @@
     ]
    }
   },
-  "built_s": 4.8
+  "built_s": 3.6
  },
  {
   "crop": "crop1121",
@@ -2046,10 +2406,10 @@
   "prep": "Chemical",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Hepatocyte lateral",
-  "nverts": 7119,
-  "nfaces": 13614,
+  "nverts": 7227,
+  "nfaces": 13902,
   "bin": "crop1121.bin",
-  "bytes": 334224,
+  "bytes": 369180,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2069,7 +2429,9 @@
   ],
   "ecs_frac": 0.0151,
   "ecs_frac_full_crop": 0.0152,
-  "width_uncertain_frac": 0.0,
+  "width_uncertain_frac": 0.001,
+  "thickness_uncertain_frac": 0.379,
+  "cap_frac": 0.015,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2094,6 +2456,16 @@
      13.014384269714355
     ]
    },
+   "thickness": {
+    "bounds": [
+     7.6776933670043945,
+     7.719494819641113
+    ],
+    "default": [
+     0.0,
+     7.718658790588379
+    ]
+   },
    "width": {
     "bounds": [
      16.0,
@@ -2105,7 +2477,7 @@
     ]
    }
   },
-  "built_s": 5.7
+  "built_s": 3.0
  },
  {
   "crop": "crop1122",
@@ -2114,10 +2486,10 @@
   "prep": "Chemical",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Hepatocyte lateral",
-  "nverts": 21381,
-  "nfaces": 42341,
+  "nverts": 23281,
+  "nfaces": 46750,
   "bin": "crop1122.bin",
-  "bytes": 1021236,
+  "bytes": 1212868,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2137,7 +2509,9 @@
   ],
   "ecs_frac": 0.0322,
   "ecs_frac_full_crop": 0.0327,
-  "width_uncertain_frac": 0.011,
+  "width_uncertain_frac": 0.069,
+  "thickness_uncertain_frac": 0.068,
+  "cap_frac": 0.082,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2162,6 +2536,16 @@
      9.018106460571289
     ]
    },
+   "thickness": {
+    "bounds": [
+     13.822883605957031,
+     188.69215393066406
+    ],
+    "default": [
+     0.0,
+     118.11983734130861
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2173,7 +2557,7 @@
     ]
    }
   },
-  "built_s": 4.1
+  "built_s": 2.9
  },
  {
   "crop": "crop1123",
@@ -2182,10 +2566,10 @@
   "prep": "Rapid HPF",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Tight junction",
-  "nverts": 15825,
-  "nfaces": 31418,
+  "nverts": 18827,
+  "nfaces": 37842,
   "bin": "crop1123.bin",
-  "bytes": 756816,
+  "bytes": 981260,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2205,7 +2589,9 @@
   ],
   "ecs_frac": 0.0248,
   "ecs_frac_full_crop": 0.0253,
-  "width_uncertain_frac": 0.044,
+  "width_uncertain_frac": 0.178,
+  "thickness_uncertain_frac": 0.124,
+  "cap_frac": 0.159,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2230,6 +2616,16 @@
      3.604543733596804
     ]
    },
+   "thickness": {
+    "bounds": [
+     5.5720720291137695,
+     61.285770416259766
+    ],
+    "default": [
+     0.0,
+     51.440418624877935
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2241,7 +2637,7 @@
     ]
    }
   },
-  "built_s": 5.3
+  "built_s": 2.8
  },
  {
   "crop": "crop1124",
@@ -2250,10 +2646,10 @@
   "prep": "Rapid HPF",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Hepatocyte lateral",
-  "nverts": 18178,
-  "nfaces": 35539,
+  "nverts": 20434,
+  "nfaces": 40864,
   "bin": "crop1124.bin",
-  "bytes": 862740,
+  "bytes": 1062520,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2273,7 +2669,9 @@
   ],
   "ecs_frac": 0.0194,
   "ecs_frac_full_crop": 0.0194,
-  "width_uncertain_frac": 0.0,
+  "width_uncertain_frac": 0.053,
+  "thickness_uncertain_frac": 0.048,
+  "cap_frac": 0.11,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2298,6 +2696,16 @@
      1.8831332564353949
     ]
    },
+   "thickness": {
+    "bounds": [
+     14.580585479736328,
+     35.24435043334961
+    ],
+    "default": [
+     0.0,
+     21.515214996337892
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2309,7 +2717,7 @@
     ]
    }
   },
-  "built_s": 10.2
+  "built_s": 4.6
  },
  {
   "crop": "crop1125",
@@ -2318,10 +2726,10 @@
   "prep": "Rapid HPF",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Hepatocyte lateral",
-  "nverts": 28352,
-  "nfaces": 56615,
+  "nverts": 30674,
+  "nfaces": 61916,
   "bin": "crop1125.bin",
-  "bytes": 1359828,
+  "bytes": 1601864,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2341,7 +2749,9 @@
   ],
   "ecs_frac": 0.0316,
   "ecs_frac_full_crop": 0.0316,
-  "width_uncertain_frac": 0.013,
+  "width_uncertain_frac": 0.068,
+  "thickness_uncertain_frac": 0.051,
+  "cap_frac": 0.076,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2366,6 +2776,16 @@
      3.824056172370911
     ]
    },
+   "thickness": {
+    "bounds": [
+     5.48163366317749,
+     183.59072875976562
+    ],
+    "default": [
+     0.0,
+     76.79262069702115
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2377,7 +2797,7 @@
     ]
    }
   },
-  "built_s": 6.6
+  "built_s": 3.4
  },
  {
   "crop": "crop1126",
@@ -2386,10 +2806,10 @@
   "prep": "Rapid HPF",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Tight junction",
-  "nverts": 13258,
-  "nfaces": 25830,
+  "nverts": 16418,
+  "nfaces": 32832,
   "bin": "crop1126.bin",
-  "bytes": 628152,
+  "bytes": 853688,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2409,7 +2829,9 @@
   ],
   "ecs_frac": 0.0211,
   "ecs_frac_full_crop": 0.0211,
-  "width_uncertain_frac": 0.049,
+  "width_uncertain_frac": 0.188,
+  "thickness_uncertain_frac": 0.193,
+  "cap_frac": 0.192,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2434,6 +2856,16 @@
      3.4361433029174804
     ]
    },
+   "thickness": {
+    "bounds": [
+     17.683658599853516,
+     55.70683288574219
+    ],
+    "default": [
+     0.0,
+     40.788516998291016
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2445,7 +2877,7 @@
     ]
    }
   },
-  "built_s": 10.8
+  "built_s": 6.4
  },
  {
   "crop": "crop1127",
@@ -2454,10 +2886,10 @@
   "prep": "Rapid HPF",
   "region_group": "Hepatocyte lateral",
   "anatomy": "Hepatocyte lateral",
-  "nverts": 20377,
-  "nfaces": 39971,
+  "nverts": 25012,
+  "nfaces": 50020,
   "bin": "crop1127.bin",
-  "bytes": 968700,
+  "bytes": 1300576,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2477,7 +2909,9 @@
   ],
   "ecs_frac": 0.0402,
   "ecs_frac_full_crop": 0.0401,
-  "width_uncertain_frac": 0.026,
+  "width_uncertain_frac": 0.192,
+  "thickness_uncertain_frac": 0.093,
+  "cap_frac": 0.185,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2502,6 +2936,16 @@
      3.084646773338318
     ]
    },
+   "thickness": {
+    "bounds": [
+     31.880657196044922,
+     61.71982192993164
+    ],
+    "default": [
+     0.0,
+     49.5892297363281
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2513,7 +2957,7 @@
     ]
    }
   },
-  "built_s": 6.2
+  "built_s": 5.1
  },
  {
   "crop": "crop1134",
@@ -2522,10 +2966,10 @@
   "prep": "Rapid HPF",
   "region_group": "Glomerular",
   "anatomy": "Glomerular interstitium",
-  "nverts": 62261,
-  "nfaces": 121686,
+  "nverts": 103626,
+  "nfaces": 207256,
   "bin": "crop1134.bin",
-  "bytes": 2954496,
+  "bytes": 5388600,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2545,7 +2989,9 @@
   ],
   "ecs_frac": 0.6468,
   "ecs_frac_full_crop": 0.6475,
-  "width_uncertain_frac": 0.268,
+  "width_uncertain_frac": 0.556,
+  "thickness_uncertain_frac": 0.582,
+  "cap_frac": 0.399,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2570,6 +3016,16 @@
      8.062047195434571
     ]
    },
+   "thickness": {
+    "bounds": [
+     36.310882568359375,
+     398.9682922363281
+    ],
+    "default": [
+     0.0,
+     368.2101330566406
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2581,7 +3037,7 @@
     ]
    }
   },
-  "built_s": 2.5
+  "built_s": 11.4
  },
  {
   "crop": "crop1135",
@@ -2590,10 +3046,10 @@
   "prep": "Rapid HPF",
   "region_group": "Glomerular",
   "anatomy": "Glomerular interstitium",
-  "nverts": 81981,
-  "nfaces": 160833,
+  "nverts": 112065,
+  "nfaces": 224202,
   "bin": "crop1135.bin",
-  "bytes": 3897540,
+  "bytes": 5828244,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2613,7 +3069,9 @@
   ],
   "ecs_frac": 0.3457,
   "ecs_frac_full_crop": 0.3483,
-  "width_uncertain_frac": 0.124,
+  "width_uncertain_frac": 0.348,
+  "thickness_uncertain_frac": 0.287,
+  "cap_frac": 0.268,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2638,6 +3096,16 @@
      8.39931869506836
     ]
    },
+   "thickness": {
+    "bounds": [
+     11.009090423583984,
+     360.84136962890625
+    ],
+    "default": [
+     0.0,
+     269.91609497070306
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2645,11 +3113,11 @@
     ],
     "default": [
      0.0,
-     160.79800415039062
+     160.0
     ]
    }
   },
-  "built_s": 9.9
+  "built_s": 2.5
  },
  {
   "crop": "crop1136",
@@ -2658,10 +3126,10 @@
   "prep": "Rapid HPF",
   "region_group": "DCT base",
   "anatomy": "DCT base",
-  "nverts": 23262,
-  "nfaces": 45192,
+  "nverts": 34294,
+  "nfaces": 68592,
   "bin": "crop1136.bin",
-  "bytes": 1100592,
+  "bytes": 1783336,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2681,7 +3149,9 @@
   ],
   "ecs_frac": 0.0893,
   "ecs_frac_full_crop": 0.0899,
-  "width_uncertain_frac": 0.097,
+  "width_uncertain_frac": 0.374,
+  "thickness_uncertain_frac": 0.311,
+  "cap_frac": 0.322,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2706,6 +3176,16 @@
      4.0965296745300295
     ]
    },
+   "thickness": {
+    "bounds": [
+     16.612333297729492,
+     384.5881042480469
+    ],
+    "default": [
+     0.0,
+     242.05831726074211
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2717,7 +3197,7 @@
     ]
    }
   },
-  "built_s": 16.4
+  "built_s": 7.8
  },
  {
   "crop": "crop1137",
@@ -2726,10 +3206,10 @@
   "prep": "Rapid HPF",
   "region_group": "DCT base",
   "anatomy": "DCT base",
-  "nverts": 98190,
-  "nfaces": 194336,
+  "nverts": 109836,
+  "nfaces": 220804,
   "bin": "crop1137.bin",
-  "bytes": 4688592,
+  "bytes": 5725056,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2749,7 +3229,9 @@
   ],
   "ecs_frac": 0.1467,
   "ecs_frac_full_crop": 0.1473,
-  "width_uncertain_frac": 0.015,
+  "width_uncertain_frac": 0.093,
+  "thickness_uncertain_frac": 0.076,
+  "cap_frac": 0.106,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2774,6 +3256,16 @@
      7.998242187500002
     ]
    },
+   "thickness": {
+    "bounds": [
+     5.7088117599487305,
+     200.85791015625
+    ],
+    "default": [
+     0.0,
+     123.2676422119141
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2781,11 +3273,11 @@
     ],
     "default": [
      0.0,
-     75.0466537475586
+     73.32121276855469
     ]
    }
   },
-  "built_s": 8.7
+  "built_s": 5.9
  },
  {
   "crop": "crop1138",
@@ -2794,10 +3286,10 @@
   "prep": "Rapid HPF",
   "region_group": "PCT lateral",
   "anatomy": "PCT lateral",
-  "nverts": 28180,
-  "nfaces": 54975,
+  "nverts": 38508,
+  "nfaces": 76984,
   "bin": "crop1138.bin",
-  "bytes": 1336020,
+  "bytes": 2002032,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2817,7 +3309,9 @@
   ],
   "ecs_frac": 0.0893,
   "ecs_frac_full_crop": 0.09,
-  "width_uncertain_frac": 0.231,
+  "width_uncertain_frac": 0.434,
+  "thickness_uncertain_frac": 0.225,
+  "cap_frac": 0.268,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2842,6 +3336,16 @@
      10.017188644409181
     ]
    },
+   "thickness": {
+    "bounds": [
+     60.616580963134766,
+     306.8020935058594
+    ],
+    "default": [
+     0.0,
+     211.87639617919893
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2849,11 +3353,11 @@
     ],
     "default": [
      0.0,
-     121.85237121582031
+     120.98725219726593
     ]
    }
   },
-  "built_s": 12.4
+  "built_s": 6.5
  },
  {
   "crop": "crop1140",
@@ -2862,10 +3366,10 @@
   "prep": "Rapid HPF",
   "region_group": "",
   "anatomy": "Neuropil (unmyelinated fibers)",
-  "nverts": 80865,
-  "nfaces": 158977,
+  "nverts": 91780,
+  "nfaces": 183636,
   "bin": "crop1140.bin",
-  "bytes": 3848484,
+  "bytes": 4773472,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2885,7 +3389,9 @@
   ],
   "ecs_frac": 0.1473,
   "ecs_frac_full_crop": 0.1471,
-  "width_uncertain_frac": 0.02,
+  "width_uncertain_frac": 0.116,
+  "thickness_uncertain_frac": 0.062,
+  "cap_frac": 0.119,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2910,6 +3416,16 @@
      7.841595077514649
     ]
    },
+   "thickness": {
+    "bounds": [
+     6.943933963775635,
+     299.0145568847656
+    ],
+    "default": [
+     0.0,
+     147.4294744873047
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2921,7 +3437,7 @@
     ]
    }
   },
-  "built_s": 20.5
+  "built_s": 10.7
  },
  {
   "crop": "crop1141",
@@ -2930,10 +3446,10 @@
   "prep": "Rapid HPF",
   "region_group": "",
   "anatomy": "Glial-neuronal (synaptic clefts)",
-  "nverts": 62818,
-  "nfaces": 124616,
+  "nverts": 70026,
+  "nfaces": 140988,
   "bin": "crop1141.bin",
-  "bytes": 3003024,
+  "bytes": 3652584,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -2953,7 +3469,9 @@
   ],
   "ecs_frac": 0.0958,
   "ecs_frac_full_crop": 0.0959,
-  "width_uncertain_frac": 0.012,
+  "width_uncertain_frac": 0.09,
+  "thickness_uncertain_frac": 0.082,
+  "cap_frac": 0.103,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -2978,6 +3496,16 @@
      7.488381862640382
     ]
    },
+   "thickness": {
+    "bounds": [
+     5.722836971282959,
+     304.8468017578125
+    ],
+    "default": [
+     0.0,
+     196.07227050781253
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -2989,7 +3517,7 @@
     ]
    }
   },
-  "built_s": 19.7
+  "built_s": 1.8
  },
  {
   "crop": "crop1142",
@@ -2998,10 +3526,10 @@
   "prep": "Rapid HPF",
   "region_group": "",
   "anatomy": "Unmyelinated nerve fibers",
-  "nverts": 55564,
-  "nfaces": 109228,
+  "nverts": 66544,
+  "nfaces": 133208,
   "bin": "crop1142.bin",
-  "bytes": 2644272,
+  "bytes": 3461728,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -3021,7 +3549,9 @@
   ],
   "ecs_frac": 0.1252,
   "ecs_frac_full_crop": 0.125,
-  "width_uncertain_frac": 0.025,
+  "width_uncertain_frac": 0.164,
+  "thickness_uncertain_frac": 0.1,
+  "cap_frac": 0.165,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -3046,6 +3576,16 @@
      10.300745105743408
     ]
    },
+   "thickness": {
+    "bounds": [
+     15.538901329040527,
+     363.0721435546875
+    ],
+    "default": [
+     0.0,
+     168.872734375
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -3057,7 +3597,7 @@
     ]
    }
   },
-  "built_s": 14.0
+  "built_s": 7.3
  },
  {
   "crop": "crop1143",
@@ -3066,10 +3606,10 @@
   "prep": "Rapid HPF",
   "region_group": "",
   "anatomy": "Unmyelinated nerve fibers",
-  "nverts": 103886,
-  "nfaces": 205500,
+  "nverts": 119206,
+  "nfaces": 239252,
   "bin": "crop1143.bin",
-  "bytes": 4959264,
+  "bytes": 6208792,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -3089,7 +3629,9 @@
   ],
   "ecs_frac": 0.1815,
   "ecs_frac_full_crop": 0.1816,
-  "width_uncertain_frac": 0.024,
+  "width_uncertain_frac": 0.131,
+  "thickness_uncertain_frac": 0.089,
+  "cap_frac": 0.128,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -3114,6 +3656,16 @@
      7.4172629833221455
     ]
    },
+   "thickness": {
+    "bounds": [
+     5.630260467529297,
+     346.4009704589844
+    ],
+    "default": [
+     0.0,
+     172.2651919555664
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -3125,7 +3677,7 @@
     ]
    }
   },
-  "built_s": 17.8
+  "built_s": 8.8
  },
  {
   "crop": "crop1144",
@@ -3134,10 +3686,10 @@
   "prep": "Rapid HPF",
   "region_group": "DCT base",
   "anatomy": "DCT base",
-  "nverts": 50098,
-  "nfaces": 98205,
+  "nverts": 59558,
+  "nfaces": 119104,
   "bin": "crop1144.bin",
-  "bytes": 2380812,
+  "bytes": 3096872,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -3157,7 +3709,9 @@
   ],
   "ecs_frac": 0.1088,
   "ecs_frac_full_crop": 0.1086,
-  "width_uncertain_frac": 0.02,
+  "width_uncertain_frac": 0.171,
+  "thickness_uncertain_frac": 0.032,
+  "cap_frac": 0.159,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -3182,6 +3736,16 @@
      2.7676703929901127
     ]
    },
+   "thickness": {
+    "bounds": [
+     18.2220458984375,
+     108.18852233886719
+    ],
+    "default": [
+     0.0,
+     69.45176147460938
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -3193,7 +3757,7 @@
     ]
    }
   },
-  "built_s": 36.5
+  "built_s": 17.8
  },
  {
   "crop": "crop1145",
@@ -3202,10 +3766,10 @@
   "prep": "Chemical",
   "region_group": "Cardiac interstitial",
   "anatomy": "Interstitial",
-  "nverts": 68454,
-  "nfaces": 134525,
+  "nverts": 91386,
+  "nfaces": 182760,
   "bin": "crop1145.bin",
-  "bytes": 3257196,
+  "bytes": 4751928,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -3225,7 +3789,9 @@
   ],
   "ecs_frac": 0.3141,
   "ecs_frac_full_crop": 0.3145,
-  "width_uncertain_frac": 0.154,
+  "width_uncertain_frac": 0.363,
+  "thickness_uncertain_frac": 0.246,
+  "cap_frac": 0.251,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -3250,6 +3816,16 @@
      8.254085159301761
     ]
    },
+   "thickness": {
+    "bounds": [
+     20.613985061645508,
+     373.9736633300781
+    ],
+    "default": [
+     0.0,
+     230.48429382324224
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -3261,7 +3837,7 @@
     ]
    }
   },
-  "built_s": 9.2
+  "built_s": 5.9
  },
  {
   "crop": "crop1146",
@@ -3270,10 +3846,10 @@
   "prep": "Chemical",
   "region_group": "Cardiac interstitial",
   "anatomy": "Interstitial",
-  "nverts": 43498,
-  "nfaces": 85097,
+  "nverts": 59216,
+  "nfaces": 118420,
   "bin": "crop1146.bin",
-  "bytes": 2065116,
+  "bytes": 3079088,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -3293,7 +3869,9 @@
   ],
   "ecs_frac": 0.205,
   "ecs_frac_full_crop": 0.2024,
-  "width_uncertain_frac": 0.144,
+  "width_uncertain_frac": 0.363,
+  "thickness_uncertain_frac": 0.252,
+  "cap_frac": 0.265,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -3318,6 +3896,16 @@
      13.706134033203124
     ]
    },
+   "thickness": {
+    "bounds": [
+     18.31890869140625,
+     386.4102783203125
+    ],
+    "default": [
+     0.0,
+     252.53356567382804
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -3329,7 +3917,7 @@
     ]
    }
   },
-  "built_s": 8.4
+  "built_s": 8.5
  },
  {
   "crop": "crop1147",
@@ -3338,10 +3926,10 @@
   "prep": "Chemical",
   "region_group": "Intercalated disc",
   "anatomy": "Intercalated disc",
-  "nverts": 15884,
-  "nfaces": 30861,
+  "nverts": 26218,
+  "nfaces": 52432,
   "bin": "crop1147.bin",
-  "bytes": 751548,
+  "bytes": 1363288,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -3361,7 +3949,9 @@
   ],
   "ecs_frac": 0.1138,
   "ecs_frac_full_crop": 0.1128,
-  "width_uncertain_frac": 0.404,
+  "width_uncertain_frac": 0.636,
+  "thickness_uncertain_frac": 0.445,
+  "cap_frac": 0.394,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -3386,6 +3976,16 @@
      2.49513509273529
     ]
    },
+   "thickness": {
+    "bounds": [
+     95.41342163085938,
+     374.882568359375
+    ],
+    "default": [
+     0.0,
+     267.40194213867187
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -3397,7 +3997,7 @@
     ]
    }
   },
-  "built_s": 8.1
+  "built_s": 4.3
  },
  {
   "crop": "crop1148",
@@ -3406,10 +4006,10 @@
   "prep": "Chemical",
   "region_group": "Intercalated disc",
   "anatomy": "Intercalated disc",
-  "nverts": 28907,
-  "nfaces": 56657,
+  "nverts": 35748,
+  "nfaces": 71492,
   "bin": "crop1148.bin",
-  "bytes": 1373652,
+  "bytes": 1858848,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -3429,7 +4029,9 @@
   ],
   "ecs_frac": 0.0911,
   "ecs_frac_full_crop": 0.0912,
-  "width_uncertain_frac": 0.084,
+  "width_uncertain_frac": 0.257,
+  "thickness_uncertain_frac": 0.069,
+  "cap_frac": 0.191,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -3454,6 +4056,16 @@
      4.247416257858276
     ]
    },
+   "thickness": {
+    "bounds": [
+     23.50481414794922,
+     161.52716064453125
+    ],
+    "default": [
+     0.0,
+     133.6713085937501
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -3465,7 +4077,7 @@
     ]
    }
   },
-  "built_s": 10.6
+  "built_s": 5.6
  },
  {
   "crop": "crop1149",
@@ -3474,10 +4086,10 @@
   "prep": "Rapid HPF",
   "region_group": "Cardiac interstitial",
   "anatomy": "Interstitial",
-  "nverts": 34407,
-  "nfaces": 67515,
+  "nverts": 46616,
+  "nfaces": 93220,
   "bin": "crop1149.bin",
-  "bytes": 1635948,
+  "bytes": 2423888,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -3497,7 +4109,9 @@
   ],
   "ecs_frac": 0.2113,
   "ecs_frac_full_crop": 0.2136,
-  "width_uncertain_frac": 0.19,
+  "width_uncertain_frac": 0.4,
+  "thickness_uncertain_frac": 0.186,
+  "cap_frac": 0.262,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -3522,6 +4136,16 @@
      7.4177083015441925
     ]
    },
+   "thickness": {
+    "bounds": [
+     26.192289352416992,
+     342.4520263671875
+    ],
+    "default": [
+     0.0,
+     250.58690856933592
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -3533,7 +4157,7 @@
     ]
    }
   },
-  "built_s": 9.0
+  "built_s": 4.9
  },
  {
   "crop": "crop1150",
@@ -3542,10 +4166,10 @@
   "prep": "Rapid HPF",
   "region_group": "Cardiac interstitial",
   "anatomy": "Interstitial",
-  "nverts": 104222,
-  "nfaces": 204739,
+  "nverts": 135306,
+  "nfaces": 270664,
   "bin": "crop1150.bin",
-  "bytes": 4958196,
+  "bytes": 7036536,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -3565,7 +4189,9 @@
   ],
   "ecs_frac": 0.3841,
   "ecs_frac_full_crop": 0.3853,
-  "width_uncertain_frac": 0.101,
+  "width_uncertain_frac": 0.299,
+  "thickness_uncertain_frac": 0.209,
+  "cap_frac": 0.23,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -3590,6 +4216,16 @@
      7.628577232360841
     ]
    },
+   "thickness": {
+    "bounds": [
+     6.9664130210876465,
+     396.1211242675781
+    ],
+    "default": [
+     0.0,
+     256.46465576171875
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -3597,11 +4233,11 @@
     ],
     "default": [
      0.0,
-     128.0
+     125.98412322998047
     ]
    }
   },
-  "built_s": 9.2
+  "built_s": 6.9
  },
  {
   "crop": "crop1151",
@@ -3610,10 +4246,10 @@
   "prep": "Rapid HPF",
   "region_group": "Intercalated disc",
   "anatomy": "Intercalated disc",
-  "nverts": 31066,
-  "nfaces": 61166,
+  "nverts": 33709,
+  "nfaces": 67422,
   "bin": "crop1151.bin",
-  "bytes": 1479576,
+  "bytes": 1752916,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -3633,7 +4269,9 @@
   ],
   "ecs_frac": 0.0456,
   "ecs_frac_full_crop": 0.0456,
-  "width_uncertain_frac": 0.005,
+  "width_uncertain_frac": 0.056,
+  "thickness_uncertain_frac": 0.014,
+  "cap_frac": 0.078,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -3658,6 +4296,16 @@
      8.194377708435061
     ]
    },
+   "thickness": {
+    "bounds": [
+     14.931175231933594,
+     167.93069458007812
+    ],
+    "default": [
+     0.0,
+     83.98101181030265
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -3669,7 +4317,7 @@
     ]
    }
   },
-  "built_s": 11.3
+  "built_s": 5.6
  },
  {
   "crop": "crop1152",
@@ -3678,10 +4326,10 @@
   "prep": "Rapid HPF",
   "region_group": "Intercalated disc",
   "anatomy": "Intercalated disc",
-  "nverts": 19867,
-  "nfaces": 38495,
+  "nverts": 40742,
+  "nfaces": 81476,
   "bin": "crop1152.bin",
-  "bytes": 938748,
+  "bytes": 2118488,
   "voxel_nm": 8.0,
   "cube_nm": 800.0,
   "box_nm": [
@@ -3701,7 +4349,9 @@
   ],
   "ecs_frac": 0.204,
   "ecs_frac_full_crop": 0.2021,
-  "width_uncertain_frac": 0.476,
+  "width_uncertain_frac": 0.737,
+  "thickness_uncertain_frac": 0.673,
+  "cap_frac": 0.512,
   "curv_scale_nm": 24.0,
   "dev_scale_nm": 60.0,
   "sigma_nm": 12.0,
@@ -3726,6 +4376,16 @@
      3.894598913192749
     ]
    },
+   "thickness": {
+    "bounds": [
+     22.624794006347656,
+     370.8117370605469
+    ],
+    "default": [
+     0.0,
+     318.7505432128906
+    ]
+   },
    "width": {
     "bounds": [
      0.0,
@@ -3737,6 +4397,6 @@
     ]
    }
   },
-  "built_s": 7.7
+  "built_s": 4.8
  }
 ]
