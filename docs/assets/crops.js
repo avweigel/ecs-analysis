@@ -7,7 +7,7 @@
   let shown = new Set(DATA.defaults.filter(c => COLS[c]));
   const facet = { tissue: new Set(), region: new Set(), prep: new Set() };
   const ranges = {};                       // col -> [lo, hi] currently applied
-  let selected = { A: null, B: null }, active = 'A', compare = false, linked = true;
+  let selected = { A: null, B: null }, active = 'A', compare = true, linked = true;
 
   const fmt = v => {
     if (v === null || v === undefined || Number.isNaN(v)) return null;
@@ -86,10 +86,17 @@
   /* ---------- column picker ---------- */
   function buildCols() {
     const box = $('colpick'); box.innerHTML = '';
+    // two families measure the same things by different routes, so their labels
+    // collide; disambiguate only the ones that actually clash
+    const seen = {};
+    for (const c of Object.keys(COLS)) seen[COLS[c].label] = (seen[COLS[c].label] || 0) + 1;
     for (const c of Object.keys(COLS)) {
+      const fam = c.split('.')[0].replace(/_/g, ' ');
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'chip' + (shown.has(c) ? ' on' : '');
-      b.textContent = COLS[c].label;
+      b.textContent = seen[COLS[c].label] > 1
+        ? `${COLS[c].label} · ${fam === 'membrane topology' ? 'mesh' : 'pooled'}`
+        : COLS[c].label;
       b.title = COLS[c].blurb || '';
       b.onclick = () => { shown.has(c) ? shown.delete(c) : shown.add(c); buildCols(); render(); };
       box.appendChild(b);
@@ -213,16 +220,63 @@
   function toggleCompare() {
     compare = !compare;
     $('pB').hidden = !compare;
-    $('vwrap').classList.toggle('solo', !compare);
+    $('hub').classList.toggle('solo', !compare);
     $('vlink').hidden = !compare;
     $('vcompare').textContent = compare ? 'Single view' : 'Compare two';
-    $('vcompare').classList.toggle('on', compare);
     if (compare && !selected.B) {
       const list = rows.filter(passes).map(r => r.crop).filter(c => c !== selected.A);
       load('B', list[0] || Object.keys(MANI)[0]);
     }
+    resizeSoon();
+  }
+  function resizeSoon() {
     setTimeout(() => { for (const s of ['A', 'B']) panels[s] && panels[s].resize(); }, 60);
   }
+
+  /* ---------- draggable table width ---------- */
+  const TW = 'ecs-tablew';
+  function setTableWidth(px) {
+    const min = 280, max = Math.max(min, innerWidth - 520);
+    px = Math.max(min, Math.min(max, px));
+    $('hub').style.setProperty('--tablew', px + 'px');
+    try { localStorage.setItem(TW, px); } catch (e) {}
+    resizeSoon();
+  }
+  (function initGutter() {
+    try { const v = +localStorage.getItem(TW); if (v) setTableWidth(v); } catch (e) {}
+    const g = $('gutter'); if (!g) return;
+    let dragging = false;
+    // listeners live on the document: pointer capture on a 6px strip is easy to
+    // lose, and losing it mid-drag leaves the divider stuck to the cursor
+    const move = e => {
+      if (!dragging) return;
+      e.preventDefault();
+      setTableWidth(e.clientX - $('hub').getBoundingClientRect().left);
+    };
+    const stop = () => {
+      if (!dragging) return;
+      dragging = false; g.classList.remove('drag');
+      document.body.style.userSelect = '';
+    };
+    g.addEventListener('pointerdown', e => {
+      dragging = true; g.classList.add('drag');
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', stop);
+    document.addEventListener('pointercancel', stop);
+    // keyboard: the divider is focusable so it can be nudged without a mouse
+    g.tabIndex = 0;
+    g.setAttribute('role', 'separator');
+    g.setAttribute('aria-label', 'Resize the table');
+    g.addEventListener('keydown', e => {
+      const cur = parseInt(getComputedStyle($('hub')).getPropertyValue('--tablew')) || 460;
+      if (e.key === 'ArrowLeft') { setTableWidth(cur - 24); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { setTableWidth(cur + 24); e.preventDefault(); }
+    });
+    g.addEventListener('dblclick', () => setTableWidth(460));
+  })();
 
   $('vscalar').onchange = () => { autoRange(); recolorAll(); };
   $('vlo').oninput = recolorAll; $('vhi').oninput = recolorAll;
@@ -243,7 +297,18 @@
     buildFacets(); buildRanges(); buildCols(); render();
   };
 
+  document.querySelectorAll('details.tools').forEach(d => {
+    const target = d.querySelector('summary').textContent.trim().startsWith('Numeric')
+      ? $('ranges') : $('colpick');
+    d.addEventListener('toggle', () => { target.hidden = !d.open; });
+  });
+
   buildFacets(); buildRanges(); buildCols(); render();
   initPanels();
-  load('A', Object.keys(MANI).sort()[0]);
+  addEventListener('resize', resizeSoon);
+  (async () => {
+    const first = Object.keys(MANI).sort();
+    await load('A', first[0]);
+    await load('B', first[1] || first[0]);
+  })();
 })();

@@ -72,6 +72,9 @@
 }
 
 *{box-sizing:border-box}
+/* the hidden attribute is display:none in the UA sheet, which any author
+   display rule silently beats — .ranges{display:grid} was overriding it */
+[hidden]{display:none!important}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);
   font:var(--t3)/1.62 "Inter",ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;

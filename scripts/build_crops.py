@@ -35,22 +35,27 @@ EXTRA = """<script src="membranes/three.min.js"></script>
 <script src="membranes/colormaps.js"></script>
 <script src="assets/viewer.js"></script>
 <style>
- .layout{display:grid;grid-template-columns:1fr;gap:var(--s5)}
- .vwrap{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
- .vwrap.solo{grid-template-columns:1fr}
- @media(max-width:900px){.vwrap{grid-template-columns:1fr}}
- .vpanel{background:#0d1016;border:1px solid var(--rule);border-radius:var(--radius);
-   overflow:hidden;display:flex;flex-direction:column;min-height:320px}
- .vpanel .vhead{display:flex;gap:8px;align-items:center;padding:8px 10px;
-   border-bottom:1px solid var(--night-rule);background:var(--night-2);color:var(--night-ink)}
- .vpanel .vhead select{flex:1;min-width:0;font-size:var(--t5);padding:4px 6px;
-   background:#191a1e;color:#eee;border-color:#3a3b40}
- .vpanel .slot{font-size:var(--t5);font-weight:700;letter-spacing:.08em;color:var(--night-ink-2)}
- .vpanel.active .slot{color:var(--accent)}
- .vpanel .stage{flex:1;position:relative;min-height:280px}
- .vpanel .stage canvas{display:block;width:100%;height:100%}
- .vpanel .vfoot{padding:6px 10px;font-size:var(--t5);color:var(--night-ink-2);
-   border-top:1px solid var(--night-rule);background:var(--night-2)}
+ /* three columns: table, then the two viewers. The divider between the table
+    and the viewers is draggable, and the width is remembered. */
+ .hub{display:grid;grid-template-columns:var(--tablew,460px) 6px 1fr 1fr;
+   gap:0;height:calc(100vh - 210px);min-height:520px;
+   border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden}
+ .hub.solo{grid-template-columns:var(--tablew,460px) 6px 1fr}
+ .tablecol{overflow:auto;background:var(--bg);min-width:0}
+ .tablecol table{font-size:12.5px}
+ .tablecol th{position:sticky;top:0;background:var(--bg);z-index:4;
+   box-shadow:0 1px 0 var(--rule-strong)}
+ .tablecol th,.tablecol td{padding:6px 10px 6px 0}
+ .tablecol td:first-child,.tablecol th:first-child{padding-left:10px}
+ .gutter{background:var(--rule);cursor:col-resize;position:relative}
+ .gutter:hover,.gutter.drag{background:var(--accent)}
+ .gutter::after{content:"";position:absolute;inset:0 -5px;cursor:col-resize}
+ @media(max-width:1000px){
+   .hub,.hub.solo{grid-template-columns:1fr;height:auto}
+   .gutter{display:none}
+   .tablecol{max-height:420px}
+   .vpanel{min-height:340px}
+ }
  .vbar{display:flex;gap:var(--s4);align-items:center;flex-wrap:wrap;
    padding:var(--s3) 0;border-bottom:1px solid var(--rule);margin-bottom:var(--s3)}
  .vbar label{font-size:var(--t5);color:var(--ink-3);text-transform:uppercase;letter-spacing:.07em}
@@ -145,6 +150,21 @@ def main():
         wide=True)
 
     html += """<main class="wide after-head">
+<div class="facets" id="facets"></div>
+<div class="controls" style="border:0;padding:0 0 var(--s3)">
+  <div class="ctl"><label for="q">Search</label>
+    <input type="search" id="q" placeholder="crop, tissue, region, anatomy…" style="min-width:230px"></div>
+  <div class="ctl"><label>Showing</label>
+    <span id="count" class="muted" style="font-size:var(--t4);padding:6px 0"></span></div>
+  <div class="ctl"><label>&nbsp;</label><button class="btn" id="reset" type="button">Reset</button></div>
+  <div class="ctl"><label>&nbsp;</label>
+    <details class="tools" style="margin:0"><summary>Numeric ranges</summary></details></div>
+  <div class="ctl"><label>&nbsp;</label>
+    <details class="tools" style="margin:0"><summary>Columns</summary></details></div>
+</div>
+<div class="ranges" id="ranges" hidden></div>
+<div class="colpick" id="colpick" hidden></div>
+
 <div class="vbar">
   <div class="ctl"><label for="vscalar">Scalar</label>
     <select id="vscalar">
@@ -157,39 +177,29 @@ def main():
     <button class="btn" id="vauto" type="button">Auto</button></div>
   <div class="swatchbar"><canvas id="vbar"></canvas>
     <div class="ends"><span id="vlolab"></span><span id="vhilab"></span></div></div>
-  <button class="btn" id="vcompare" type="button">Compare two</button>
-  <button class="btn on" id="vlink" type="button" hidden>Cameras linked</button>
+  <button class="btn on" id="vlink" type="button">Cameras linked</button>
+  <button class="btn" id="vcompare" type="button">Single view</button>
   <span class="muted" style="font-size:var(--t5)">grey = boundary-uncertain</span>
 </div>
 
-<div class="vwrap solo" id="vwrap">
+<div class="hub" id="hub">
+  <div class="tablecol" id="tablecol">
+    <table id="t"><thead></thead><tbody></tbody></table>
+  </div>
+  <div class="gutter" id="gutter" title="Drag to resize the table"></div>
   <div class="vpanel active" id="pA">
     <div class="vhead"><span class="slot">A</span><select class="pick"></select></div>
     <div class="stage"></div><div class="vfoot"></div>
   </div>
-  <div class="vpanel" id="pB" hidden>
+  <div class="vpanel" id="pB">
     <div class="vhead"><span class="slot">B</span><select class="pick"></select></div>
     <div class="stage"></div><div class="vfoot"></div>
   </div>
 </div>
-
-<div class="facets" id="facets"></div>
-<div class="controls" style="border:0;padding:0;margin:0">
-  <div class="ctl"><label for="q">Search</label>
-    <input type="search" id="q" placeholder="crop, tissue, region, anatomy…" style="min-width:260px"></div>
-  <div class="ctl"><label>Showing</label>
-    <span id="count" class="muted" style="font-size:var(--t4);padding:6px 0"></span></div>
-  <div class="ctl"><label>&nbsp;</label><button class="btn" id="reset" type="button">Reset filters</button></div>
-</div>
-
-<details class="tools"><summary>Numeric ranges</summary><div class="ranges" id="ranges"></div></details>
-<details class="tools"><summary>Columns</summary><div class="colpick" id="colpick"></div></details>
-
-<div class="scroll"><table id="t"><thead></thead><tbody></tbody></table></div>
-<p class="note">Click any row to load it into the highlighted panel. <b>Compare two</b> opens a
-second panel; both then share a scalar and colour range, and their cameras move together until
-you unlink them. While the cameras are linked the two patches are drawn at the <b>same scale</b>,
-so a patch that looks smaller really is smaller &mdash; that is the point of linking them.</p>
+<p class="note">Click a row to load it into the highlighted panel; <b>compare →</b> on a row sends
+it to B. Drag the divider to widen the table. While the cameras are linked both patches are drawn
+at the <b>same scale</b>, so a patch that looks smaller really is smaller — that is the point of
+linking them.</p>
 """
     html += sh.footer(0) + '</main><div id="tip"></div>'
     html += '<script>const DATA=' + payload + ';</script>\n'
