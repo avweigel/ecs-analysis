@@ -11,7 +11,7 @@
   const MANI = () => MANIfor(curView().surface);
   const base = 'membranes/';
   let shown = new Set(DATA.defaults.filter(c => COLS[c]));
-  const facet = { tissue: new Set(), region: new Set(), prep: new Set() };
+  const facet = { tissue: new Set(), region: new Set(), anatomy: new Set(), prep: new Set() };
   const ranges = {};                       // col -> [lo, hi] currently applied
   let selected = { A: null, B: null }, active = 'A', compare = true, linked = true;
 
@@ -33,7 +33,7 @@
       const hay = [r.crop, r.tissue, r.region, r.anatomy, r.prep].join(' ').toLowerCase();
       if (!hay.includes(q)) return false;
     }
-    for (const k of ['tissue', 'region', 'prep']) {
+    for (const k of ['tissue', 'region', 'anatomy', 'prep']) {
       if (facet[k].size && !facet[k].has(r[k] || '')) return false;
     }
     for (const [c, [lo, hi]] of Object.entries(ranges)) {
@@ -47,7 +47,7 @@
   /* ---------- facets ---------- */
   function buildFacets() {
     const box = $('facets'); box.innerHTML = '';
-    for (const [key, label] of [['tissue', 'Tissue'], ['region', 'Region'], ['prep', 'Preparation']]) {
+    for (const [key, label] of Object.entries(FACETS)) {
       const g = document.createElement('div'); g.className = 'fgroup';
       g.innerHTML = `<span class="flabel">${label}</span>`;
       for (const v of uniq(key)) {
@@ -109,6 +109,66 @@
     }
   }
 
+  /* ---------- per-column filter menus ----------
+     The chips drawer filters too, but nobody looks for a filter anywhere
+     except the column it applies to. Both drive the same state. */
+  const FACETS = { tissue: 'Tissue', region: 'Region',
+                   anatomy: 'Anatomy', prep: 'Preparation' };
+  let menuKey = null;
+  function menuEl() {
+    let e = document.getElementById('fmenu');
+    if (!e) {
+      e = document.createElement('div');
+      e.id = 'fmenu'; e.className = 'fmenu'; e.hidden = true;
+      document.body.appendChild(e);
+      e.addEventListener('click', ev => {
+        const k = menuKey; if (!k) return;
+        if (ev.target.closest('[data-all]')) { uniq(k).forEach(v => facet[k].add(v)); }
+        else if (ev.target.closest('[data-none]')) { facet[k].clear(); }
+        else {
+          const box = ev.target.closest('input[type=checkbox]');
+          if (!box) return;
+          const v = box.dataset.v;
+          box.checked ? facet[k].add(v) : facet[k].delete(v);
+        }
+        buildFacets(); render(); paintMenu();
+      });
+    }
+    return e;
+  }
+  function paintMenu() {
+    const e = menuEl(), k = menuKey; if (!k) return;
+    const vals = uniq(k);
+    e.innerHTML = `<div class="fhead"><b>${FACETS[k]}</b>` +
+      `<button type="button" data-all="1">All</button>` +
+      `<button type="button" data-none="1">Clear</button></div>` +
+      vals.map(v => {
+        const n = rows.filter(r => (r[k] || '') === v).length;
+        return `<label><input type="checkbox" data-v="${v.replace(/"/g, '&quot;')}"${
+          facet[k].has(v) ? ' checked' : ''}><span>${v}</span><span class="c">${n}</span></label>`;
+      }).join('');
+  }
+  function openMenu(k, btn) {
+    menuKey = k;
+    const e = menuEl();
+    paintMenu();
+    e.hidden = false;
+    const r = btn.getBoundingClientRect();
+    e.style.left = Math.max(8, Math.min(r.left - 6, innerWidth - 268)) + 'px';
+    e.style.top = (r.bottom + 5) + 'px';
+  }
+  function closeMenu() {
+    const e = document.getElementById('fmenu');
+    if (e) e.hidden = true;
+    menuKey = null;
+  }
+  document.addEventListener('click', ev => {
+    if (ev.target.closest('#fmenu') || ev.target.closest('.fbtn')) return;
+    closeMenu();
+  });
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeMenu(); });
+  addEventListener('scroll', closeMenu, true);
+
   /* ---------- table ---------- */
   let sortCol = 'crop', sortDir = 1;
   function render() {
@@ -116,12 +176,23 @@
     const cols = [...shown];
     const th = $('t').querySelector('thead'), tb = $('t').querySelector('tbody');
     const head = ['crop', 'tissue', 'region', 'anatomy', 'prep', 'voxel'];
-    th.innerHTML = '<tr>' +
-      head.map(h => `<th class="sortable${h === 'voxel' ? ' num' : ''}" data-k="${h}">${
-        h === 'voxel' ? 'Voxel<span class="u">nm</span>' : h[0].toUpperCase() + h.slice(1)}</th>`).join('') +
+    // the View column is the SECOND cell in every row;;the header used to put
+    // it last, which slid every title one column left of its data
+    const arrow = k => sortCol === k ? `<i class="srt">${sortDir > 0 ? '▲' : '▼'}</i>` : '';
+    const thCell = h => {
+      const label = h === 'voxel' ? 'Voxel<span class="u">nm</span>'
+                                  : h[0].toUpperCase() + h.slice(1);
+      const filt = FACETS[h]
+        ? `<button class="fbtn${facet[h].size ? ' on' : ''}" data-f="${h}"
+             title="Filter by ${FACETS[h].toLowerCase()}">▾</button>` : '';
+      return `<th class="sortable${h === 'voxel' ? ' num' : ''}" data-k="${h}"
+        title="Sort by ${h}">${label}${arrow(h)}${filt}</th>`;
+    };
+    th.innerHTML = '<tr>' + thCell('crop') +
       '<th title="Open in Neuroglancer">View</th>' +
+      head.slice(1).map(thCell).join('') +
       cols.map(c => `<th class="num sortable" data-k="${c}" title="${(COLS[c].blurb || '').replace(/"/g, '&quot;')}">${
-        COLS[c].label}<span class="u">${COLS[c].unit || '&nbsp;'}</span></th>`).join('') + '</tr>';
+        COLS[c].label}<span class="u">${COLS[c].unit || '&nbsp;'}</span>${arrow(c)}</th>`).join('') + '</tr>';
 
     const key = r => (head.includes(sortCol) ? r[sortCol] : r.m[sortCol]);
     list.sort((x, y) => {
@@ -147,7 +218,7 @@
         '</tr>';
     }).join('');
     $('count').textContent = `${list.length} of ${rows.length} crops`;
-    const nf = ['tissue', 'region', 'prep'].reduce((a, k) => a + facet[k].size, 0)
+    const nf = Object.keys(FACETS).reduce((a, k) => a + facet[k].size, 0)
              + Object.keys(ranges).length;
     const nfe = $('nfilt');
     if (nfe) { nfe.textContent = nf ? '· ' + nf : ''; }
@@ -163,6 +234,12 @@
     else load(active, crop);
   });
   $('t').querySelector('thead').addEventListener('click', e => {
+    const fb = e.target.closest('.fbtn');
+    if (fb) {
+      e.stopPropagation();
+      (menuKey === fb.dataset.f) ? closeMenu() : openMenu(fb.dataset.f, fb);
+      return;
+    }
     const th = e.target.closest('th[data-k]'); if (!th) return;
     const k = th.dataset.k;
     sortDir = (sortCol === k) ? -sortDir : 1; sortCol = k; render();

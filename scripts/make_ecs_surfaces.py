@@ -55,6 +55,9 @@ from ecs.geometry import (CellMesh, signed_mean_curvature,
                           smoothed_surface_deviation)
 from ecs.io import _read_voxel_size, _ECS_SUBPART_LABELS
 
+# bump when the numbers change, so a partial rebuild knows what is stale
+BUILD = 4
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "docs" / "membranes" / "ecs"
 MANIFEST = ROOT / "docs" / "membranes" / "manifest_ecs.json"
@@ -185,19 +188,30 @@ def diffuse_on_mesh(field, tm, V, scale_nm, lamb=0.5):
     Umbrella (uniform 1-ring) diffusion, with the iteration count set the same
     way `smoothed_surface_deviation` sets its own: N ~ sigma^2 / (2 h^2 lamb)
     for mean edge length h.
+
+    NaN is missing data, not a value: it is carried as a zero weight and
+    divided back out, so an unmeasurable vertex does not drag its neighbours
+    towards nothing. The naive version spread every NaN outwards one ring per
+    iteration -- nine rings, ~70 nm -- which turned each patch the ray could
+    not measure into a grey blob several times its true size.
     """
     e = np.asarray(tm.edges_unique)
     h = float(np.median(np.linalg.norm(V[e[:, 0]] - V[e[:, 1]], axis=1))) or 1.0
     n = max(1, int(round(scale_nm ** 2 / (2 * h * h * lamb))))
-    deg = np.bincount(e.ravel(), minlength=len(V)).astype(float)
-    deg[deg == 0] = 1.0
-    x = np.asarray(field, float).copy()
+    x = np.asarray(field, float)
+    good = np.isfinite(x)
+    v = np.where(good, x, 0.0)
+    w = good.astype(float)
     for _ in range(n):
-        acc = np.zeros_like(x)
-        np.add.at(acc, e[:, 0], x[e[:, 1]])
-        np.add.at(acc, e[:, 1], x[e[:, 0]])
-        x = (1 - lamb) * x + lamb * (acc / deg)
-    return x
+        av = np.zeros_like(v); aw = np.zeros_like(w)
+        np.add.at(av, e[:, 0], v[e[:, 1]]); np.add.at(av, e[:, 1], v[e[:, 0]])
+        np.add.at(aw, e[:, 0], w[e[:, 1]]); np.add.at(aw, e[:, 1], w[e[:, 0]])
+        deg = np.maximum(aw, 1e-12)
+        v = (1 - lamb) * v + lamb * (av / deg) * w
+        w = (1 - lamb) * w + lamb * np.minimum(aw / np.maximum(
+            np.bincount(e.ravel(), minlength=len(x)).astype(float), 1.0), 1.0) * w
+    out = np.where(good, np.where(w > 1e-9, v / np.maximum(w, 1e-9), np.nan), np.nan)
+    return out
 
 
 def chord_thickness_nm(V, normals, field, vx, max_probe_nm, step_nm):
@@ -391,6 +405,7 @@ def build(crop, voxel_nm, sigma_nm, cube_nm, scale_nm, margin_vox,
         "width_uncertain_frac": round(float(width_uncertain[used].mean()), 3),
         "thickness_uncertain_frac": round(float(thick_uncertain[used].mean()), 3),
         "cap_frac": round(float(near_wall(m).mean()), 3),
+        "build": BUILD, "chord_probe_nm": float(chord_probe_nm),
         "curv_scale_nm": float(curv_scale_nm), "dev_scale_nm": float(scale_nm),
         "sigma_nm": float(sigma_nm),
         "ranges": {"curvature": rng(cur, True), "deviation": rng(dvn, True),
@@ -411,8 +426,12 @@ def main():
     ap.add_argument("--margin", type=float, default=2.0, help="wall trim, voxels")
     ap.add_argument("--probe", type=float, default=200.0, help="max half-width probed, nm")
     ap.add_argument("--probe-step", type=float, default=4.0)
-    ap.add_argument("--chord-probe", type=float, default=400.0,
-                    help="longest chord measured before giving up, nm")
+    ap.add_argument("--chord-probe", type=float, default=1400.0,
+                    help="longest chord measured before giving up, nm. The default "
+                         "spans the 800 nm cube's diagonal, so a ray gives up only "
+                         "by leaving the box -- at 400 nm, 5% of crop1026's vertices "
+                         "were greyed for running out of probe rather than for "
+                         "anything about the tissue")
     args = ap.parse_args()
 
     sigma = args.sigma if args.sigma is not None else args.voxel * 1.5

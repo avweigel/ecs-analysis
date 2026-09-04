@@ -170,6 +170,29 @@ EXTRA = """<script src="membranes/three.min.js"></script>
  .rrow input[type=range]{flex:1;min-width:60px}
  .rrow .val{font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;min-width:96px}
  .colpick{display:flex;flex-wrap:wrap;gap:5px}
+ /* sort arrow and the per-column filter button */
+ .tablecol th{white-space:nowrap}
+ .srt{font-style:normal;font-size:9px;margin-left:4px;color:var(--accent)}
+ .fbtn{border:0;background:none;color:var(--ink-3);cursor:pointer;font-size:10px;
+   padding:0 3px;margin-left:2px;border-radius:3px;line-height:1}
+ .fbtn:hover{color:var(--ink);background:var(--sunk)}
+ .fbtn.on{color:#fff;background:var(--accent)}
+ .fmenu{position:fixed;z-index:60;min-width:230px;max-width:280px;max-height:340px;
+   overflow:auto;background:var(--raise);border:1px solid var(--rule-strong);
+   border-radius:8px;box-shadow:0 14px 40px rgba(0,0,0,.28);padding:6px}
+ .fmenu .fhead{display:flex;align-items:center;gap:6px;padding:4px 6px 7px;
+   border-bottom:1px solid var(--rule);margin-bottom:5px;font-size:var(--t5);
+   text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)}
+ .fmenu .fhead b{flex:1;font-weight:600;color:var(--ink)}
+ .fmenu .fhead button{border:1px solid var(--rule-strong);background:var(--bg);
+   color:var(--ink-2);border-radius:5px;font:inherit;font-size:10px;padding:2px 7px;
+   cursor:pointer;text-transform:none;letter-spacing:0}
+ .fmenu .fhead button:hover{border-color:var(--accent);color:var(--accent)}
+ .fmenu label{display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:5px;
+   font-size:var(--t4);cursor:pointer;white-space:normal}
+ .fmenu label:hover{background:var(--sunk)}
+ .fmenu label span:first-of-type{flex:1;color:var(--ink)}
+ .fmenu label .c{color:var(--ink-3);font-size:10.5px;font-variant-numeric:tabular-nums}
  /* a shallower title band: this page is a tool, not a piece of writing */
  .pagehead .inner{padding-top:var(--s4);padding-bottom:var(--s4)}
  .pagehead h1{font-size:26px;margin-bottom:4px}
@@ -296,10 +319,12 @@ def main():
   </div>
 </div>
 <p class="note" id="ngnote"></p>
-<p class="note">Grey on a surface means the reading there is uncertain — a value whose
-kernel reached the crop wall, or a channel that leaves the box. The ECS views are an 800 nm
-cube of each crop at 8 nm, chosen to match the crop's own ECS fraction; the membrane views are
-one cell's ECS-facing patch at 16 nm, in the crop's frame. Click a row to load it into the highlighted panel; <b>compare →</b> on a row sends
+<p class="note">Two greys, and they mean different things. The <b>darker</b> one is a
+cut face: the crop ended there, so it is not a surface at all and nothing is measured on it.
+The <b>lighter</b> one is a real surface with a number we do not trust — a kernel that reached
+the crop wall, or a ray that left the box before finding the far side. The ECS views are an
+800 nm cube of each crop at 8 nm, chosen to match the crop's own ECS fraction; the membrane
+views are one cell's ECS-facing patch at 16 nm, in the crop's frame. Click a row to load it into the highlighted panel; <b>compare →</b> on a row sends
 it to B. Drag the divider to widen the table. While the cameras are linked both patches are drawn
 at the <b>same scale</b>, so a patch that looks smaller really is smaller — that is the point of
 linking them. <b>Fit</b> recentres a patch; double-clicking a panel does the same.</p>
