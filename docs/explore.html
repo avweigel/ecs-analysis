@@ -238,8 +238,20 @@ Promise.all([
   fetch('data/metrics.json').then(r=>r.json())
 ]).then(([csv,dict])=>{
   ROWS=parseCSV(csv); DICT=dict;
-  refreshOptions({run:'native',fam:'volume_fraction',met:'ecs_fraction',
-                  grp:'region_group',tis:'All tissues',vox:'All'});
+  /* the quantification panels link here by family and run, so a static panel
+     and its live version are one click apart rather than two pages that look
+     like they show the same thing twice */
+  const q=new URLSearchParams(location.search);
+  refreshOptions({run:q.get('run')||'native',
+                  fam:q.get('fam')||'volume_fraction',
+                  met:q.get('metric')||'ecs_fraction',
+                  grp:q.get('grp')||'region_group',
+                  tis:'All tissues',vox:'All'});
   draw();
+  const keep=()=>{const s=sel();const u=new URLSearchParams(
+      {run:s.run,fam:s.fam,metric:s.met,grp:s.grp});
+    history.replaceState(null,'',location.pathname+'?'+u.toString())};
+  ['run','fam','met','grp'].forEach(i=>$(i).addEventListener('change',keep));
+  keep();
 }).catch(e=>{$('plot').innerHTML='<p class="muted">Could not load the data &mdash; '+e+'</p>'});
 </script></body></html>

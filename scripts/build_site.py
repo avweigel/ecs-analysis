@@ -156,7 +156,7 @@ caveats that go with them.</p>
     <span class="d">All {n_crops} crops, filterable, with the membrane and the space itself in the viewer.</span></a></li>
   <li><a href="figures.html">{ICO_QUANT}
     <span class="t">Quantification</span>
-    <span class="d">What one dot plot cannot show: every metric at once, one region at a time, and the geometry itself.</span></a></li>
+    <span class="d">Every plot the pipeline draws, arranged by the question it answers &mdash; and both resolutions of each metric side by side.</span></a></li>
   <li><a href="reference.html">{ICO_REFERENCE}
     <span class="t">Reference</span>
     <span class="d">What a crop is, how to read the charts, and what all {n_metrics} metrics mean.</span></a></li>
