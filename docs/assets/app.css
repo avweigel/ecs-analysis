@@ -6,17 +6,25 @@
 :root{
   color-scheme: light dark;
 
-  /* surfaces — two, not four */
-  --bg:#fbfbfa;
-  --raise:#ffffff;
-  --sunk:#f2f2ef;
-  --rule:#e4e3de;
-  --rule-strong:#cfcec8;
+  /* surfaces — warm paper, not office white */
+  --bg:#faf8f3;
+  --raise:#fffefb;
+  --sunk:#f1eee6;
+  --rule:#e3ded1;
+  --rule-strong:#cec8b8;
 
   /* ink — three */
-  --ink:#16160f;
-  --ink-2:#55554d;
-  --ink-3:#84837a;
+  --ink:#191712;
+  --ink-2:#57534a;
+  --ink-3:#878275;
+
+  /* the hero band is dark in both themes: the renders are lit objects and
+     they want a dark ground to sit on */
+  --night:#12110f;
+  --night-2:#1c1a16;
+  --night-ink:#f7f4ec;
+  --night-ink-2:#a8a294;
+  --night-rule:#2b2822;
 
   /* one accent, plus the two data colours */
   --accent:#1f6feb;
@@ -35,17 +43,17 @@
 }
 @media (prefers-color-scheme: dark){
   :root:where(:not([data-theme="light"])){
-    --bg:#12120f; --raise:#1a1a17; --sunk:#201f1c;
-    --rule:#2e2d29; --rule-strong:#403f39;
-    --ink:#f4f3ee; --ink-2:#b3b2a8; --ink-3:#87867d;
-    --accent:#5b9dff; --chem:#e4794a; --hpf:#5b9dff; --flag:#e08a52;
+    --bg:#12110f; --raise:#1a1815; --sunk:#221f1a;
+    --rule:#2e2b25; --rule-strong:#433f36;
+    --ink:#f5f2ea; --ink-2:#b5afa1; --ink-3:#8a8478;
+    --accent:#6fa8ff; --chem:#e87f4d; --hpf:#6fa8ff; --flag:#e08a52;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#12120f; --raise:#1a1a17; --sunk:#201f1c;
-  --rule:#2e2d29; --rule-strong:#403f39;
-  --ink:#f4f3ee; --ink-2:#b3b2a8; --ink-3:#87867d;
-  --accent:#5b9dff; --chem:#e4794a; --hpf:#5b9dff; --flag:#e08a52;
+  --bg:#12110f; --raise:#1a1815; --sunk:#221f1a;
+  --rule:#2e2b25; --rule-strong:#433f36;
+  --ink:#f5f2ea; --ink-2:#b5afa1; --ink-3:#8a8478;
+  --accent:#6fa8ff; --chem:#e87f4d; --hpf:#6fa8ff; --flag:#e08a52;
 }
 
 
@@ -66,8 +74,10 @@
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);
-  font:var(--t3)/1.62 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  font:var(--t3)/1.62 "Inter",ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  font-feature-settings:"cv05" 1,"ss01" 1}
+.serif{font-family:"Instrument Serif",Georgia,"Times New Roman",serif;font-weight:400}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline;text-underline-offset:2px}
 td a{color:var(--ink)}
@@ -90,10 +100,60 @@ header.top nav a[aria-current]{color:var(--ink);border-bottom-color:var(--ink)}
   cursor:pointer;padding:4px 6px;letter-spacing:.05em;text-transform:uppercase}
 #themetog:hover{color:var(--ink)}
 
+
+/* ── hero ───────────────────────────────────────────────────
+   Always dark, in both themes: the membrane renders are lit objects and a
+   dark ground is what makes them read. Full-bleed, so it frames the page
+   rather than sitting in it. */
+.hero{background:linear-gradient(180deg,var(--night-2),var(--night) 62%);
+  color:var(--night-ink);position:relative;overflow:hidden;
+  border-bottom:1px solid var(--night-rule)}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(1100px 460px at 76% 38%,rgba(120,190,140,.13),transparent 62%),
+             radial-gradient(760px 380px at 10% 0%,rgba(90,140,220,.10),transparent 65%)}
+.hero .inner{max-width:var(--maxw);margin:0 auto;padding:var(--s7) var(--s4) var(--s6);
+  display:grid;grid-template-columns:1.15fr .85fr;gap:var(--s6);align-items:center;
+  position:relative;z-index:1}
+.hero .eyebrow{font-size:var(--t5);text-transform:uppercase;letter-spacing:.16em;
+  color:var(--night-ink-2);margin:0 0 var(--s3);white-space:nowrap}
+.hero h1{font-family:"Instrument Serif",Georgia,serif;font-weight:400;
+  font-size:clamp(38px,5.2vw,64px);line-height:1.02;letter-spacing:-.015em;
+  color:var(--night-ink);margin:0 0 var(--s4);max-width:15ch}
+.hero h1 em{font-style:italic;color:#cfe6d2}
+.hero p{color:var(--night-ink-2);max-width:52ch;font-size:16px;margin:0}
+.hero .art{position:relative;justify-self:center}
+.hero .art img{display:block;width:100%;max-width:460px;height:auto;
+  filter:drop-shadow(0 26px 60px rgba(0,0,0,.55)) saturate(1.06)}
+.hero .cap{position:absolute;bottom:-26px;right:0;font-size:var(--t5);
+  color:var(--night-ink-2);letter-spacing:.03em}
+@media(max-width:860px){
+  .hero .inner{grid-template-columns:1fr;padding:var(--s6) var(--s4)}
+  .hero .art{display:none}
+}
+
+/* stat row, sitting inside the hero */
+.hero .stats{border:0;margin:var(--s5) 0 0;padding:var(--s4) 0 0;
+  border-top:1px solid var(--night-rule);gap:var(--s5)}
+.hero .stat .n{color:var(--night-ink);font-size:22px}
+.hero .stat .k{color:var(--night-ink-2)}
+
+/* slim band for the interior pages */
+/* a shallow gradient so the band still reads as a header in dark mode, where
+   it would otherwise be the same black as the page */
+.pagehead{background:linear-gradient(180deg,var(--night-2),var(--night));
+  color:var(--night-ink);border-bottom:1px solid var(--night-rule)}
+.pagehead .inner{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s5)}
+.pagehead.wide .inner{max-width:1420px}
+.pagehead h1{color:var(--night-ink);font-size:clamp(30px,3.6vw,40px);margin:0 0 var(--s2)}
+.pagehead p{color:var(--night-ink-2);max-width:68ch;margin:0;font-size:15px}
+.pagehead a{color:#9dc4ff}
+main.after-head{padding-top:var(--s5)}
+
 /* ── page ───────────────────────────────────────────────── */
 main{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s7)}
 main.wide{max-width:1420px}
-h1{font-size:var(--t1);line-height:1.2;letter-spacing:-.02em;margin:0 0 var(--s3);font-weight:600}
+h1{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:42px;
+  line-height:1.06;letter-spacing:-.012em;margin:0 0 var(--s3)}
 h2{font-size:var(--t2);letter-spacing:-.01em;margin:var(--s6) 0 var(--s3);font-weight:600}
 h3{font-size:var(--t3);margin:var(--s4) 0 var(--s2);font-weight:600}
 p{margin:0 0 var(--s3)}

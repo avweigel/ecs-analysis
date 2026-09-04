@@ -92,11 +92,11 @@ def main():
 
     html = sh.head("Reference — ECS preservation", 0, EXTRA)
     html += sh.nav("reference.html", 0)
-    html += f"""<main>
-<h1>Reference</h1>
-<p class="lede">What the study is, how to read the charts, and what every metric on this
-site actually measures. If a number here surprises you, the caveat under its family is
-usually the reason.</p>
+    html += sh.pagehead("Reference",
+        "What the study is, how to read the charts, and what every metric on this site "
+        "actually measures. If a number here surprises you, the caveat under its family is "
+        "usually the reason.")
+    html += f"""<main class="after-head">
 
 <h2 id="design">The study</h2>
 <div class="two">

@@ -58,18 +58,33 @@ def build_index(long_rows, wide_rows, mets):
 
     html = sh.head("ECS preservation — data overview", 0)
     html += sh.nav("index.html", 0)
-    html += f"""<main>
-<h1>Extracellular space across fixation methods</h1>
-<p class="lede">How much does chemical fixation distort the extracellular space, compared with
-rapid high-pressure freezing? This is every measurement behind that question &mdash; working
-data, published so it can be read from the outside. Nothing here is a finished result.</p>
+    html += f"""
+<div class="hero"><div class="inner">
+  <div>
+    <p class="eyebrow">Volume electron microscopy &middot; mouse tissue</p>
+    <h1>What fixation does to the space <em>between</em> cells</h1>
+    <p>Chemical fixation is how almost all tissue is preserved for electron
+    microscopy, and it is known to distort the extracellular space. Rapid
+    high-pressure freezing should distort it less. These are all
+    {n_meas:,} measurements behind that comparison.</p>
+    <div class="stats">
+      <div class="stat"><div class="n">{n_crops}</div><div class="k">crops</div></div>
+      <div class="stat"><div class="n">{len(tissues)}</div><div class="k">tissues</div></div>
+      <div class="stat"><div class="n">{n_metrics}</div><div class="k">metrics</div></div>
+      <div class="stat"><div class="n">{n_meas:,}</div><div class="k">measurements</div></div>
+    </div>
+  </div>
+  <div class="art">
+    <img src="assets/art/hero-gap.png" alt="A cardiac membrane surface coloured by
+      distance to the nearest neighbouring cell, studded with caveolae" loading="eager">
+    <span class="cap">crop1146 &middot; heart, chemical &middot; gap to nearest cell</span>
+  </div>
+</div></div>
 
-<div class="stats">
-  <div class="stat"><div class="n">{n_crops}</div><div class="k">crops</div></div>
-  <div class="stat"><div class="n">{len(tissues)}</div><div class="k">tissues</div></div>
-  <div class="stat"><div class="n">{n_metrics}</div><div class="k">metrics</div></div>
-  <div class="stat"><div class="n">{n_meas:,}</div><div class="k">measurements</div></div>
-</div>
+<main class="after-head">
+<p class="lede" style="max-width:64ch">Nothing here is a finished result. This is working
+data, published so it can be read from the outside &mdash; every metric, every crop, and the
+caveats that go with them.</p>
 
 <ul class="jump">
   <li><a href="explore.html"><span class="t">Explore</span>
@@ -205,12 +220,12 @@ def build_crops(wide_rows, mets):
     html = sh.head("Crops — ECS preservation", 0,
                    "<style>#q{min-width:250px}th{vertical-align:bottom}</style>")
     html += sh.nav("crops.html", 0)
-    html += f"""<main class="wide">
-<h1>Crops</h1>
-<p class="lede">All {len(native)} annotated crops at native resolution, with one headline number
-from each metric family. Hover a column heading for what it measures; the
-<a href="reference.html#metrics">dictionary</a> has all {len(mets)}. Crop names link to the
-membrane render.</p>
+    html += sh.pagehead("Crops",
+        f"All {len(native)} annotated crops at native resolution, with one headline number from "
+        "each metric family. Hover a column heading for what it measures; the "
+        f'<a href="reference.html#metrics">dictionary</a> has all {len(mets)}. '
+        "Crop names link to the membrane render.", wide=True)
+    html += f"""<main class="wide after-head">
 {sh.PREP_LEGEND}
 <div class="controls"><div class="ctl"><label for="q">Filter</label>
   <input type="search" id="q" placeholder="tissue, region, prep, crop&hellip;" style="min-width:260px"></div>

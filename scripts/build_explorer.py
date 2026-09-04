@@ -209,11 +209,11 @@ Promise.all([
 def main():
     html = sh.head("Metric explorer — ECS preservation", 0, EXTRA)
     html += sh.nav("explore.html", 0)
-    html += f"""<main>
-<h1>Metric explorer</h1>
-<p class="lede">Every per-crop measurement the pipeline has produced. Pick a metric; each dot is
-one crop, chemical above the line and HPF below, with groups sharing one scale so they can be
-read against each other. <a href="reference.html#reading">How to read this.</a></p>
+    html += sh.pagehead("Metric explorer",
+        "Every per-crop measurement the pipeline has produced. Each dot is one crop, chemical "
+        "above the line and HPF below, with groups sharing one scale so they can be read against "
+        'each other. <a href="reference.html#reading">How to read this.</a>')
+    html += f"""<main class="after-head">
 
 <div class="controls">
   <div class="ctl"><label for="run">Run</label><select id="run"></select></div>

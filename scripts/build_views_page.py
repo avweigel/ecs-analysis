@@ -47,12 +47,7 @@ EXTRA = """<style>
 </style>
 <script type="module" src="model-viewer.min.js"></script>"""
 
-INTRO = """<main class="wide">
-  <h1>3D views</h1>
-  <p class="lede">One representative crop per region and preparation, membrane surface coloured
-  by curvature. Drag to rotate, scroll to zoom. These are pre-rendered for a quick look; the
-  <a href="inspector.html">inspector</a> has all 55 crops, all three scalars, and live control
-  of the colour range.</p>
+INTRO = """<main class="wide after-head">
   <div class="legend">
     <span class="item"><i class="sw" style="background:var(--chem)"></i>Chemical fixation</span>
     <span class="item"><i class="sw" style="background:var(--hpf)"></i>Rapid high-pressure freezing</span>
@@ -110,6 +105,11 @@ def main():
 
     html = sh.head("3D views — ECS preservation", 1, EXTRA)
     html += sh.nav("membranes/views.html", 1)
+    html += sh.pagehead("3D views",
+        "One representative crop per region and preparation, membrane surface coloured by "
+        "curvature. Drag to rotate, scroll to zoom. These are pre-rendered for a quick look; "
+        'the <a href="inspector.html">inspector</a> has all 55 crops, all three scalars, and '
+        "live control of the colour range.", wide=True)
     html += INTRO.replace("<!--BODY-->", body)
     html += sh.tail(1)
     OUT.write_text(html)

@@ -56,6 +56,9 @@ def head(title: str, depth: int = 0, extra: str = "", wide: bool = False) -> str
     return f"""<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="{r}assets/app.css?v={VER}">
 <script src="{r}assets/site.js?v={VER}"></script>
 {extra}</head><body>"""
@@ -89,6 +92,13 @@ def footer(depth: int = 0) -> str:
 
 def tail(depth: int = 0) -> str:
     return f'{footer(depth)}</main><div id="tip"></div></body></html>'
+
+
+def pagehead(title: str, lede: str = "", wide: bool = False) -> str:
+    """Dark title band for the interior pages."""
+    cls = "pagehead wide" if wide else "pagehead"
+    body = f'<h1>{title}</h1>' + (f'<p>{lede}</p>' if lede else "")
+    return f'<div class="{cls}"><div class="inner">{body}</div></div>'
 
 
 PREP_LEGEND = (

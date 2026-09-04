@@ -92,12 +92,12 @@ def main():
 </style>"""
     html = sh.head("Figures — ECS preservation", 0, extra)
     html += sh.nav("figures.html", 0)
-    html += f"""<main class="wide">
-<h1>Figure gallery</h1>
-<p class="lede">Every plot the analysis pipeline produces, with what it shows and the caveat
-that goes with it. Click any figure for the full-resolution version. These are generated
-output, not final figures &mdash; the <a href="explore.html">explorer</a> is the better place
-to interrogate a specific number.</p>
+    html += sh.pagehead("Figure gallery",
+        "Every plot the analysis pipeline produces, with what it shows and the caveat that goes "
+        "with it. Click any figure for the full-resolution version. These are generated output, "
+        'not final figures &mdash; the <a href="explore.html">explorer</a> is the better place to '
+        "interrogate a specific number.", wide=True)
+    html += f"""<main class="wide after-head">
 {sh.PREP_LEGEND}
 {body}
 """
