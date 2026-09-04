@@ -146,18 +146,57 @@ def pick_window(mask, voxel_nm, cube_nm, stride_frac=0.25):
 def local_width_nm(V, normals, dt, vx, shape, max_probe_nm, step_nm):
     """Diameter of the largest ball that fits in the channel at each vertex.
 
-    Walks both ways along the normal (the mesh's orientation is not something
-    to rely on) and keeps the largest distance-transform value found; outside
-    the ECS the transform is 0, so the wrong direction contributes nothing.
+    Walk the normal into the space and keep the largest distance-transform
+    value met -- twice that is the channel's width, exactly for a slab or a
+    tube, approximately for anything else, since the ball is constrained to be
+    centred on the normal ray rather than anywhere.
+
+    The walk STOPS at the first sample outside the ECS. Without that test the
+    ray runs the full probe length, crosses the cell, and reports the width of
+    whatever channel it finds on the other side: on crop1072 that was 22% of
+    vertices reading a median 23 nm too wide. Both directions are walked
+    because the mesh's orientation is not worth relying on; the outward one
+    exits immediately and contributes nothing.
     """
     vxa, shp = np.asarray(vx), np.asarray(shape) - 1
+
+    def probe(p):
+        vi = np.clip(np.round(p / vxa).astype(int), 0, shp)
+        return dt[vi[:, 0], vi[:, 1], vi[:, 2]]
+
     best = np.zeros(len(V))
     for sgn in (1.0, -1.0):
-        for t in np.arange(0.0, max_probe_nm + 1e-9, step_nm):
-            p = V + (sgn * t) * normals
-            vi = np.clip(np.round(p / vxa).astype(int), 0, shp)
-            np.maximum(best, dt[vi[:, 0], vi[:, 1], vi[:, 2]], out=best)
+        inside = np.ones(len(V), bool)
+        run = np.zeros(len(V))
+        for t in np.arange(step_nm, max_probe_nm + 1e-9, step_nm):
+            d = probe(V + (sgn * t) * normals)
+            inside &= d > 0
+            if not inside.any():
+                break
+            run = np.where(inside, np.maximum(run, d), run)
+        np.maximum(best, run, out=best)
     return 2.0 * best
+
+
+def diffuse_on_mesh(field, tm, V, scale_nm, lamb=0.5):
+    """Average a per-vertex field over a neighbourhood of `scale_nm`.
+
+    Umbrella (uniform 1-ring) diffusion, with the iteration count set the same
+    way `smoothed_surface_deviation` sets its own: N ~ sigma^2 / (2 h^2 lamb)
+    for mean edge length h.
+    """
+    e = np.asarray(tm.edges_unique)
+    h = float(np.median(np.linalg.norm(V[e[:, 0]] - V[e[:, 1]], axis=1))) or 1.0
+    n = max(1, int(round(scale_nm ** 2 / (2 * h * h * lamb))))
+    deg = np.bincount(e.ravel(), minlength=len(V)).astype(float)
+    deg[deg == 0] = 1.0
+    x = np.asarray(field, float).copy()
+    for _ in range(n):
+        acc = np.zeros_like(x)
+        np.add.at(acc, e[:, 0], x[e[:, 1]])
+        np.add.at(acc, e[:, 1], x[e[:, 0]])
+        x = (1 - lamb) * x + lamb * (acc / deg)
+    return x
 
 
 def extract_patch(V, F, keep_face):
@@ -169,7 +208,7 @@ def extract_patch(V, F, keep_face):
 
 
 def build(crop, voxel_nm, sigma_nm, cube_nm, scale_nm, margin_vox,
-          max_probe_nm, probe_step_nm):
+          max_probe_nm, probe_step_nm, curv_scale_nm):
     mask, vx = load_ecs_mask(crop, voxel_nm)
     full_frac = float(mask.mean())
     origin = (0, 0, 0)
@@ -184,9 +223,21 @@ def build(crop, voxel_nm, sigma_nm, cube_nm, scale_nm, margin_vox,
         raise ValueError("degenerate ECS mesh")
     V, F, tm = mesh.verts_nm, mesh.faces, mesh.trimesh
 
-    # negated: see the module docstring on the sign convention
-    H, _ = signed_mean_curvature(tm)
+    # Curvature is stated at a scale: the raw field is averaged over a
+    # `curv_scale_nm` neighbourhood on the surface before it is shown.
+    #
+    # At 8 nm the marching-cubes staircase off a binary mask puts a signed,
+    # single-vertex wobble into H that a diverging colormap renders as a
+    # herringbone over every surface. The mask cannot be smoothed harder --
+    # a 30 nm sheet does not survive a 24 nm Gaussian, and thin sheets are the
+    # subject -- and relaxing the mesh POSITIONS barely touches it (curvature
+    # is a second derivative; nine iterations cut the vertex-to-vertex jump by
+    # 15%). Averaging the field itself cuts that jump 2.6x while costing 11%
+    # of |H| at p90: it removes the noise, not the structure.
     dev, _ = smoothed_surface_deviation(tm, scale_nm=scale_nm)
+    H, _ = signed_mean_curvature(tm)
+    H = diffuse_on_mesh(H, tm, V, curv_scale_nm)
+    # negated: see the module docstring on the sign convention
     H, dev = -H, -dev
 
     dt = distance_transform_edt(mask, sampling=vx)
@@ -212,10 +263,17 @@ def build(crop, voxel_nm, sigma_nm, cube_nm, scale_nm, margin_vox,
         raise ValueError("nothing left after trimming the wall")
     Vp, Fp, used = extract_patch(V, F, keep)
 
-    vis_m = max(m, scale_nm)
-    vis_bad = ((V <= vis_m).any(axis=1) | (V >= (vol_nm - vis_m)).any(axis=1))[used]
-    cur = H[used].astype("<f4"); cur[vis_bad] = np.nan
-    dvn = dev[used].astype("<f4"); dvn[vis_bad] = np.nan
+    # Blank each scalar over its own reach, not over the widest one. Curvature
+    # only feels the wall through the 24 nm relaxation; deviation feels it over
+    # its whole 60 nm kernel. Blanking both at 60 nm painted a grey band four
+    # times wider than curvature needed, which is most of what looked wrong
+    # about the edges.
+    def near_wall(margin):
+        return ((V <= margin).any(axis=1)
+                | (V >= (vol_nm - margin)).any(axis=1))[used]
+
+    cur = H[used].astype("<f4"); cur[near_wall(max(m, curv_scale_nm))] = np.nan
+    dvn = dev[used].astype("<f4"); dvn[near_wall(max(m, scale_nm))] = np.nan
     wid = width[used].astype("<f4"); wid[width_uncertain[used]] = np.nan
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -249,6 +307,8 @@ def build(crop, voxel_nm, sigma_nm, cube_nm, scale_nm, margin_vox,
         "window_origin_nm": [round(float(o * vx[i]), 1) for i, o in enumerate(origin)],
         "ecs_frac": round(frac, 4), "ecs_frac_full_crop": round(full_frac, 4),
         "width_uncertain_frac": round(float(width_uncertain[used].mean()), 3),
+        "curv_scale_nm": float(curv_scale_nm), "dev_scale_nm": float(scale_nm),
+        "sigma_nm": float(sigma_nm),
         "ranges": {"curvature": rng(cur, True), "deviation": rng(dvn, True),
                    "width": rng(wid, False)},
     }
@@ -262,9 +322,11 @@ def main():
     ap.add_argument("--sigma", type=float, default=None, help="default 1.5x voxel")
     ap.add_argument("--cube", type=float, default=800.0, help="0 for the whole crop")
     ap.add_argument("--scale", type=float, default=60.0, help="deviation scale, nm")
+    ap.add_argument("--curv-scale", type=float, default=24.0,
+                    help="scale the mesh is relaxed to before curvature, nm")
     ap.add_argument("--margin", type=float, default=2.0, help="wall trim, voxels")
     ap.add_argument("--probe", type=float, default=200.0, help="max half-width probed, nm")
-    ap.add_argument("--probe-step", type=float, default=8.0)
+    ap.add_argument("--probe-step", type=float, default=4.0)
     args = ap.parse_args()
 
     sigma = args.sigma if args.sigma is not None else args.voxel * 1.5
@@ -285,7 +347,7 @@ def main():
         t = time.time()
         try:
             e = build(crop, args.voxel, sigma, args.cube or None, args.scale,
-                      args.margin, args.probe, args.probe_step)
+                      args.margin, args.probe, args.probe_step, args.curv_scale)
             e["built_s"] = round(time.time() - t, 1)
             entries[cid] = e
             print(f"  {cid}: {e['nverts']:>7,} verts  {e['nfaces']:>7,} faces  "

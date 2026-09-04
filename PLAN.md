@@ -66,9 +66,20 @@ remembering:
   is 0.3%, p90 2.8%.
 - **Width is an estimate.** Distance to the nearest cell is zero on the ECS
   surface by construction, so width is the diameter of the largest ball that
-  fits in the channel, found by walking the normal into the space. It saturates
-  in open pools, and where a channel leaves the cube the vertex is NaN (grey)
-  rather than a number that flatters the box.
+  fits in the channel, found by walking the normal into the space. The walk
+  stops at the far wall — the first version did not, and 22% of vertices on
+  crop1072 were reporting a channel on the other side of the cell, a median
+  23 nm too wide. It saturates in open pools, and where a channel leaves the
+  cube the vertex is NaN (grey) rather than a number that flatters the box.
+- **Curvature is stated at a scale**, 24 nm, averaged over the surface. Raw, the
+  marching-cubes staircase at 8 nm renders as a herringbone; the mask cannot be
+  smoothed harder without dissolving 30 nm sheets, and relaxing mesh positions
+  barely touches a second derivative. Averaging the field cuts the
+  vertex-to-vertex jump 2.6x for 11% of |H| at p90.
+- **The width floor is the sampling.** At 8 nm the narrowest resolvable channel
+  is 16 nm and the median crop sits at 32 nm — four voxels. Chemical and HPF
+  medians are both 32 nm; the difference between them is in the tail (chemical
+  reaches 295 nm, HPF 130 nm), not the middle. Do not read the middle.
 
 Rebuild with `ECS_DATA_BASE=<mount>/data python scripts/make_ecs_surfaces.py
 --all`; it needs the zarr, so VPN or the mounted share, and about 25 minutes.

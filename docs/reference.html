@@ -103,11 +103,18 @@ boundary. They are built differently, and the difference matters when you compar
     cube is not the middle of the crop: it is the position whose ECS fraction is closest to
     the whole crop's, because the middle of a liver crop can sit inside one hepatocyte and
     hold no ECS at all. Coloured by curvature, protrusion / indentation, or local channel
-    width.</p>
+    width. Curvature is averaged over a 24 nm neighbourhood before it is shown: at 8 nm the
+    marching-cubes staircase carries a signed single-vertex wobble that a diverging colour
+    scale renders as a herringbone over everything, and the mask itself cannot be smoothed
+    harder without dissolving the thin sheets that are the point.</p>
     <p class="note" style="margin:0">Width is the diameter of the largest ball that fits in
-    the channel, found by walking the surface normal into the space &mdash; an estimate, and
-    it saturates in open pools. Where a channel leaves the cube the reading would be a guess,
-    so those vertices are grey rather than wrong.</p>
+    the channel: walk the surface normal into the space, keep the largest distance-transform
+    value met, double it. The walk <b>stops at the far wall</b> &mdash; run it past the wall
+    and it reports whatever channel it finds on the other side. Exact for a slab or a tube,
+    an estimate elsewhere, since the ball has to be centred on the normal. At 8 nm the
+    narrowest resolvable channel is 16 nm and the median crop sits at 32 nm, so the low end
+    of this scale is the sampling, not the tissue. Where a channel leaves the cube the
+    reading would be a guess, so those vertices are grey.</p>
   </div>
 </div>
 <p class="note">Both surfaces use one sign convention: positive curvature and positive
