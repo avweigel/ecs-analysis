@@ -42,7 +42,11 @@ def _ver() -> str:
     """
     here = Path(__file__).resolve().parent.parent / "docs" / "assets"
     h = hashlib.sha1()
-    for name in ("app.css", "site.js"):
+    # every shared asset, not just the two the site started with: viewer.js
+    # changed once without the hash moving, and a stale viewer against fresh
+    # markup is exactly the kind of "broken for no visible reason" this exists
+    # to prevent
+    for name in ("app.css", "site.js", "viewer.js", "crops.js"):
         f = here / name
         if f.exists():
             h.update(f.read_bytes())

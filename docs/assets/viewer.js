@@ -49,13 +49,18 @@
         requestAnimationFrame(loop); };
       loop();
       this.resize();
-      addEventListener('resize', () => this.resize());
+      // the canvas is sized by CSS (100% of the stage) and setSize's third
+      // argument leaves that alone, so this only matches the drawing buffer to
+      // the box. A ResizeObserver catches the divider drag and the layout-tier
+      // switch, which a window resize listener alone misses.
+      if (window.ResizeObserver) new ResizeObserver(() => this.resize()).observe(host);
+      else addEventListener('resize', () => this.resize());
     }
     resize() {
-      const r = this.host.getBoundingClientRect();
-      if (!r.width || !r.height) return;
-      this.renderer.setSize(r.width, r.height, false);
-      this.camera.aspect = r.width / r.height;
+      const w = this.host.clientWidth, h = this.host.clientHeight;
+      if (!w || !h) return;
+      this.renderer.setSize(w, h, false);
+      this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
     }
     async show(entry, scalar, lo, hi) {

@@ -128,11 +128,28 @@ def fix_inspector_height():
     print("  inspector: canvas height adjusted for the header")
 
 
+def restamp(path: Path):
+    """Keep the legacy pages on the current asset hash.
+
+    They are injected once and then skipped, so without this they keep pointing
+    at whatever version they were themed against and go stale the first time the
+    stylesheet changes.
+    """
+    h = path.read_text()
+    new = re.sub(r"(assets/(?:app\.css|site\.js))(\?v=[0-9a-f]+)?",
+                 lambda m: f"{m.group(1)}?v={sh.VER}", h)
+    if new != h:
+        path.write_text(new)
+        print(f"  restamped: {path.name} -> {sh.VER}")
+
+
 def main():
     inject(MEM / "inspector.html", "membranes/inspector.html", doc_page=False)
     fix_inspector_height()
     inject(MEM / "methods.html", "membranes/inspector.html", doc_page=True)
     inject(MEM / "index.html", "membranes/views.html", doc_page=True)
+    for name in ("inspector.html", "methods.html", "index.html"):
+        restamp(MEM / name)
 
 
 if __name__ == "__main__":

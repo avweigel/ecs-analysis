@@ -33,43 +33,116 @@ DEFAULT_COLS = [
 EXTRA = """<script src="membranes/three.min.js"></script>
 <script src="membranes/OrbitControls.js"></script>
 <script src="membranes/colormaps.js"></script>
-<script src="assets/viewer.js"></script>
+<script src="assets/viewer.js?v=__VER__"></script>
 <style>
- /* three columns: table, then the two viewers. The divider between the table
-    and the viewers is draggable, and the width is remembered. */
+ /* Layout tiers.
+    Wide: table | A | B in three columns, divider draggable.
+    Medium: the old breakpoint was 1000px, which is exactly the width of a
+    half-screen window on a laptop -- it collapsed all three to one column and
+    put B a screen and a half below the fold. Instead the table moves to a
+    capped strip on top and the two viewers stay side by side, because seeing
+    two patches at once is the whole point of the page.
+    Narrow: everything stacks. */
  .hub{display:grid;grid-template-columns:var(--tablew,460px) 6px 1fr 1fr;
-   gap:0;height:calc(100vh - 210px);min-height:520px;
-   border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden}
- .hub.solo{grid-template-columns:var(--tablew,460px) 6px 1fr}
- .tablecol{overflow:auto;background:var(--bg);min-width:0}
+   grid-template-rows:auto 1fr;
+   grid-template-areas:"bar bar bar bar"
+                       "tbl gut a   b";
+   gap:0;height:calc(100vh - 230px);min-height:400px;
+   border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;
+   background:var(--bg)}
+ .hub.solo{grid-template-columns:var(--tablew,460px) 6px 1fr;
+   grid-template-areas:"bar bar bar"
+                       "tbl gut a"}
+ .tablecol{grid-area:tbl;overflow:auto;background:var(--bg);min-width:0;min-height:0}
  .tablecol table{font-size:12.5px}
+ /* the header row is as tall as its tallest cell, and a wrapped metric label
+    three columns off to the right left a blank band above the visible ones --
+    the column scrolls horizontally anyway, so let the labels run */
  .tablecol th{position:sticky;top:0;background:var(--bg);z-index:4;
-   box-shadow:0 1px 0 var(--rule-strong)}
+   white-space:nowrap;vertical-align:bottom;box-shadow:0 1px 0 var(--rule-strong)}
  .tablecol th,.tablecol td{padding:6px 10px 6px 0}
  .tablecol td:first-child,.tablecol th:first-child{padding-left:10px}
- .gutter{background:var(--rule);cursor:col-resize;position:relative}
+ .gutter{grid-area:gut;background:var(--rule);cursor:col-resize;position:relative}
  .gutter:hover,.gutter.drag{background:var(--accent)}
  .gutter::after{content:"";position:absolute;inset:0 -5px;cursor:col-resize}
- @media(max-width:1000px){
-   .hub,.hub.solo{grid-template-columns:1fr;height:auto}
-   .gutter{display:none}
-   .tablecol{max-height:420px}
-   .vpanel{min-height:340px}
+
+ /* the panels: a header that says which slot and which crop, the render
+    filling everything left over, and one line of provenance underneath */
+ #pA{grid-area:a} #pB{grid-area:b}
+ .vpanel{display:flex;flex-direction:column;min-width:0;min-height:0;
+   border-left:1px solid var(--rule);background:var(--raise)}
+ .vhead{display:flex;gap:7px;align-items:center;padding:5px 8px;
+   border-bottom:1px solid var(--rule)}
+ .vpanel.active .vhead{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+ .vhead .slot{font-size:10.5px;letter-spacing:.09em;color:var(--ink-3);
+   border:1px solid var(--rule-strong);border-radius:4px;padding:1px 7px}
+ .vpanel.active .vhead .slot{background:var(--accent);border-color:var(--accent);color:#fff}
+ .vhead .pick{flex:1;min-width:0;font:inherit;font-size:var(--t5);padding:3px 6px;
+   background:var(--bg);color:var(--ink);border:1px solid var(--rule-strong);border-radius:5px}
+ .vhead .btn{padding:2px 8px}
+ .stage{flex:1;min-height:0;position:relative;overflow:hidden;
+   background:radial-gradient(115% 85% at 50% 0%,var(--sunk),var(--bg))}
+ .stage canvas{display:block;width:100%;height:100%}
+ .vfoot{padding:4px 9px;font-size:10.5px;color:var(--ink-3);
+   border-top:1px solid var(--rule);
+   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+ /* between about 940 and 1180 the three columns still fit -- the table just
+    gives up width first. Collapsing this range was what put panel B a screen
+    below the fold on a half-width laptop window. */
+ @media(max-width:1180px){
+   .hub{grid-template-columns:clamp(240px,var(--tablew,460px),38vw) 6px 1fr 1fr}
+   .hub.solo{grid-template-columns:clamp(240px,var(--tablew,460px),38vw) 6px 1fr}
  }
- .vbar{display:flex;gap:var(--s4);align-items:center;flex-wrap:wrap;
-   padding:var(--s3) 0;border-bottom:1px solid var(--rule);margin-bottom:var(--s3)}
- .vbar label{font-size:var(--t5);color:var(--ink-3);text-transform:uppercase;letter-spacing:.07em}
- .vbar .rng{display:flex;gap:6px;align-items:center}
- .vbar input[type=number]{width:78px;font-size:var(--t5);padding:4px 6px;
-   background:var(--raise);color:var(--ink);border:1px solid var(--rule-strong);border-radius:5px}
- .swatchbar{display:flex;flex-direction:column;gap:2px}
- .swatchbar canvas{border-radius:3px;width:190px;height:12px}
- .swatchbar .ends{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-3)}
+ @media(max-width:940px){
+   .hub,.hub.solo{grid-template-columns:1fr 1fr;
+     grid-template-rows:auto minmax(120px,22vh) 1fr;
+     grid-template-areas:"bar bar" "tbl tbl" "a b";min-height:460px}
+   .hub.solo{grid-template-areas:"bar bar" "tbl tbl" "a a"}
+   .gutter{display:none}
+   .tablecol{border-bottom:1px solid var(--rule)}
+   #pA{border-left:0}
+ }
+ @media(max-width:720px){
+   .hub,.hub.solo{grid-template-columns:1fr;grid-template-rows:auto;
+     grid-template-areas:"bar" "tbl" "a" "b";height:auto!important;min-height:0}
+   .hub.solo{grid-template-areas:"bar" "tbl" "a"}
+   .tablecol{max-height:300px}
+   .vpanel{min-height:330px;border-left:0;border-top:1px solid var(--rule)}
+ }
+ /* the viewer controls sit inside the hub, directly over the panels they
+    act on, instead of floating above the whole page */
+ .vbar{grid-area:bar;display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;
+   padding:6px 10px;border-bottom:1px solid var(--rule);background:var(--raise)}
+ .vbar select{max-width:180px}
+ .vbar select,.vbar input[type=number]{font:inherit;font-size:var(--t5);padding:3px 6px;
+   background:var(--bg);color:var(--ink);border:1px solid var(--rule-strong);border-radius:5px}
+ .vbar input[type=number]{width:76px}
+ .vbar .rng{display:flex;gap:5px;align-items:center}
+ .vbar .key{font-size:10.5px}
+ .grow{flex:1 1 auto}
+ .swatchbar{display:inline-flex;flex-direction:column;gap:2px}
+ .swatchbar canvas{border-radius:3px;width:140px;height:11px;display:block}
+ .swatchbar .ends{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-3)}
  .btn{background:var(--raise);border:1px solid var(--rule-strong);color:var(--ink);
    border-radius:6px;padding:5px 11px;font:inherit;font-size:var(--t5);cursor:pointer}
  .btn:hover{border-color:var(--ink-3)}
  .btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
- .facets{display:flex;gap:var(--s4);flex-wrap:wrap;padding:var(--s3) 0}
+ /* one line of page chrome. Everything that used to stack above the table --
+    three rows of facet chips, a control row, two disclosure rows -- cost about
+    620px before you saw a single render. It now opens on demand. */
+ .toolbar{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;
+   padding:0 0 var(--s3)}
+ .toolbar input[type=search]{font:inherit;font-size:var(--t4);padding:5px 9px;min-width:240px;
+   background:var(--raise);color:var(--ink);border:1px solid var(--rule-strong);border-radius:6px}
+ .toolbar .tcount{font-size:var(--t4);color:var(--ink-3);font-variant-numeric:tabular-nums}
+ .toolbar .ngsrc{display:flex;gap:6px;align-items:center}
+ .toolbar .ngsrc label{font-size:var(--t5);color:var(--ink-3);
+   text-transform:uppercase;letter-spacing:.07em}
+ .drawer{border:1px solid var(--rule);border-radius:var(--radius);
+   background:var(--raise);margin:0 0 var(--s3);padding:var(--s3) var(--s4)}
+ summary .n{margin-left:6px;font-variant-numeric:tabular-nums;opacity:.75}
+ .facets{display:flex;gap:var(--s4);flex-wrap:wrap}
  .fgroup{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
  .fgroup .flabel{font-size:var(--t5);color:var(--ink-3);text-transform:uppercase;
    letter-spacing:.07em;margin-right:2px}
@@ -85,12 +158,18 @@ EXTRA = """<script src="membranes/three.min.js"></script>
  details.tools summary::before{content:"▸";transition:transform .15s;display:inline-block}
  details.tools[open] summary::before{transform:rotate(90deg)}
  .ranges{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-   gap:var(--s3) var(--s5);padding:var(--s3) 0}
+   gap:var(--s3) var(--s5)}
  .rrow label{display:block;font-size:var(--t5);color:var(--ink-3);margin-bottom:2px}
  .rrow .pair{display:flex;gap:6px;align-items:center}
  .rrow input[type=range]{flex:1;min-width:60px}
  .rrow .val{font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;min-width:96px}
- .colpick{display:flex;flex-wrap:wrap;gap:5px;padding:var(--s3) 0}
+ .colpick{display:flex;flex-wrap:wrap;gap:5px}
+ /* a shallower title band: this page is a tool, not a piece of writing */
+ .pagehead .inner{padding-top:var(--s4);padding-bottom:var(--s4)}
+ .pagehead h1{font-size:26px;margin-bottom:4px}
+ .pagehead p{font-size:var(--t4);max-width:80ch}
+ main.after-head{padding-top:var(--s4)}
+ #ngnote{margin:0 0 var(--s3)}
  tbody tr.sel{background:color-mix(in srgb,var(--accent) 14%,transparent)}
  tbody tr{cursor:pointer}
  td .cmp{opacity:0;font-size:10px;border:1px solid var(--rule-strong);border-radius:4px;
@@ -146,7 +225,7 @@ def main():
                                        if kk in v}
                                    for k, v in mani.items()}}, separators=(",", ":"))
 
-    html = sh.head("Crops — ECS preservation", 0, EXTRA)
+    html = sh.head("Crops — ECS preservation", 0, EXTRA.replace("__VER__", sh.VER))
     html += sh.nav("crops.html", 0)
     html += sh.pagehead("Crops",
         f"All {len(rows)} annotated crops, with the membrane viewer alongside. Filter the table, "
@@ -155,59 +234,56 @@ def main():
         wide=True)
 
     html += """<main class="wide after-head">
-<div class="facets" id="facets"></div>
-<div class="controls" style="border:0;padding:0 0 var(--s3)">
-  <div class="ctl"><label for="q">Search</label>
-    <input type="search" id="q" placeholder="crop, tissue, region, anatomy…" style="min-width:230px"></div>
-  <div class="ctl"><label>Showing</label>
-    <span id="count" class="muted" style="font-size:var(--t4);padding:6px 0"></span></div>
-  <div class="ctl"><label>&nbsp;</label><button class="btn" id="reset" type="button">Reset</button></div>
-  <div class="ctl"><label>&nbsp;</label>
-    <details class="tools" style="margin:0"><summary>Numeric ranges</summary></details></div>
-  <div class="ctl"><label>&nbsp;</label>
-    <details class="tools" style="margin:0"><summary>Columns</summary></details></div>
-  <div class="ctl"><label>Neuroglancer source</label>
-    <span id="ngsource" style="display:flex;gap:5px;padding:3px 0"></span></div>
+<div class="toolbar">
+  <input type="search" id="q" placeholder="Search crop, tissue, region, anatomy…">
+  <span class="tcount" id="count"></span>
+  <details class="tools" data-panel="facets"><summary>Filters<span class="n" id="nfilt"></span></summary></details>
+  <details class="tools" data-panel="ranges"><summary>Numeric ranges</summary></details>
+  <details class="tools" data-panel="colpick"><summary>Columns</summary></details>
+  <button class="btn" id="reset" type="button">Reset</button>
+  <span class="grow"></span>
+  <span class="ngsrc"><label>Neuroglancer</label>
+    <span id="ngsource" style="display:flex;gap:5px"></span></span>
 </div>
-<p class="note" id="ngnote" style="margin-top:0"></p>
-<div class="ranges" id="ranges" hidden></div>
-<div class="colpick" id="colpick" hidden></div>
-
-<div class="vbar">
-  <div class="ctl"><label for="vscalar">Scalar</label>
-    <select id="vscalar">
-      <option value="gap">Gap to nearest cell</option>
-      <option value="curvature">Signed curvature</option>
-      <option value="deviation">Protrusion / indentation</option>
-    </select></div>
-  <div class="rng"><label for="vlo">Range</label>
-    <input type="number" id="vlo" step="any"><input type="number" id="vhi" step="any">
-    <button class="btn" id="vauto" type="button">Auto</button></div>
-  <div class="swatchbar"><canvas id="vbar"></canvas>
-    <div class="ends"><span id="vlolab"></span><span id="vhilab"></span></div></div>
-  <button class="btn on" id="vlink" type="button">Cameras linked</button>
-  <button class="btn" id="vcompare" type="button">Single view</button>
-  <span class="muted" style="font-size:var(--t5)">grey = boundary-uncertain</span>
-</div>
-
+<div class="facets drawer" id="facets" hidden></div>
+<div class="ranges drawer" id="ranges" hidden></div>
+<div class="colpick drawer" id="colpick" hidden></div>
 <div class="hub" id="hub">
   <div class="tablecol" id="tablecol">
     <table id="t"><thead></thead><tbody></tbody></table>
   </div>
   <div class="gutter" id="gutter" title="Drag to resize the table"></div>
+  <div class="vbar">
+    <select id="vscalar" title="Which value colours the surface">
+      <option value="gap">Gap to nearest cell</option>
+      <option value="curvature">Signed curvature</option>
+      <option value="deviation">Protrusion / indentation</option>
+    </select>
+    <span class="rng"><input type="number" id="vlo" step="any" title="Colour range, low">
+      <input type="number" id="vhi" step="any" title="Colour range, high">
+      <button class="btn" id="vauto" type="button">Auto</button></span>
+    <span class="swatchbar"><canvas id="vbar"></canvas>
+      <span class="ends"><span id="vlolab"></span><span id="vhilab"></span></span></span>
+    <span class="grow"></span>
+    <button class="btn on" id="vlink" type="button"
+      title="Both patches share one camera, so they stay at the same scale">Linked</button>
+    <button class="btn" id="vswap" type="button" title="Swap the two panels">Swap</button>
+    <button class="btn" id="vcompare" type="button">Single</button>
+  </div>
   <div class="vpanel active" id="pA">
-    <div class="vhead"><span class="slot">A</span><select class="pick"></select></div>
+    <div class="vhead"><span class="slot">A</span><select class="pick"></select><button class="btn fit" type="button" title="Recentre this patch">Fit</button></div>
     <div class="stage"></div><div class="vfoot"></div>
   </div>
   <div class="vpanel" id="pB">
-    <div class="vhead"><span class="slot">B</span><select class="pick"></select></div>
+    <div class="vhead"><span class="slot">B</span><select class="pick"></select><button class="btn fit" type="button" title="Recentre this patch">Fit</button></div>
     <div class="stage"></div><div class="vfoot"></div>
   </div>
 </div>
-<p class="note">Click a row to load it into the highlighted panel; <b>compare →</b> on a row sends
+<p class="note" id="ngnote"></p>
+<p class="note">Grey on a surface means the boundary there is uncertain. Click a row to load it into the highlighted panel; <b>compare →</b> on a row sends
 it to B. Drag the divider to widen the table. While the cameras are linked both patches are drawn
 at the <b>same scale</b>, so a patch that looks smaller really is smaller — that is the point of
-linking them.</p>
+linking them. <b>Fit</b> recentres a patch; double-clicking a panel does the same.</p>
 """
     html += sh.footer(0) + '</main><div id="tip"></div>'
     html += '<script>const DATA=' + payload + ';</script>\n'

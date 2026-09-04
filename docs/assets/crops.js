@@ -141,6 +141,10 @@
         '</tr>';
     }).join('');
     $('count').textContent = `${list.length} of ${rows.length} crops`;
+    const nf = ['tissue', 'region', 'prep'].reduce((a, k) => a + facet[k].size, 0)
+             + Object.keys(ranges).length;
+    const nfe = $('nfilt');
+    if (nfe) { nfe.textContent = nf ? '· ' + nf : ''; }
     if (window.refreshNgLinks) window.refreshNgLinks();
   }
 
@@ -177,6 +181,17 @@
             r&&r.voxel?' · '+r.voxel+' nm':''}</option>`;}).join('');
       sel.onchange = () => load(s, sel.value);
       $('p' + s).onclick = () => setActive(s);
+      const fit = $('p' + s).querySelector('.fit');
+      if (fit) fit.onclick = ev => {
+        ev.stopPropagation();
+        panels[s].frame();
+        if (linked && compare) {
+          const other = s === 'A' ? panels.B : panels.A;
+          if (other && other.entry) other.syncFrom(panels[s]);
+        }
+      };
+      $('p' + s).querySelector('.stage')
+        .addEventListener('dblclick', () => panels[s].frame());
     }
   }
   function setActive(s) {
@@ -227,6 +242,7 @@
     $('pB').hidden = !compare;
     $('hub').classList.toggle('solo', !compare);
     $('vlink').hidden = !compare;
+    $('vswap').hidden = !compare;
     $('vcompare').textContent = compare ? 'Single view' : 'Compare two';
     if (compare && !selected.B) {
       const list = rows.filter(passes).map(r => r.crop).filter(c => c !== selected.A);
@@ -287,6 +303,11 @@
   $('vlo').oninput = recolorAll; $('vhi').oninput = recolorAll;
   $('vauto').onclick = () => { autoRange(); recolorAll(); };
   $('vcompare').onclick = toggleCompare;
+  $('vswap').onclick = () => {
+    const a = selected.A, b = selected.B;
+    if (!a || !b) return;
+    load('A', b); load('B', a);
+  };
   $('vlink').onclick = () => {
     linked = !linked;
     $('vlink').classList.toggle('on', linked);
@@ -303,13 +324,40 @@
   };
 
   document.querySelectorAll('details.tools').forEach(d => {
-    const target = d.querySelector('summary').textContent.trim().startsWith('Numeric')
-      ? $('ranges') : $('colpick');
-    d.addEventListener('toggle', () => { target.hidden = !d.open; });
+    const target = $(d.dataset.panel);
+    if (!target) return;
+    d.addEventListener('toggle', () => {
+      target.hidden = !d.open;
+      // opening a drawer pushes the hub down; it has to be re-measured
+      fitHub();
+    });
   });
+
+  /* ---------- the hub fills whatever is left of the window ----------
+     Hard-coding `calc(100vh - Npx)` was always wrong for somebody: the chrome
+     above wraps to a different height at every width. Measure it instead. */
+  function fitHub() {
+    const hub = $('hub');
+    // the narrow tier sets height:auto !important, so this is a no-op there
+    const top = hub.getBoundingClientRect().top + window.scrollY;
+    const h = Math.max(420, window.innerHeight - top - 22);
+    if (Math.abs(parseFloat(hub.style.height) - h) < 1) return;
+    hub.style.height = h + 'px';
+    resizeSoon();
+  }
+  addEventListener('resize', fitHub);
+  // the chrome above the hub changes height on its own -- the Neuroglancer note
+  // arrives after first paint, the toolbar rewraps, a drawer opens -- so watch
+  // it rather than measuring once and hoping
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(() => fitHub());
+    for (const el of [document.querySelector('.toolbar'), $('facets'), $('ranges'), $('colpick')])
+      if (el) ro.observe(el);
+  }
 
   buildFacets(); buildRanges(); buildCols(); render();
   initPanels();
+  fitHub();
   addEventListener('resize', resizeSoon);
   (async () => {
     const first = Object.keys(MANI).sort();
