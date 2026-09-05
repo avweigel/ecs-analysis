@@ -368,3 +368,142 @@ footer.site{border-top:1px solid var(--rule);margin-top:var(--s7);padding-top:va
   font-size:var(--t4);color:var(--ink-3);display:flex;gap:var(--s5);flex-wrap:wrap}
 footer.site a{color:var(--ink-3)}
 footer.site a:hover{color:var(--ink)}
+
+
+/* ── buttons ─────────────────────────────────────────────
+   One button. Native controls were leaking through wherever .btn was used
+   (the axis Auto, the segmented controls), which read as unfinished. */
+.btn{background:var(--raise);color:var(--ink-2);border:1px solid var(--rule-strong);
+  border-radius:6px;font:inherit;font-size:var(--t4);padding:6px 11px;cursor:pointer;
+  line-height:1.2;transition:border-color .14s,color .14s,background .14s;white-space:nowrap}
+.btn:hover{border-color:var(--ink-3);color:var(--ink)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.seggroup{display:inline-flex;border:1px solid var(--rule-strong);border-radius:7px;
+  overflow:hidden;background:var(--raise)}
+.seggroup .btn{border:0;border-radius:0;font-size:var(--t5);padding:5px 11px;
+  color:var(--ink-3)}
+.seggroup .btn + .btn{border-left:1px solid var(--rule)}
+.seggroup .btn.on{background:var(--ink);color:var(--bg);font-weight:600}
+.seglabel{font-size:var(--t5);text-transform:uppercase;letter-spacing:.07em;
+  color:var(--ink-3)}
+
+/* ── the filter bar ──────────────────────────────────────
+   The page is long. The controls used to sit at the top and scroll away, so
+   by the time you reached a panel you could no longer see, or change, which
+   slice it was drawn from. The bar follows you down as one line naming the
+   slice; clicking that line opens the full set of controls again. */
+.filterbar{position:sticky;top:56px;z-index:25;background:var(--bg);
+  margin:0 0 var(--s5);padding-top:var(--s3);
+  border-bottom:1px solid var(--rule)}
+.filterbar::before{content:"";position:absolute;left:50%;top:0;width:100vw;height:100%;
+  transform:translateX(-50%);background:var(--bg);z-index:-1;
+  border-bottom:1px solid var(--rule)}
+.fbline{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap;
+  padding-bottom:var(--s3)}
+.slicebtn{display:inline-flex;align-items:center;gap:var(--s3);max-width:100%;
+  background:var(--sunk);border-color:transparent;color:var(--ink-2);
+  font-size:var(--t4);padding:6px 12px;overflow:hidden}
+.slicebtn:hover{border-color:var(--rule-strong);color:var(--ink)}
+.slicebtn b{color:var(--ink);font-weight:600}
+.slicebtn .sep{color:var(--ink-3);opacity:.6}
+.slicebtn .set{color:var(--accent);font-weight:600}
+.slicebtn i{font-style:normal;font-size:9px;color:var(--ink-3);
+  transition:transform .16s ease;flex:none}
+.slicebtn[aria-expanded="true"] i{transform:rotate(180deg)}
+.filterbar .onpage{margin:0;padding:0;border:0;flex:1;justify-content:flex-end;
+  gap:var(--s3)}
+.filterbar .onpage a{color:var(--ink-3);font-size:var(--t5);text-transform:uppercase;
+  letter-spacing:.06em}
+.filterbar .onpage a:hover{color:var(--ink);text-decoration:none}
+.filterbar .controls{margin-bottom:0;border-bottom:0;padding-bottom:var(--s4);
+  max-height:62vh;overflow:auto}
+.filterbar.shut .controls{display:none}
+/* once it is floating over the page rather than sitting in it, it needs an
+   edge -- otherwise the panels scroll under it and nothing says where the
+   page stops and the bar begins */
+.filterbar.stuck{box-shadow:0 8px 18px -14px rgba(0,0,0,.55)}
+.filterbar.stuck::before{box-shadow:0 8px 18px -14px rgba(0,0,0,.55)}
+#fbtop{height:0}
+@media(max-width:820px){.filterbar .onpage{display:none}}
+
+/* ── the lead: what this slice says ──────────────────────
+   Eleven small multiples in source order made you read all eleven to find the
+   one that separates. Sorted by effect, with the answer written above them,
+   the same grid says something on sight. */
+.lead{margin:0 0 var(--s6)}
+.leadtop{display:flex;align-items:baseline;justify-content:space-between;
+  gap:var(--s4);flex-wrap:wrap;margin-bottom:var(--s3)}
+.leadtop h2{margin:0;font-size:var(--t1);font-family:"Instrument Serif",Georgia,serif;
+  font-weight:400}
+.leadctl{display:flex;align-items:center;gap:var(--s3)}
+.headline{font-family:"Instrument Serif",Georgia,serif;font-size:30px;line-height:1.22;
+  color:var(--ink);margin:var(--s2) 0 var(--s2);max-width:46ch}
+.headline b{font-weight:400;color:var(--accent);font-style:italic}
+.lead > .note:first-of-type{margin-top:0}
+
+/* the delta bar: a diverging rule from the centre, so size and direction are
+   readable before the number is */
+.dbar{position:relative;display:block;height:4px;margin:5px 0 3px;
+  background:var(--sunk);border-radius:2px;overflow:hidden}
+.dbar::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;
+  background:var(--rule-strong)}
+.dbar i{position:absolute;top:0;bottom:0;display:block;border-radius:2px}
+.dbar i.pos{left:50%;background:var(--chem)}
+.dbar i.neg{right:50%;background:var(--hpf)}
+.gcard .gn{float:right;text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums;
+  opacity:.75}
+.gcard.strong .glab{font-weight:600}
+.gcard.strong .gfoot{color:var(--ink-2)}
+
+/* ── section rhythm ──────────────────────────────────────
+   Each h2 gets a hairline and a line of orientation, so the page reads as
+   five answers rather than one continuous scroll of material. */
+main.after-head > h2,
+main.after-head > section > h2{margin-top:var(--s7);padding-top:var(--s4);
+  border-top:1px solid var(--rule);font-size:var(--t1);
+  font-family:"Instrument Serif",Georgia,serif;font-weight:400}
+main.after-head > h2.sec-first{border-top:0;margin-top:0;padding-top:0}
+/* nothing above it to be separated from */
+main.after-head > h2:first-child{border-top:0;margin-top:0;padding-top:0}
+main.after-head > section:first-child{margin-top:0}
+main.after-head > section > h2{margin-top:0}
+main.after-head > section{margin-top:var(--s7)}
+.whereto h2{margin-top:0!important;padding-top:0!important;border-top:0!important;font-family:inherit!important;font-size:var(--t5)!important}
+.secintro{color:var(--ink-2);font-size:var(--t3);max-width:70ch;
+  margin:calc(var(--s3) * -1) 0 var(--s4)}
+
+/* ── the long table ──────────────────────────────────────
+   Fifty-five rows was a 2,200px wall in the middle of the page. Fourteen and
+   a count is the same information, offered rather than imposed. */
+.tblbox{position:relative}
+.tblbox.clip .scroll{max-height:430px;overflow-y:hidden}
+.tblbox.clip::after{content:"";position:absolute;left:0;right:0;bottom:0;height:90px;
+  pointer-events:none;background:linear-gradient(to bottom,transparent,var(--bg))}
+.tblmore{margin-top:var(--s3)}
+
+/* ── where next ──────────────────────────────────────────  */
+.whereto{border-top:1px solid var(--rule);margin-top:var(--s7);padding-top:var(--s5)}
+.whereto h2{margin:0 0 var(--s4);font-size:var(--t2);text-transform:uppercase;
+  letter-spacing:.08em;color:var(--ink-3);font-weight:500}
+.whereto .jump{margin:0}
+
+/* the standing panels are matplotlib on white. Capping their height keeps a
+   page of twenty-two of them readable; the full-resolution file is one click
+   away on every one. */
+/* ── plot options ────────────────────────────────────────
+   Scale and range redraw one plot, so they sit on it rather than in the slice
+   bar, where they read as another filter on the data. */
+.plotbar{display:flex;align-items:center;gap:var(--s5);flex-wrap:wrap;
+  padding:var(--s2) 0 var(--s3);margin-bottom:var(--s2)}
+.ctl.inline{flex-direction:row;align-items:center;gap:var(--s2)}
+.ctl.inline label{white-space:nowrap}
+.ctl.inline select{min-width:0;width:auto}
+.rng{display:inline-flex;align-items:center;gap:6px}
+.rng input{width:88px;min-width:0}
+.rng .to{font-size:var(--t5);color:var(--ink-3)}
+select.muted{opacity:.55}
+
+/* a card that clears the medium threshold is the reason to look at the grid,
+   so it is marked and not merely present */
+.gcard.strong{border-color:var(--rule-strong);background:var(--raise);
+  box-shadow:inset 3px 0 0 var(--accent)}

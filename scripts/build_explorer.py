@@ -141,20 +141,61 @@ const GLANCE=[['ecs_fraction','ECS fraction'],
   ['protrusion_density_per_um2','Protrusion density'],
   ['indentation_density_per_um2','Indentation density']];
 
+let gOrder='effect';
+
+/* ── the filter bar ──────────────────────────────────────────────────────
+   One line naming the slice every panel below is drawn from, kept in view as
+   you scroll. Anything left at its default is quiet; anything you have
+   actually chosen is marked, so you can tell at a distance whether what you
+   are looking at is the whole study or a corner of it. */
+function sliceSum(){
+  const el=$('slicesum'); if(!el)return;
+  const s=sel();
+  const bits=[];
+  bits.push(`<b>${label(s.met)}</b>`);
+  const run=(DICT.runs[s.run]||{}).label||s.run;
+  bits.push(`<span>${run}</span>`);
+  const opt=(v,dflt)=>v&&v!==dflt
+    ? `<span class="set">${v}</span>` : `<span>${dflt}</span>`;
+  bits.push(opt(s.tis,'All tissues'));
+  bits.push(opt(s.reg,'All regions'));
+  if(s.vox&&s.vox!=='All')bits.push(`<span class="set">${s.vox} nm voxel</span>`);
+  const box=slice(ROWS.filter(r=>r.run===s.run&&Number.isFinite(r.value)),s);
+  const n=new Set(box.map(r=>r.crop)).size;
+  bits.push(`<span>${n} crop${n===1?'':'s'}</span>`);
+  el.innerHTML=bits.join('<span class="sep"> &middot; </span>');
+}
+
+/* The bar carries the whole control grid at the top of the page, where there
+   is room for it, and folds to the summary line once you have scrolled past
+   it. Folding happens once, and only if you have not already chosen for
+   yourself -- an interface that keeps re-deciding is worse than one that
+   never decides. */
+let barTouched=false;
+function setBar(open){
+  const fb=$('filterbar'), bt=$('slicetoggle'); if(!fb)return;
+  fb.classList.toggle('shut',!open);
+  bt.setAttribute('aria-expanded',open?'true':'false');
+  bt.title=open?'Hide the filters':'Show the filters';
+}
+
 function drawGlance(){
   const s=sel(), host=$('glance'); if(!host)return;
   const box=slice(ROWS.filter(r=>r.run===s.run&&Number.isFinite(r.value)),s);
   const crops=new Set(box.map(r=>r.crop));
   const nc=new Set(box.filter(r=>r.prep==='Chemical').map(r=>r.crop)).size;
   const nh=new Set(box.filter(r=>r.prep==='Rapid HPF').map(r=>r.crop)).size;
+  const thin=Math.min(nc,nh)<2;
   $('glancecount').innerHTML=
-    `<b>${crops.size}</b> crop${crops.size===1?'':'s'} in this slice &mdash; `+
+    `<b>${crops.size}</b> crop${crops.size===1?'':'s'}: `+
     `<span class="tag chem">${nc} chemical</span> <span class="tag hpf">${nh} rapid HPF</span>`+
-    (Math.min(nc,nh)<2?' <span class="flag">an arm of one or none: no comparison</span>':'');
-  const W=232,H=74,PAD=10;
-  host.innerHTML=GLANCE.map(([met,lab])=>{
+    (thin?' &middot; <span class="flag">an arm of one or none, so nothing here is a comparison</span>':'');
+
+  const W=232,H=64,PAD=10;
+  const cards=[];
+  for(const [met,lab] of GLANCE){
     const d=box.filter(r=>r.metric===met);
-    if(!d.length)return '';
+    if(!d.length)continue;
     const C=d.filter(r=>r.prep==='Chemical'), H2=d.filter(r=>r.prep==='Rapid HPF');
     const c=C.map(r=>r.value), h=H2.map(r=>r.value);
     const all=c.concat(h);
@@ -162,51 +203,77 @@ function drawGlance(){
     const x=v=>PAD+(v-lo)/span*(W-2*PAD);
     // every dot names its crop and value: at a glance first, then on inspection
     const dot=(r,y,cl)=>`<circle cx="${x(r.value).toFixed(1)}" cy="${y}" r="3.1" class="gdot ${cl}"><title>${
-      r.crop} · ${r.prep} · ${fmt(r.value)}${unit(met)?' '+unit(met):''}</title></circle>`;
+      r.crop} \u00b7 ${r.prep} \u00b7 ${fmt(r.value)}${unit(met)?' '+unit(met):''}</title></circle>`;
     const tick=(vals,y,cl)=>{const m=med(vals);return Number.isFinite(m)
       ?`<line x1="${x(m).toFixed(1)}" x2="${x(m).toFixed(1)}" y1="${y-8}" y2="${y+8}" class="gmed ${cl}"/>`:''};
     const dl=cliff(c,h);
-    const dtxt=Number.isFinite(dl)?(dl>0?'+':'')+dl.toFixed(2):'&mdash;';
-    const strength=Math.abs(dl)>=0.474?'large':Math.abs(dl)>=0.33?'medium'
-      :Math.abs(dl)>=0.147?'small':'negligible';
-    return `<button type="button" class="gcard" data-met="${met}"
-      title="Open ${lab} in the plot below">
+    const ok=Number.isFinite(dl)&&c.length&&h.length;
+    const mag=ok?Math.abs(dl):-1;
+    const strength=!ok?'not comparable':mag>=0.474?'large':mag>=0.33?'medium'
+      :mag>=0.147?'small':'negligible';
+    // a bar for the delta, so the size is scannable without reading the number
+    const bar=ok?`<span class="dbar"><i class="${dl>0?'pos':'neg'}"
+      style="width:${(mag*50).toFixed(1)}%"></i></span>`:'<span class="dbar"></span>';
+    cards.push({met,mag,html:`<button type="button" class="gcard${ok&&mag>=0.33?' strong':''}"
+      data-met="${met}" title="Open ${lab} in the plot below">
       <span class="gtop"><span class="glab">${lab}</span>
-        <span class="gd ${Math.abs(dl)>=0.33?'on':''}">&delta; ${dtxt}</span></span>
+        <span class="gd${ok&&mag>=0.33?' on':''}">${ok?(dl>0?'+':'')+dl.toFixed(2):'&mdash;'}</span></span>
+      ${bar}
       <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" aria-hidden="true">
         <line x1="${PAD}" x2="${W-PAD}" y1="${H/2}" y2="${H/2}" class="gaxis"/>
-        ${C.map(r=>dot(r,H/2-13,'is-chem')).join('')}
-        ${H2.map(r=>dot(r,H/2+13,'is-hpf')).join('')}
-        ${tick(c,H/2-13,'is-chem')}${tick(h,H/2+13,'is-hpf')}
+        ${C.map(r=>dot(r,H/2-12,'is-chem')).join('')}
+        ${H2.map(r=>dot(r,H/2+12,'is-hpf')).join('')}
+        ${tick(c,H/2-12,'is-chem')}${tick(h,H/2+12,'is-hpf')}
       </svg>
-      <span class="gfoot">${strength}${Number.isFinite(dl)&&dl!==0?
-        (dl>0?' &middot; chemical higher':' &middot; HPF higher'):''}</span>
-    </button>`;
-  }).join('')||'<p class="muted">No headline metric has values in this slice.</p>';
+      <span class="gfoot">${strength}${ok&&dl!==0?
+        (dl>0?' &middot; chemical higher':' &middot; HPF higher'):''}
+        <span class="gn">${c.length}v${h.length}</span></span>
+    </button>`});
+  }
+  if(gOrder==='effect')cards.sort((a,b)=>b.mag-a.mag);
+  host.innerHTML=cards.map(c=>c.html).join('')||
+    '<p class="muted">No headline metric has values in this slice.</p>';
+
+  // the headline: the largest separation in this slice, said in words
+  const top=cards.slice().sort((a,b)=>b.mag-a.mag)[0];
+  const lab=top?(GLANCE.find(g=>g[0]===top.met)||[])[1]:'';
+  $('headline').innerHTML=(!top||top.mag<0||thin)
+    ? 'Not enough crops on both sides here to compare.'
+    : (top.mag<0.147
+        ? `Nothing separates strongly in this slice &mdash; the largest, <b>${lab}</b>, is negligible.`
+        : `The largest separation here is <b>${lab}</b>.`);
 }
 
-/* Standing panels answer to the slice too: with a region chosen, only that
-   region's vignette is worth looking at. */
+/* The region vignettes are 4.4:1 strips of six panels each. Six of them stacked
+   is a page of texture nobody reads; one at full width, named, is a figure. The
+   picker follows the Region filter when one is set, so choosing a region above
+   brings its vignette with it. */
+let vigPick=null;
 function syncPanels(){
   const s=sel();
   const reg=(s.reg&&s.reg!=='All regions')?s.reg:null;
-  let shown=0, total=0;
-  document.querySelectorAll('.fig[data-region]').forEach(f=>{
-    total++;
-    const hit=!reg||f.dataset.region===reg;
-    f.hidden=!hit; if(hit)shown++;
-  });
-  const note=document.getElementById('vignote');
-  if(note)note.innerHTML=reg
-    ? `Showing <b>${shown}</b> of ${total}, for ${reg}. `+
-      '<button type="button" class="btnlink" id="allregions">Show every region</button>'
-    : `All ${total} regions with an arm on both sides.`;
+  const figs=[...document.querySelectorAll('.fig[data-region]')];
   const sec=document.getElementById('vigsection');
-  if(sec)sec.hidden=shown===0;
+  if(!figs.length){ if(sec)sec.hidden=true; return; }
+  if(sec)sec.hidden=false;
+  const names=figs.map(f=>f.dataset.region);
+  // the region filter wins; otherwise whatever was last picked, else the first
+  let want=(reg&&names.includes(reg))?reg
+         :(vigPick&&names.includes(vigPick))?vigPick:names[0];
+  vigPick=want;
+  figs.forEach(f=>{f.hidden=f.dataset.region!==want});
+  const pick=document.getElementById('regpick');
+  if(pick)pick.innerHTML=names.map(n=>
+    `<button type="button" class="btn${n===want?' on':''}" data-vig="${n}">${n}</button>`).join('');
+  const note=document.getElementById('vignote');
+  if(note)note.innerHTML=(reg&&names.includes(reg))
+    ? `Following the <b>${reg}</b> region filter above.`
+    : `Six regions have crops in both preparations. Showing <b>${want}</b>.`;
 }
 
 function draw(){
   const s=sel();
+  sliceSum();
   let d=ROWS.filter(r=>r.run===s.run&&r.metric_family===s.fam&&r.metric===s.met
         &&Number.isFinite(r.value));
   d=slice(d,s);
@@ -353,6 +420,21 @@ function drawTable(){
   const n=keep.length, all=TROWS.length;
   const cap=document.getElementById('tblcount');
   if(cap)cap.textContent=n===all?`${all} crops`:`${n} of ${all} crops`;
+  clipTable(n);
+}
+
+/* Fifty-five rows is a wall in the middle of a page people are scrolling
+   through for something else. The table opens at a readable height with the
+   count on the button, so nothing is hidden -- it is just not in the way. */
+let tblOpen=false;
+function clipTable(n){
+  const box=document.getElementById('tblbox'),
+        btn=document.getElementById('tblmore');
+  if(!box||!btn)return;
+  const many=n>14;
+  box.classList.toggle('clip',many&&!tblOpen);
+  btn.hidden=!many;
+  btn.textContent=tblOpen?'Show fewer':`Show all ${n} rows`;
 }
 
 document.addEventListener('click',e=>{
@@ -401,9 +483,38 @@ document.addEventListener('click',e=>{
              document.getElementById('live').scrollIntoView({behavior:'smooth',block:'start'}); }
     return;
   }
-  if(e.target.id==='allregions'){ $('reg').value='All regions';
-    draw(); drawGlance(); syncPanels(); }
+  const ob=e.target.closest('#gorder [data-order]');
+  if(ob){ gOrder=ob.dataset.order;
+    document.querySelectorAll('#gorder .seg').forEach(b=>
+      b.classList.toggle('on',b===ob));
+    drawGlance(); return; }
+  const vb=e.target.closest('#regpick [data-vig]');
+  if(vb){ vigPick=vb.dataset.vig;
+    // a picked vignette should not fight a region filter that says otherwise
+    if($('reg').value!=='All regions'&&$('reg').value!==vigPick){
+      $('reg').value='All regions'; draw(); drawGlance(); }
+    syncPanels(); return; }
+  const sb=e.target.closest('#slicetoggle');
+  if(sb){ barTouched=true;
+    setBar($('filterbar').classList.contains('shut')); return; }
+  if(e.target.id==='tblmore'){ tblOpen=!tblOpen; drawTable();
+    if(!tblOpen)document.getElementById('tblbox')
+      .scrollIntoView({behavior:'smooth',block:'start'}); return; }
 });
+
+/* A sticky element's offsetTop is its stuck position, not its resting one, so
+   asking the bar where it lives always returns "right here". A sentinel above
+   it does not move, and leaving the viewport is exactly the moment the bar
+   becomes a floating strip rather than part of the page. */
+(function(){
+  const sn=$('fbtop'), fb=$('filterbar');
+  if(!sn||!fb||!('IntersectionObserver' in window))return;
+  new IntersectionObserver(([e])=>{
+    const stuck=!e.isIntersecting;
+    fb.classList.toggle('stuck',stuck);
+    if(stuck&&!barTouched&&!fb.classList.contains('shut'))setBar(false);
+  },{rootMargin:'-56px 0px 0px 0px',threshold:0}).observe(sn);
+})();
 let rt; addEventListener('resize',()=>{clearTimeout(rt);
   rt=setTimeout(()=>{draw();drawGlance()},150)});
 document.addEventListener('ecs:theme',()=>{draw();drawGlance()});
@@ -422,7 +533,7 @@ Promise.all([
                   met:q.get('metric')||'ecs_fraction',
                   grp:q.get('grp')||'region_group',
                   tis:'All tissues',vox:'All'});
-  draw(); drawGlance(); syncFamPanels(); syncPanels();
+  draw(); drawGlance(); syncFamPanels(); syncPanels(); sliceSum();
   const keep=()=>{const s=sel();const u=new URLSearchParams(
       {run:s.run,fam:s.fam,metric:s.met,grp:s.grp});
     history.replaceState(null,'',location.pathname+'?'+u.toString())};
@@ -446,16 +557,21 @@ def main():
     standing, n_panels = sections_html()
     html += f"""<main class="after-head">
 
-<nav class="onpage" aria-label="On this page">
-  <span>On this page</span>
-  <a href="#glancesec">At a glance</a>
-  <a href="#live">One metric, live</a>
-  <a href="#matrix">Every metric at once</a>
-  <a href="#vignettes">One region, every metric</a>
-  <a href="#renders">Pictures of the geometry</a>
-</nav>
-
-<div class="controls">
+<div id="fbtop" aria-hidden="true"></div>
+<div class="filterbar" id="filterbar">
+  <div class="fbline">
+    <button class="btn slicebtn" id="slicetoggle" type="button" aria-expanded="true">
+      <span id="slicesum">Loading&hellip;</span><i>&#9662;</i></button>
+    <nav class="onpage" aria-label="On this page">
+      <a href="#glancesec">Glance</a>
+      <a href="#live">One metric</a>
+      <a href="#table">Table</a>
+      <a href="#matrix">All metrics</a>
+      <a href="#vignettes">Regions</a>
+      <a href="#renders">Geometry</a>
+    </nav>
+  </div>
+  <div class="controls" id="controls">
   <div class="ctl"><label for="run">Run</label><select id="run"></select></div>
   <div class="ctl"><label for="fam">Metric family</label><select id="fam"></select></div>
   <div class="ctl"><label for="met">Metric</label><select id="met" style="min-width:280px"></select></div>
@@ -465,25 +581,34 @@ def main():
   <div class="ctl"><label for="tis">Tissue</label><select id="tis"></select></div>
   <div class="ctl"><label for="reg">Region</label><select id="reg"></select></div>
   <div class="ctl"><label for="vox">Analysis voxel</label><select id="vox"></select></div>
-  <div class="ctl"><label for="scale">Axis</label><select id="scale">
-    <option value="linear">Linear</option><option value="log">Logarithmic</option>
-    </select></div>
-  <div class="ctl"><label for="axlo">Axis range</label>
-    <span class="rng"><input type="number" id="axlo" step="any" placeholder="auto">
-    <input type="number" id="axhi" step="any" placeholder="auto">
-    <button class="btn" id="axauto" type="button">Auto</button></span></div>
+  </div>
 </div>
 
-<h2 id="glancesec" class="sec-first">At a glance</h2>
-<p class="lede" id="glancecount"></p>
-<p class="note">Eleven headline metrics for the crops the filters above leave in, chemical over
-rapid HPF, with Cliff's &delta; for each &mdash; the chance a chemical crop reads higher than an
-HPF one, minus the chance it reads lower. Click any card to open that metric in the plot below.
-Every number here is computed in the page from the same CSV the table reads.
-<a href="reference.html#delta">What &delta; means.</a></p>
-<div class="glance" id="glance"></div>
+<section class="lead" id="glancesec">
+  <div class="leadtop">
+    <h2 class="sec-first">At a glance</h2>
+    <div class="leadctl">
+      <span class="seglabel">Order</span>
+      <span class="seggroup" id="gorder">
+        <button type="button" class="btn seg on" data-order="effect">Biggest difference</button>
+        <button type="button" class="btn seg" data-order="listed">As listed</button>
+      </span>
+    </div>
+  </div>
+  <p class="headline" id="headline"></p>
+  <p class="note" id="glancecount"></p>
+  <p class="secintro">One card per headline metric: each dot a crop,
+  <span class="tag chem">chemical</span> above and <span class="tag hpf">rapid HPF</span> below,
+  medians ticked. The bar is Cliff's &delta;, drawn from the centre &mdash; longer means the two
+  preparations separate further. Click a card to open that metric in full.
+  <a href="reference.html#delta">What &delta; means.</a></p>
+  <div class="glance" id="glance"></div>
+</section>
 
-<h2 id="live">One metric, live</h2>
+<h2 id="live">One metric at a time</h2>
+<p class="secintro">Pick any of the 60-odd measurements above. Each dot is one crop &mdash;
+chemical on the upper line, rapid HPF on the lower &mdash; and the thick tick is that arm's
+median. Groups share one scale so they can be read against each other.</p>
 <div id="about"></div>
 <div class="readout" id="readout"></div>
 
@@ -494,6 +619,16 @@ Every number here is computed in the page from the same CSV the table reads.
   <span class="item"><b class="flag">n</b>&nbsp;arm with one crop or none</span>
 </div>
 
+<div class="plotbar">
+  <span class="ctl inline"><label for="scale">Scale</label><select id="scale">
+    <option value="linear">Linear</option><option value="log">Logarithmic</option>
+    </select></span>
+  <span class="ctl inline"><label for="axlo">Axis range</label>
+    <span class="rng"><input type="number" id="axlo" step="any" placeholder="auto">
+    <span class="to">to</span>
+    <input type="number" id="axhi" step="any" placeholder="auto">
+    <button class="btn" id="axauto" type="button">Auto</button></span></span>
+</div>
 <div class="strip" id="plot"><p class="muted" style="padding:22px 0">Loading&hellip;</p></div>
 <p class="note" id="note"></p>
 
@@ -505,13 +640,33 @@ Every number here is computed in the page from the same CSV the table reads.
   {family_html}
 </div>
 
-<h2>Table view</h2>
-<p class="note" style="margin-top:calc(var(--s3) * -1)">The same crops as the plot above, for the
-metric you have selected. Click a heading to sort; the &#9662; on a column filters it;
-a crop name opens it in the viewer. <span id="tblcount"></span></p>
-<div class="card scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+<h2 id="table">The same crops, as numbers</h2>
+<p class="secintro">Every crop behind the plot above, for the metric you have selected. Click a
+heading to sort; the &#9662; on a column filters it; a crop name opens that crop in the 3D
+viewer. <span id="tblcount"></span></p>
+<div class="tblbox" id="tblbox">
+  <div class="card scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+</div>
+<button class="btn tblmore" id="tblmore" type="button" hidden>Show all rows</button>
+<p class="note"><a href="data/all_metrics_long.csv">Download every metric for every crop</a>
+&mdash; one CSV, the same file this page reads.</p>
 """
     html += standing
+    html += """
+<section class="whereto">
+  <h2>Where to next</h2>
+  <ul class="jump">
+    <li><a href="crops.html"><span class="t">The 55 crops</span>
+      <span class="d">Every crop with its tissue, region and preparation &mdash; and a viewer
+      that turns the extracellular space and the membrane in 3D.</span></a></li>
+    <li><a href="reference.html"><span class="t">How this was measured</span>
+      <span class="d">What each metric is, where the resolution floors sit, and why the
+      comparison is region-matched.</span></a></li>
+    <li><a href="data/all_metrics_long.csv"><span class="t">The data</span>
+      <span class="d">One CSV, every metric for every crop, at both resolutions.</span></a></li>
+  </ul>
+</section>
+"""
     html += sh.footer(0) + "</main><div id=\"tip\"></div>" + JS + "</body></html>"
     (ROOT / "docs" / "explore.html").write_text(html)
     print("built docs/explore.html")

@@ -43,17 +43,17 @@ FAMILIES = [
 
 SECTIONS = [
     ("Every metric at once", [
+        ("effect_matrix.png", "Effect-size matrix",
+         "Cliff's delta for every metric family across the region-matched comparison. "
+         "Delta runs from -1 to 1; zero means the two preparations are indistinguishable. "
+         "Direction and size, not significance &mdash; several regions have an arm of one, "
+         "so read the effect, not the p."),
         ("native_anatomy_matched.png", "Anatomy-matched summary",
          "Every metric, restricted to the region groups where both preparations have crops. "
          "Native resolution."),
         ("matched_anatomy_matched.png", "Anatomy-matched, at 8 nm",
          "The same again with every crop downsampled to 8 nm first &mdash; the most "
          "conservative view on the site: same regions, same voxel size."),
-        ("effect_matrix.png", "Effect-size matrix",
-         "Cliff's delta for every metric family across the region-matched comparison. "
-         "Delta runs from -1 to 1; zero means the two preparations are indistinguishable. "
-         "Direction and size, not significance &mdash; several regions have an arm of one, "
-         "so read the effect, not the p."),
     ]),
     ("One region, every metric", [
         ("vignette_bile_canaliculus.png", "Bile canaliculus", "Liver, chemical vs HPF."),
@@ -89,6 +89,22 @@ SLUGS = {"Every metric at once": "matrix",
          "One region, every metric": "vignettes",
          "Pictures of the geometry": "renders"}
 
+# One line under each heading saying what the reader is looking at. The panels
+# are dense and self-explanatory to whoever made them; nobody else arrives
+# knowing what an anatomy-matched summary is for.
+INTRO = {
+    "Every metric at once":
+        "Standing panels, rendered by the pipeline rather than drawn in the page. These are the "
+        "whole study on one sheet: the summary restricted to regions that have crops on both "
+        "sides, the same again at a common 8&nbsp;nm voxel, and the effect sizes behind both.",
+    "One region, every metric":
+        "The same comparison one anatomical region at a time. A region only appears here if both "
+        "preparations have crops in it &mdash; six of them do.",
+    "Pictures of the geometry":
+        "What the measurements are measuring. Membrane surfaces coloured by curvature, and the "
+        "extracellular space rendered as the solid object it is.",
+}
+
 
 def family_block():
     """One metric family per row: native beside matched, and a link to the same
@@ -102,7 +118,8 @@ def family_block():
                 continue
             n += 1
             pair += (f'<figure class="fig"><a href="figures/{fn}" target="_blank" rel="noopener">'
-                     f'<img src="figures/{fn}" loading="lazy" alt="{label}, {tag.lower()}"></a>'
+                     f'<img src="figures/{fn}" loading="lazy" alt="{label}, {tag.lower()}">'
+                     f'<span class="zoom">Full size &#8599;</span></a>'
                      f'<figcaption><b>{tag}</b></figcaption></figure>')
         if not pair:
             continue
@@ -122,10 +139,32 @@ def family_block():
 
 
 FIG_STYLE = """<style>
- .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+ .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;
+      align-items:start}
+ .figs.wide{grid-template-columns:repeat(2,minmax(0,1fr))}
+ /* the effect matrix is the summary of everything under it, so it leads the
+    section at full width and the two reference sheets pair up beneath */
+ .figs.lead > .fig:first-child{grid-column:1/-1}
+ @media(max-width:1000px){.figs.wide{grid-template-columns:1fr}}
+ /* the region vignettes are 4.4:1 strips of six panels: one at a time, the
+    full width of the page, is the only size at which they can be read */
+ .figs.one{grid-template-columns:1fr}
+ .regpick{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 var(--s3)}
+ .regpick .btn{font-size:var(--t5);padding:5px 11px}
+ .regpick .btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink);
+   font-weight:600}
  .fig{margin:0;background:var(--raise);border:1px solid var(--rule);border-radius:10px;
       overflow:hidden;display:flex;flex-direction:column}
- .fig img{width:100%;display:block;background:#fff}
+ /* these panels run from 1.2:1 to 4.4:1, so a fixed plate height leaves half
+    of them floating in white. The plate takes the panel's own height and the
+    grid aligns to the top instead. */
+ .fig > a{display:block;background:#fff;padding:8px;position:relative;overflow:hidden}
+ .fig img{width:100%;height:auto;display:block;background:#fff}
+ .fig .zoom{position:absolute;right:8px;bottom:8px;background:rgba(20,18,15,.82);
+      color:#fff;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+      padding:3px 8px;border-radius:99px;opacity:0;transition:opacity .15s;
+      pointer-events:none}
+ .fig:hover .zoom{opacity:1}
  .fig figcaption{padding:11px 14px;font-size:13px;color:var(--ink-2);
                  border-top:1px solid var(--rule)}
  .fig figcaption b{display:block;color:var(--ink);margin-bottom:2px;font-size:13.5px}
@@ -165,6 +204,14 @@ VIGNETTE_REGION = {
 }
 
 
+# Panels that are wide multi-panel sheets get two to a row and a taller plate;
+# a nine-panel sheet at a third of the page width is a texture, not a figure.
+WIDE = {"Every metric at once": " wide lead",
+        # four renders in three columns left one stranded on a row of its own;
+        # two columns pairs the two membrane patches, which are the same shape
+        "Pictures of the geometry": " wide"}
+
+
 def fig_cards(figs, missing=None):
     cards, n = "", 0
     for fn, label, blurb in figs:
@@ -176,7 +223,8 @@ def fig_cards(figs, missing=None):
         reg = VIGNETTE_REGION.get(fn)
         attr = f' data-region="{reg}"' if reg else ""
         cards += (f'<figure class="fig"{attr}><a href="figures/{fn}" target="_blank" rel="noopener">'
-                  f'<img src="figures/{fn}" loading="lazy" alt="{label}"></a>'
+                  f'<img src="figures/{fn}" loading="lazy" alt="{label}">'
+                  f'<span class="zoom">Full size &#8599;</span></a>'
                   f'<figcaption><b>{label}</b><span>{blurb}</span></figcaption></figure>')
     return cards, n
 
@@ -191,13 +239,17 @@ def sections_html(missing=None):
             continue
         slug = SLUGS.get(title, "")
         head = f'<h2 id="{slug}">{title}</h2>' if slug else f'<h2>{title}</h2>'
+        intro = INTRO.get(title, "")
+        if intro:
+            head += f'<p class="secintro">{intro}</p>'
         if slug == "vignettes":
             body += ('<section id="vigsection">' + head +
+                     '<div class="regpick" id="regpick"></div>'
                      '<p class="note" id="vignote"></p>' +
                      EXTRA_LINE.get(title, "") +
-                     f'<div class="figs">{cards}</div></section>')
+                     f'<div class="figs one">{cards}</div></section>')
             continue
-        body += head + EXTRA_LINE.get(title, "") + f'<div class="figs">{cards}</div>'
+        body += head + EXTRA_LINE.get(title, "") + f'<div class="figs{WIDE.get(title,"")}">{cards}</div>'
     return body, n
 
 

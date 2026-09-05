@@ -4,8 +4,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=e8c04ee0">
-<script src="assets/site.js?v=e8c04ee0"></script>
+<link rel="stylesheet" href="assets/app.css?v=2def1a99">
+<script src="assets/site.js?v=2def1a99"></script>
 <script type="module" src="assets/model-viewer.min.js"></script><style>
  .strip{padding:0}
  .row{display:grid;grid-template-columns:200px 1fr 96px;gap:var(--s4);align-items:center;
@@ -34,10 +34,32 @@
  @media(max-width:900px){.cavbody{grid-template-columns:1fr}}
  circle[data-c]{cursor:crosshair}
 </style><style>
- .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+ .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;
+      align-items:start}
+ .figs.wide{grid-template-columns:repeat(2,minmax(0,1fr))}
+ /* the effect matrix is the summary of everything under it, so it leads the
+    section at full width and the two reference sheets pair up beneath */
+ .figs.lead > .fig:first-child{grid-column:1/-1}
+ @media(max-width:1000px){.figs.wide{grid-template-columns:1fr}}
+ /* the region vignettes are 4.4:1 strips of six panels: one at a time, the
+    full width of the page, is the only size at which they can be read */
+ .figs.one{grid-template-columns:1fr}
+ .regpick{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 var(--s3)}
+ .regpick .btn{font-size:var(--t5);padding:5px 11px}
+ .regpick .btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink);
+   font-weight:600}
  .fig{margin:0;background:var(--raise);border:1px solid var(--rule);border-radius:10px;
       overflow:hidden;display:flex;flex-direction:column}
- .fig img{width:100%;display:block;background:#fff}
+ /* these panels run from 1.2:1 to 4.4:1, so a fixed plate height leaves half
+    of them floating in white. The plate takes the panel's own height and the
+    grid aligns to the top instead. */
+ .fig > a{display:block;background:#fff;padding:8px;position:relative;overflow:hidden}
+ .fig img{width:100%;height:auto;display:block;background:#fff}
+ .fig .zoom{position:absolute;right:8px;bottom:8px;background:rgba(20,18,15,.82);
+      color:#fff;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+      padding:3px 8px;border-radius:99px;opacity:0;transition:opacity .15s;
+      pointer-events:none}
+ .fig:hover .zoom{opacity:1}
  .fig figcaption{padding:11px 14px;font-size:13px;color:var(--ink-2);
                  border-top:1px solid var(--rule)}
  .fig figcaption b{display:block;color:var(--ink);margin-bottom:2px;font-size:13.5px}
@@ -66,16 +88,21 @@
  @media(max-width:900px){.fam{grid-template-columns:1fr;gap:var(--s3)}}
 </style></head><body><header class="top"><div class="wrap"><a class="brand" href="index.html">ECS preservation</a><nav><a href="explore.html" aria-current="page">Analysis</a><a href="crops.html">Crops</a><a href="reference.html">Reference</a></nav><button id="themetog" type="button">Auto</button></div></header><div class="pagehead has-art"><div class="inner"><div><h1>Analysis</h1><p>Every per-crop measurement the pipeline has produced, live at the top and as standing panels below. Each dot is one crop, chemical above the line and HPF below, with groups sharing one scale so they can be read against each other. <a href="reference.html#reading">How to read this.</a></p></div><div class="ph-art ph-model"><model-viewer id="hero" camera-controls auto-rotate auto-rotate-delay="900" rotation-per-second="16deg" interaction-prompt="none" touch-action="pan-y" exposure="1.15" shadow-intensity="0" camera-orbit="auto auto 92%" min-field-of-view="12deg" alt="The extracellular space as a solid object. Drag to rotate."></model-viewer><span class="cap">loading&hellip;</span><script>document.addEventListener('DOMContentLoaded',function(){ECS.mountHero(document.getElementById('hero'),'');});</script></div></div></div><main class="after-head">
 
-<nav class="onpage" aria-label="On this page">
-  <span>On this page</span>
-  <a href="#glancesec">At a glance</a>
-  <a href="#live">One metric, live</a>
-  <a href="#matrix">Every metric at once</a>
-  <a href="#vignettes">One region, every metric</a>
-  <a href="#renders">Pictures of the geometry</a>
-</nav>
-
-<div class="controls">
+<div id="fbtop" aria-hidden="true"></div>
+<div class="filterbar" id="filterbar">
+  <div class="fbline">
+    <button class="btn slicebtn" id="slicetoggle" type="button" aria-expanded="true">
+      <span id="slicesum">Loading&hellip;</span><i>&#9662;</i></button>
+    <nav class="onpage" aria-label="On this page">
+      <a href="#glancesec">Glance</a>
+      <a href="#live">One metric</a>
+      <a href="#table">Table</a>
+      <a href="#matrix">All metrics</a>
+      <a href="#vignettes">Regions</a>
+      <a href="#renders">Geometry</a>
+    </nav>
+  </div>
+  <div class="controls" id="controls">
   <div class="ctl"><label for="run">Run</label><select id="run"></select></div>
   <div class="ctl"><label for="fam">Metric family</label><select id="fam"></select></div>
   <div class="ctl"><label for="met">Metric</label><select id="met" style="min-width:280px"></select></div>
@@ -85,25 +112,34 @@
   <div class="ctl"><label for="tis">Tissue</label><select id="tis"></select></div>
   <div class="ctl"><label for="reg">Region</label><select id="reg"></select></div>
   <div class="ctl"><label for="vox">Analysis voxel</label><select id="vox"></select></div>
-  <div class="ctl"><label for="scale">Axis</label><select id="scale">
-    <option value="linear">Linear</option><option value="log">Logarithmic</option>
-    </select></div>
-  <div class="ctl"><label for="axlo">Axis range</label>
-    <span class="rng"><input type="number" id="axlo" step="any" placeholder="auto">
-    <input type="number" id="axhi" step="any" placeholder="auto">
-    <button class="btn" id="axauto" type="button">Auto</button></span></div>
+  </div>
 </div>
 
-<h2 id="glancesec" class="sec-first">At a glance</h2>
-<p class="lede" id="glancecount"></p>
-<p class="note">Eleven headline metrics for the crops the filters above leave in, chemical over
-rapid HPF, with Cliff's &delta; for each &mdash; the chance a chemical crop reads higher than an
-HPF one, minus the chance it reads lower. Click any card to open that metric in the plot below.
-Every number here is computed in the page from the same CSV the table reads.
-<a href="reference.html#delta">What &delta; means.</a></p>
-<div class="glance" id="glance"></div>
+<section class="lead" id="glancesec">
+  <div class="leadtop">
+    <h2 class="sec-first">At a glance</h2>
+    <div class="leadctl">
+      <span class="seglabel">Order</span>
+      <span class="seggroup" id="gorder">
+        <button type="button" class="btn seg on" data-order="effect">Biggest difference</button>
+        <button type="button" class="btn seg" data-order="listed">As listed</button>
+      </span>
+    </div>
+  </div>
+  <p class="headline" id="headline"></p>
+  <p class="note" id="glancecount"></p>
+  <p class="secintro">One card per headline metric: each dot a crop,
+  <span class="tag chem">chemical</span> above and <span class="tag hpf">rapid HPF</span> below,
+  medians ticked. The bar is Cliff's &delta;, drawn from the centre &mdash; longer means the two
+  preparations separate further. Click a card to open that metric in full.
+  <a href="reference.html#delta">What &delta; means.</a></p>
+  <div class="glance" id="glance"></div>
+</section>
 
-<h2 id="live">One metric, live</h2>
+<h2 id="live">One metric at a time</h2>
+<p class="secintro">Pick any of the 60-odd measurements above. Each dot is one crop &mdash;
+chemical on the upper line, rapid HPF on the lower &mdash; and the thick tick is that arm's
+median. Groups share one scale so they can be read against each other.</p>
 <div id="about"></div>
 <div class="readout" id="readout"></div>
 
@@ -114,6 +150,16 @@ Every number here is computed in the page from the same CSV the table reads.
   <span class="item"><b class="flag">n</b>&nbsp;arm with one crop or none</span>
 </div>
 
+<div class="plotbar">
+  <span class="ctl inline"><label for="scale">Scale</label><select id="scale">
+    <option value="linear">Linear</option><option value="log">Logarithmic</option>
+    </select></span>
+  <span class="ctl inline"><label for="axlo">Axis range</label>
+    <span class="rng"><input type="number" id="axlo" step="any" placeholder="auto">
+    <span class="to">to</span>
+    <input type="number" id="axhi" step="any" placeholder="auto">
+    <button class="btn" id="axauto" type="button">Auto</button></span></span>
+</div>
 <div class="strip" id="plot"><p class="muted" style="padding:22px 0">Loading&hellip;</p></div>
 <p class="note" id="note"></p>
 
@@ -122,15 +168,34 @@ Every number here is computed in the page from the same CSV the table reads.
   <p class="note">Pre-rendered by the pipeline, one for each resolution. The matched panel exists
   to be read against the native one: a difference that survives downsampling to 8&nbsp;nm is not
   explained by voxel size. These change with the family above.</p>
-  <section class="fam" data-fam="volume_fraction"><div class="famhead"><h3>Volume fraction</h3><p>ECS and cell volume fractions per crop. The most resolution-robust family, so the native panel can be read fairly directly.<span class="note"> Native only: the matched run reads zarr metadata that is valid at native resolution alone.</span></p><p class="note"><a href="explore.html?fam=volume_fraction&amp;run=native">Draw this live</a> &mdash; any metric in the family, any grouping, one dot per crop.</p></div><div class="figs pair"><figure class="fig"><a href="figures/native_volume_fraction.png" target="_blank" rel="noopener"><img src="figures/native_volume_fraction.png" loading="lazy" alt="Volume fraction, native resolution"></a><figcaption><b>Native resolution</b></figcaption></figure></div></section><section class="fam" data-fam="ecs_width"><div class="famhead"><h3>ECS width</h3><p>Distance from each extracellular voxel to the nearest cell. Distance to the wall, not channel width &mdash; roughly a quarter of it.</p><p class="note"><a href="explore.html?fam=ecs_width&amp;run=native">Draw this live</a> &mdash; any metric in the family, any grouping, one dot per crop.</p></div><div class="figs pair"><figure class="fig"><a href="figures/native_ecs_width.png" target="_blank" rel="noopener"><img src="figures/native_ecs_width.png" loading="lazy" alt="ECS width, native resolution"></a><figcaption><b>Native resolution</b></figcaption></figure><figure class="fig"><a href="figures/matched_ecs_width.png" target="_blank" rel="noopener"><img src="figures/matched_ecs_width.png" loading="lazy" alt="ECS width, matched to 8 nm"></a><figcaption><b>Matched to 8 nm</b></figcaption></figure></div></section><section class="fam" data-fam="voronoi_gap"><div class="famhead"><h3>Cell-to-cell gap</h3><p>Gap between neighbouring cells. Hard floor of three voxels, so the left tail is the measurement, not the tissue; at 8 nm that floor is 24 nm.</p><p class="note"><a href="explore.html?fam=voronoi_gap&amp;run=native">Draw this live</a> &mdash; any metric in the family, any grouping, one dot per crop.</p></div><div class="figs pair"><figure class="fig"><a href="figures/native_voronoi_gap.png" target="_blank" rel="noopener"><img src="figures/native_voronoi_gap.png" loading="lazy" alt="Cell-to-cell gap, native resolution"></a><figcaption><b>Native resolution</b></figcaption></figure><figure class="fig"><a href="figures/matched_voronoi_gap.png" target="_blank" rel="noopener"><img src="figures/matched_voronoi_gap.png" loading="lazy" alt="Cell-to-cell gap, matched to 8 nm"></a><figcaption><b>Matched to 8 nm</b></figcaption></figure></div></section><section class="fam" data-fam="sa_v"><div class="famhead"><h3>Surface area to volume</h3><p>ECS-facing membrane per unit cell volume, pooled across the cells in each crop.</p><p class="note"><a href="explore.html?fam=sa_v&amp;run=native">Draw this live</a> &mdash; any metric in the family, any grouping, one dot per crop.</p></div><div class="figs pair"><figure class="fig"><a href="figures/native_sa_v.png" target="_blank" rel="noopener"><img src="figures/native_sa_v.png" loading="lazy" alt="Surface area to volume, native resolution"></a><figcaption><b>Native resolution</b></figcaption></figure><figure class="fig"><a href="figures/matched_sa_v.png" target="_blank" rel="noopener"><img src="figures/matched_sa_v.png" loading="lazy" alt="Surface area to volume, matched to 8 nm"></a><figcaption><b>Matched to 8 nm</b></figcaption></figure></div></section><section class="fam" data-fam="topology"><div class="famhead"><h3>Membrane shape</h3><p>Curvature, roughness and protrusion density on the ECS-facing membrane. The 30 nm roughness scale is not honestly resolvable in the matched panel.</p><p class="note"><a href="explore.html?fam=topology&amp;run=native">Draw this live</a> &mdash; any metric in the family, any grouping, one dot per crop.</p></div><div class="figs pair"><figure class="fig"><a href="figures/native_topology.png" target="_blank" rel="noopener"><img src="figures/native_topology.png" loading="lazy" alt="Membrane shape, native resolution"></a><figcaption><b>Native resolution</b></figcaption></figure><figure class="fig"><a href="figures/matched_topology.png" target="_blank" rel="noopener"><img src="figures/matched_topology.png" loading="lazy" alt="Membrane shape, matched to 8 nm"></a><figcaption><b>Matched to 8 nm</b></figcaption></figure></div></section>
+  <section class="fam" data-fam="volume_fraction"><div class="famhead"><h3>Volume fraction</h3><p>ECS and cell volume fractions per crop. The most resolution-robust family, so the native panel can be read fairly directly.<span class="note"> Native only: the matched run reads zarr metadata that is valid at native resolution alone.</span></p><p class="note"><a href="explore.html?fam=volume_fraction&amp;run=native">Draw this live</a> &mdash; any metric in the family, any grouping, one dot per crop.</p></div><div class="figs pair"><figure class="fig"><a href="figures/native_volume_fraction.png" target="_blank" rel="noopener"><img src="figures/native_volume_fraction.png" loading="lazy" alt="Volume fraction, native resolution"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Native resolution</b></figcaption></figure></div></section><section class="fam" data-fam="ecs_width"><div class="famhead"><h3>ECS width</h3><p>Distance from each extracellular voxel to the nearest cell. Distance to the wall, not channel width &mdash; roughly a quarter of it.</p><p class="note"><a href="explore.html?fam=ecs_width&amp;run=native">Draw this live</a> &mdash; any metric in the family, any grouping, one dot per crop.</p></div><div class="figs pair"><figure class="fig"><a href="figures/native_ecs_width.png" target="_blank" rel="noopener"><img src="figures/native_ecs_width.png" loading="lazy" alt="ECS width, native resolution"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Native resolution</b></figcaption></figure><figure class="fig"><a href="figures/matched_ecs_width.png" target="_blank" rel="noopener"><img src="figures/matched_ecs_width.png" loading="lazy" alt="ECS width, matched to 8 nm"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Matched to 8 nm</b></figcaption></figure></div></section><section class="fam" data-fam="voronoi_gap"><div class="famhead"><h3>Cell-to-cell gap</h3><p>Gap between neighbouring cells. Hard floor of three voxels, so the left tail is the measurement, not the tissue; at 8 nm that floor is 24 nm.</p><p class="note"><a href="explore.html?fam=voronoi_gap&amp;run=native">Draw this live</a> &mdash; any metric in the family, any grouping, one dot per crop.</p></div><div class="figs pair"><figure class="fig"><a href="figures/native_voronoi_gap.png" target="_blank" rel="noopener"><img src="figures/native_voronoi_gap.png" loading="lazy" alt="Cell-to-cell gap, native resolution"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Native resolution</b></figcaption></figure><figure class="fig"><a href="figures/matched_voronoi_gap.png" target="_blank" rel="noopener"><img src="figures/matched_voronoi_gap.png" loading="lazy" alt="Cell-to-cell gap, matched to 8 nm"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Matched to 8 nm</b></figcaption></figure></div></section><section class="fam" data-fam="sa_v"><div class="famhead"><h3>Surface area to volume</h3><p>ECS-facing membrane per unit cell volume, pooled across the cells in each crop.</p><p class="note"><a href="explore.html?fam=sa_v&amp;run=native">Draw this live</a> &mdash; any metric in the family, any grouping, one dot per crop.</p></div><div class="figs pair"><figure class="fig"><a href="figures/native_sa_v.png" target="_blank" rel="noopener"><img src="figures/native_sa_v.png" loading="lazy" alt="Surface area to volume, native resolution"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Native resolution</b></figcaption></figure><figure class="fig"><a href="figures/matched_sa_v.png" target="_blank" rel="noopener"><img src="figures/matched_sa_v.png" loading="lazy" alt="Surface area to volume, matched to 8 nm"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Matched to 8 nm</b></figcaption></figure></div></section><section class="fam" data-fam="topology"><div class="famhead"><h3>Membrane shape</h3><p>Curvature, roughness and protrusion density on the ECS-facing membrane. The 30 nm roughness scale is not honestly resolvable in the matched panel.</p><p class="note"><a href="explore.html?fam=topology&amp;run=native">Draw this live</a> &mdash; any metric in the family, any grouping, one dot per crop.</p></div><div class="figs pair"><figure class="fig"><a href="figures/native_topology.png" target="_blank" rel="noopener"><img src="figures/native_topology.png" loading="lazy" alt="Membrane shape, native resolution"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Native resolution</b></figcaption></figure><figure class="fig"><a href="figures/matched_topology.png" target="_blank" rel="noopener"><img src="figures/matched_topology.png" loading="lazy" alt="Membrane shape, matched to 8 nm"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Matched to 8 nm</b></figcaption></figure></div></section>
 </div>
 
-<h2>Table view</h2>
-<p class="note" style="margin-top:calc(var(--s3) * -1)">The same crops as the plot above, for the
-metric you have selected. Click a heading to sort; the &#9662; on a column filters it;
-a crop name opens it in the viewer. <span id="tblcount"></span></p>
-<div class="card scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
-<h2 id="matrix">Every metric at once</h2><div class="figs"><figure class="fig"><a href="figures/native_anatomy_matched.png" target="_blank" rel="noopener"><img src="figures/native_anatomy_matched.png" loading="lazy" alt="Anatomy-matched summary"></a><figcaption><b>Anatomy-matched summary</b><span>Every metric, restricted to the region groups where both preparations have crops. Native resolution.</span></figcaption></figure><figure class="fig"><a href="figures/matched_anatomy_matched.png" target="_blank" rel="noopener"><img src="figures/matched_anatomy_matched.png" loading="lazy" alt="Anatomy-matched, at 8 nm"></a><figcaption><b>Anatomy-matched, at 8 nm</b><span>The same again with every crop downsampled to 8 nm first &mdash; the most conservative view on the site: same regions, same voxel size.</span></figcaption></figure><figure class="fig"><a href="figures/effect_matrix.png" target="_blank" rel="noopener"><img src="figures/effect_matrix.png" loading="lazy" alt="Effect-size matrix"></a><figcaption><b>Effect-size matrix</b><span>Cliff's delta for every metric family across the region-matched comparison. Delta runs from -1 to 1; zero means the two preparations are indistinguishable. Direction and size, not significance &mdash; several regions have an arm of one, so read the effect, not the p.</span></figcaption></figure></div><section id="vigsection"><h2 id="vignettes">One region, every metric</h2><p class="note" id="vignote"></p><div class="figs"><figure class="fig" data-region="Bile canaliculus"><a href="figures/vignette_bile_canaliculus.png" target="_blank" rel="noopener"><img src="figures/vignette_bile_canaliculus.png" loading="lazy" alt="Bile canaliculus"></a><figcaption><b>Bile canaliculus</b><span>Liver, chemical vs HPF.</span></figcaption></figure><figure class="fig" data-region="Hepatocyte lateral"><a href="figures/vignette_hepatocyte_lateral.png" target="_blank" rel="noopener"><img src="figures/vignette_hepatocyte_lateral.png" loading="lazy" alt="Hepatocyte lateral"></a><figcaption><b>Hepatocyte lateral</b><span>Liver, the largest matched group.</span></figcaption></figure><figure class="fig" data-region="Glomerular"><a href="figures/vignette_glomerular.png" target="_blank" rel="noopener"><img src="figures/vignette_glomerular.png" loading="lazy" alt="Glomerular"></a><figcaption><b>Glomerular</b><span>Kidney.</span></figcaption></figure><figure class="fig" data-region="Tubule basal"><a href="figures/vignette_tubule_basal.png" target="_blank" rel="noopener"><img src="figures/vignette_tubule_basal.png" loading="lazy" alt="Tubule basal"></a><figcaption><b>Tubule basal</b><span>Kidney, DCT base and PCT base pooled &mdash; the pooling is what gives this region an arm on both sides.</span></figcaption></figure><figure class="fig" data-region="Cardiac interstitial"><a href="figures/vignette_cardiac_interstitial.png" target="_blank" rel="noopener"><img src="figures/vignette_cardiac_interstitial.png" loading="lazy" alt="Cardiac interstitial"></a><figcaption><b>Cardiac interstitial</b><span>Heart.</span></figcaption></figure><figure class="fig" data-region="Intercalated disc"><a href="figures/vignette_intercalated_disc.png" target="_blank" rel="noopener"><img src="figures/vignette_intercalated_disc.png" loading="lazy" alt="Intercalated disc"></a><figcaption><b>Intercalated disc</b><span>Heart.</span></figcaption></figure></div></section><h2 id="renders">Pictures of the geometry</h2><p class="lede" style="margin-bottom:var(--s4)">These are stills. <a href="membranes/views.html">Paired 3D views</a> puts one crop of each preparation side by side per region, and the <a href="crops.html">crop page</a> will load any two of the 55 into a viewer you can turn.</p><div class="figs"><figure class="fig"><a href="figures/ecs3d_bile_canaliculus.png" target="_blank" rel="noopener"><img src="figures/ecs3d_bile_canaliculus.png" loading="lazy" alt="Extracellular space in 3D"></a><figcaption><b>Extracellular space in 3D</b><span>The space itself rendered as a solid, rather than the membranes around it.</span></figcaption></figure><figure class="fig"><a href="figures/cellsurf_crop1039_cell1.png" target="_blank" rel="noopener"><img src="figures/cellsurf_crop1039_cell1.png" loading="lazy" alt="Cell surface"></a><figcaption><b>Cell surface</b><span>A single segmented cell.</span></figcaption></figure><figure class="fig"><a href="figures/membrane_crop1039_cell1.png" target="_blank" rel="noopener"><img src="figures/membrane_crop1039_cell1.png" loading="lazy" alt="Membrane patch, crop1039"></a><figcaption><b>Membrane patch, crop1039</b><span>Curvature on one ECS-facing patch.</span></figcaption></figure><figure class="fig"><a href="figures/membrane_crop1072_cell1.png" target="_blank" rel="noopener"><img src="figures/membrane_crop1072_cell1.png" loading="lazy" alt="Membrane patch, crop1072"></a><figcaption><b>Membrane patch, crop1072</b><span>The same view in another crop.</span></figcaption></figure></div><footer class="site"><span>Chemical fixation vs rapid high-pressure freezing &middot; 55 crops</span><a href="index.html">Overview</a><a href="reference.html">How to read this</a><a href="data/all_metrics_long.csv">Download the data</a><a href="https://github.com/avweigel/ecs-analysis">Source</a></footer></main><div id="tip"></div>
+<h2 id="table">The same crops, as numbers</h2>
+<p class="secintro">Every crop behind the plot above, for the metric you have selected. Click a
+heading to sort; the &#9662; on a column filters it; a crop name opens that crop in the 3D
+viewer. <span id="tblcount"></span></p>
+<div class="tblbox" id="tblbox">
+  <div class="card scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+</div>
+<button class="btn tblmore" id="tblmore" type="button" hidden>Show all rows</button>
+<p class="note"><a href="data/all_metrics_long.csv">Download every metric for every crop</a>
+&mdash; one CSV, the same file this page reads.</p>
+<h2 id="matrix">Every metric at once</h2><p class="secintro">Standing panels, rendered by the pipeline rather than drawn in the page. These are the whole study on one sheet: the summary restricted to regions that have crops on both sides, the same again at a common 8&nbsp;nm voxel, and the effect sizes behind both.</p><div class="figs wide lead"><figure class="fig"><a href="figures/effect_matrix.png" target="_blank" rel="noopener"><img src="figures/effect_matrix.png" loading="lazy" alt="Effect-size matrix"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Effect-size matrix</b><span>Cliff's delta for every metric family across the region-matched comparison. Delta runs from -1 to 1; zero means the two preparations are indistinguishable. Direction and size, not significance &mdash; several regions have an arm of one, so read the effect, not the p.</span></figcaption></figure><figure class="fig"><a href="figures/native_anatomy_matched.png" target="_blank" rel="noopener"><img src="figures/native_anatomy_matched.png" loading="lazy" alt="Anatomy-matched summary"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Anatomy-matched summary</b><span>Every metric, restricted to the region groups where both preparations have crops. Native resolution.</span></figcaption></figure><figure class="fig"><a href="figures/matched_anatomy_matched.png" target="_blank" rel="noopener"><img src="figures/matched_anatomy_matched.png" loading="lazy" alt="Anatomy-matched, at 8 nm"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Anatomy-matched, at 8 nm</b><span>The same again with every crop downsampled to 8 nm first &mdash; the most conservative view on the site: same regions, same voxel size.</span></figcaption></figure></div><section id="vigsection"><h2 id="vignettes">One region, every metric</h2><p class="secintro">The same comparison one anatomical region at a time. A region only appears here if both preparations have crops in it &mdash; six of them do.</p><div class="regpick" id="regpick"></div><p class="note" id="vignote"></p><div class="figs one"><figure class="fig" data-region="Bile canaliculus"><a href="figures/vignette_bile_canaliculus.png" target="_blank" rel="noopener"><img src="figures/vignette_bile_canaliculus.png" loading="lazy" alt="Bile canaliculus"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Bile canaliculus</b><span>Liver, chemical vs HPF.</span></figcaption></figure><figure class="fig" data-region="Hepatocyte lateral"><a href="figures/vignette_hepatocyte_lateral.png" target="_blank" rel="noopener"><img src="figures/vignette_hepatocyte_lateral.png" loading="lazy" alt="Hepatocyte lateral"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Hepatocyte lateral</b><span>Liver, the largest matched group.</span></figcaption></figure><figure class="fig" data-region="Glomerular"><a href="figures/vignette_glomerular.png" target="_blank" rel="noopener"><img src="figures/vignette_glomerular.png" loading="lazy" alt="Glomerular"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Glomerular</b><span>Kidney.</span></figcaption></figure><figure class="fig" data-region="Tubule basal"><a href="figures/vignette_tubule_basal.png" target="_blank" rel="noopener"><img src="figures/vignette_tubule_basal.png" loading="lazy" alt="Tubule basal"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Tubule basal</b><span>Kidney, DCT base and PCT base pooled &mdash; the pooling is what gives this region an arm on both sides.</span></figcaption></figure><figure class="fig" data-region="Cardiac interstitial"><a href="figures/vignette_cardiac_interstitial.png" target="_blank" rel="noopener"><img src="figures/vignette_cardiac_interstitial.png" loading="lazy" alt="Cardiac interstitial"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Cardiac interstitial</b><span>Heart.</span></figcaption></figure><figure class="fig" data-region="Intercalated disc"><a href="figures/vignette_intercalated_disc.png" target="_blank" rel="noopener"><img src="figures/vignette_intercalated_disc.png" loading="lazy" alt="Intercalated disc"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Intercalated disc</b><span>Heart.</span></figcaption></figure></div></section><h2 id="renders">Pictures of the geometry</h2><p class="secintro">What the measurements are measuring. Membrane surfaces coloured by curvature, and the extracellular space rendered as the solid object it is.</p><p class="lede" style="margin-bottom:var(--s4)">These are stills. <a href="membranes/views.html">Paired 3D views</a> puts one crop of each preparation side by side per region, and the <a href="crops.html">crop page</a> will load any two of the 55 into a viewer you can turn.</p><div class="figs wide"><figure class="fig"><a href="figures/ecs3d_bile_canaliculus.png" target="_blank" rel="noopener"><img src="figures/ecs3d_bile_canaliculus.png" loading="lazy" alt="Extracellular space in 3D"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Extracellular space in 3D</b><span>The space itself rendered as a solid, rather than the membranes around it.</span></figcaption></figure><figure class="fig"><a href="figures/cellsurf_crop1039_cell1.png" target="_blank" rel="noopener"><img src="figures/cellsurf_crop1039_cell1.png" loading="lazy" alt="Cell surface"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Cell surface</b><span>A single segmented cell.</span></figcaption></figure><figure class="fig"><a href="figures/membrane_crop1039_cell1.png" target="_blank" rel="noopener"><img src="figures/membrane_crop1039_cell1.png" loading="lazy" alt="Membrane patch, crop1039"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Membrane patch, crop1039</b><span>Curvature on one ECS-facing patch.</span></figcaption></figure><figure class="fig"><a href="figures/membrane_crop1072_cell1.png" target="_blank" rel="noopener"><img src="figures/membrane_crop1072_cell1.png" loading="lazy" alt="Membrane patch, crop1072"><span class="zoom">Full size &#8599;</span></a><figcaption><b>Membrane patch, crop1072</b><span>The same view in another crop.</span></figcaption></figure></div>
+<section class="whereto">
+  <h2>Where to next</h2>
+  <ul class="jump">
+    <li><a href="crops.html"><span class="t">The 55 crops</span>
+      <span class="d">Every crop with its tissue, region and preparation &mdash; and a viewer
+      that turns the extracellular space and the membrane in 3D.</span></a></li>
+    <li><a href="reference.html"><span class="t">How this was measured</span>
+      <span class="d">What each metric is, where the resolution floors sit, and why the
+      comparison is region-matched.</span></a></li>
+    <li><a href="data/all_metrics_long.csv"><span class="t">The data</span>
+      <span class="d">One CSV, every metric for every crop, at both resolutions.</span></a></li>
+  </ul>
+</section>
+<footer class="site"><span>Chemical fixation vs rapid high-pressure freezing &middot; 55 crops</span><a href="index.html">Overview</a><a href="reference.html">How to read this</a><a href="data/all_metrics_long.csv">Download the data</a><a href="https://github.com/avweigel/ecs-analysis">Source</a></footer></main><div id="tip"></div>
 <script>
 const $=id=>document.getElementById(id);
 const PREP={Chemical:'chem','Rapid HPF':'hpf'};
@@ -230,20 +295,61 @@ const GLANCE=[['ecs_fraction','ECS fraction'],
   ['protrusion_density_per_um2','Protrusion density'],
   ['indentation_density_per_um2','Indentation density']];
 
+let gOrder='effect';
+
+/* ── the filter bar ──────────────────────────────────────────────────────
+   One line naming the slice every panel below is drawn from, kept in view as
+   you scroll. Anything left at its default is quiet; anything you have
+   actually chosen is marked, so you can tell at a distance whether what you
+   are looking at is the whole study or a corner of it. */
+function sliceSum(){
+  const el=$('slicesum'); if(!el)return;
+  const s=sel();
+  const bits=[];
+  bits.push(`<b>${label(s.met)}</b>`);
+  const run=(DICT.runs[s.run]||{}).label||s.run;
+  bits.push(`<span>${run}</span>`);
+  const opt=(v,dflt)=>v&&v!==dflt
+    ? `<span class="set">${v}</span>` : `<span>${dflt}</span>`;
+  bits.push(opt(s.tis,'All tissues'));
+  bits.push(opt(s.reg,'All regions'));
+  if(s.vox&&s.vox!=='All')bits.push(`<span class="set">${s.vox} nm voxel</span>`);
+  const box=slice(ROWS.filter(r=>r.run===s.run&&Number.isFinite(r.value)),s);
+  const n=new Set(box.map(r=>r.crop)).size;
+  bits.push(`<span>${n} crop${n===1?'':'s'}</span>`);
+  el.innerHTML=bits.join('<span class="sep"> &middot; </span>');
+}
+
+/* The bar carries the whole control grid at the top of the page, where there
+   is room for it, and folds to the summary line once you have scrolled past
+   it. Folding happens once, and only if you have not already chosen for
+   yourself -- an interface that keeps re-deciding is worse than one that
+   never decides. */
+let barTouched=false;
+function setBar(open){
+  const fb=$('filterbar'), bt=$('slicetoggle'); if(!fb)return;
+  fb.classList.toggle('shut',!open);
+  bt.setAttribute('aria-expanded',open?'true':'false');
+  bt.title=open?'Hide the filters':'Show the filters';
+}
+
 function drawGlance(){
   const s=sel(), host=$('glance'); if(!host)return;
   const box=slice(ROWS.filter(r=>r.run===s.run&&Number.isFinite(r.value)),s);
   const crops=new Set(box.map(r=>r.crop));
   const nc=new Set(box.filter(r=>r.prep==='Chemical').map(r=>r.crop)).size;
   const nh=new Set(box.filter(r=>r.prep==='Rapid HPF').map(r=>r.crop)).size;
+  const thin=Math.min(nc,nh)<2;
   $('glancecount').innerHTML=
-    `<b>${crops.size}</b> crop${crops.size===1?'':'s'} in this slice &mdash; `+
+    `<b>${crops.size}</b> crop${crops.size===1?'':'s'}: `+
     `<span class="tag chem">${nc} chemical</span> <span class="tag hpf">${nh} rapid HPF</span>`+
-    (Math.min(nc,nh)<2?' <span class="flag">an arm of one or none: no comparison</span>':'');
-  const W=232,H=74,PAD=10;
-  host.innerHTML=GLANCE.map(([met,lab])=>{
+    (thin?' &middot; <span class="flag">an arm of one or none, so nothing here is a comparison</span>':'');
+
+  const W=232,H=64,PAD=10;
+  const cards=[];
+  for(const [met,lab] of GLANCE){
     const d=box.filter(r=>r.metric===met);
-    if(!d.length)return '';
+    if(!d.length)continue;
     const C=d.filter(r=>r.prep==='Chemical'), H2=d.filter(r=>r.prep==='Rapid HPF');
     const c=C.map(r=>r.value), h=H2.map(r=>r.value);
     const all=c.concat(h);
@@ -251,51 +357,77 @@ function drawGlance(){
     const x=v=>PAD+(v-lo)/span*(W-2*PAD);
     // every dot names its crop and value: at a glance first, then on inspection
     const dot=(r,y,cl)=>`<circle cx="${x(r.value).toFixed(1)}" cy="${y}" r="3.1" class="gdot ${cl}"><title>${
-      r.crop} · ${r.prep} · ${fmt(r.value)}${unit(met)?' '+unit(met):''}</title></circle>`;
+      r.crop} \u00b7 ${r.prep} \u00b7 ${fmt(r.value)}${unit(met)?' '+unit(met):''}</title></circle>`;
     const tick=(vals,y,cl)=>{const m=med(vals);return Number.isFinite(m)
       ?`<line x1="${x(m).toFixed(1)}" x2="${x(m).toFixed(1)}" y1="${y-8}" y2="${y+8}" class="gmed ${cl}"/>`:''};
     const dl=cliff(c,h);
-    const dtxt=Number.isFinite(dl)?(dl>0?'+':'')+dl.toFixed(2):'&mdash;';
-    const strength=Math.abs(dl)>=0.474?'large':Math.abs(dl)>=0.33?'medium'
-      :Math.abs(dl)>=0.147?'small':'negligible';
-    return `<button type="button" class="gcard" data-met="${met}"
-      title="Open ${lab} in the plot below">
+    const ok=Number.isFinite(dl)&&c.length&&h.length;
+    const mag=ok?Math.abs(dl):-1;
+    const strength=!ok?'not comparable':mag>=0.474?'large':mag>=0.33?'medium'
+      :mag>=0.147?'small':'negligible';
+    // a bar for the delta, so the size is scannable without reading the number
+    const bar=ok?`<span class="dbar"><i class="${dl>0?'pos':'neg'}"
+      style="width:${(mag*50).toFixed(1)}%"></i></span>`:'<span class="dbar"></span>';
+    cards.push({met,mag,html:`<button type="button" class="gcard${ok&&mag>=0.33?' strong':''}"
+      data-met="${met}" title="Open ${lab} in the plot below">
       <span class="gtop"><span class="glab">${lab}</span>
-        <span class="gd ${Math.abs(dl)>=0.33?'on':''}">&delta; ${dtxt}</span></span>
+        <span class="gd${ok&&mag>=0.33?' on':''}">${ok?(dl>0?'+':'')+dl.toFixed(2):'&mdash;'}</span></span>
+      ${bar}
       <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" aria-hidden="true">
         <line x1="${PAD}" x2="${W-PAD}" y1="${H/2}" y2="${H/2}" class="gaxis"/>
-        ${C.map(r=>dot(r,H/2-13,'is-chem')).join('')}
-        ${H2.map(r=>dot(r,H/2+13,'is-hpf')).join('')}
-        ${tick(c,H/2-13,'is-chem')}${tick(h,H/2+13,'is-hpf')}
+        ${C.map(r=>dot(r,H/2-12,'is-chem')).join('')}
+        ${H2.map(r=>dot(r,H/2+12,'is-hpf')).join('')}
+        ${tick(c,H/2-12,'is-chem')}${tick(h,H/2+12,'is-hpf')}
       </svg>
-      <span class="gfoot">${strength}${Number.isFinite(dl)&&dl!==0?
-        (dl>0?' &middot; chemical higher':' &middot; HPF higher'):''}</span>
-    </button>`;
-  }).join('')||'<p class="muted">No headline metric has values in this slice.</p>';
+      <span class="gfoot">${strength}${ok&&dl!==0?
+        (dl>0?' &middot; chemical higher':' &middot; HPF higher'):''}
+        <span class="gn">${c.length}v${h.length}</span></span>
+    </button>`});
+  }
+  if(gOrder==='effect')cards.sort((a,b)=>b.mag-a.mag);
+  host.innerHTML=cards.map(c=>c.html).join('')||
+    '<p class="muted">No headline metric has values in this slice.</p>';
+
+  // the headline: the largest separation in this slice, said in words
+  const top=cards.slice().sort((a,b)=>b.mag-a.mag)[0];
+  const lab=top?(GLANCE.find(g=>g[0]===top.met)||[])[1]:'';
+  $('headline').innerHTML=(!top||top.mag<0||thin)
+    ? 'Not enough crops on both sides here to compare.'
+    : (top.mag<0.147
+        ? `Nothing separates strongly in this slice &mdash; the largest, <b>${lab}</b>, is negligible.`
+        : `The largest separation here is <b>${lab}</b>.`);
 }
 
-/* Standing panels answer to the slice too: with a region chosen, only that
-   region's vignette is worth looking at. */
+/* The region vignettes are 4.4:1 strips of six panels each. Six of them stacked
+   is a page of texture nobody reads; one at full width, named, is a figure. The
+   picker follows the Region filter when one is set, so choosing a region above
+   brings its vignette with it. */
+let vigPick=null;
 function syncPanels(){
   const s=sel();
   const reg=(s.reg&&s.reg!=='All regions')?s.reg:null;
-  let shown=0, total=0;
-  document.querySelectorAll('.fig[data-region]').forEach(f=>{
-    total++;
-    const hit=!reg||f.dataset.region===reg;
-    f.hidden=!hit; if(hit)shown++;
-  });
-  const note=document.getElementById('vignote');
-  if(note)note.innerHTML=reg
-    ? `Showing <b>${shown}</b> of ${total}, for ${reg}. `+
-      '<button type="button" class="btnlink" id="allregions">Show every region</button>'
-    : `All ${total} regions with an arm on both sides.`;
+  const figs=[...document.querySelectorAll('.fig[data-region]')];
   const sec=document.getElementById('vigsection');
-  if(sec)sec.hidden=shown===0;
+  if(!figs.length){ if(sec)sec.hidden=true; return; }
+  if(sec)sec.hidden=false;
+  const names=figs.map(f=>f.dataset.region);
+  // the region filter wins; otherwise whatever was last picked, else the first
+  let want=(reg&&names.includes(reg))?reg
+         :(vigPick&&names.includes(vigPick))?vigPick:names[0];
+  vigPick=want;
+  figs.forEach(f=>{f.hidden=f.dataset.region!==want});
+  const pick=document.getElementById('regpick');
+  if(pick)pick.innerHTML=names.map(n=>
+    `<button type="button" class="btn${n===want?' on':''}" data-vig="${n}">${n}</button>`).join('');
+  const note=document.getElementById('vignote');
+  if(note)note.innerHTML=(reg&&names.includes(reg))
+    ? `Following the <b>${reg}</b> region filter above.`
+    : `Six regions have crops in both preparations. Showing <b>${want}</b>.`;
 }
 
 function draw(){
   const s=sel();
+  sliceSum();
   let d=ROWS.filter(r=>r.run===s.run&&r.metric_family===s.fam&&r.metric===s.met
         &&Number.isFinite(r.value));
   d=slice(d,s);
@@ -442,6 +574,21 @@ function drawTable(){
   const n=keep.length, all=TROWS.length;
   const cap=document.getElementById('tblcount');
   if(cap)cap.textContent=n===all?`${all} crops`:`${n} of ${all} crops`;
+  clipTable(n);
+}
+
+/* Fifty-five rows is a wall in the middle of a page people are scrolling
+   through for something else. The table opens at a readable height with the
+   count on the button, so nothing is hidden -- it is just not in the way. */
+let tblOpen=false;
+function clipTable(n){
+  const box=document.getElementById('tblbox'),
+        btn=document.getElementById('tblmore');
+  if(!box||!btn)return;
+  const many=n>14;
+  box.classList.toggle('clip',many&&!tblOpen);
+  btn.hidden=!many;
+  btn.textContent=tblOpen?'Show fewer':`Show all ${n} rows`;
 }
 
 document.addEventListener('click',e=>{
@@ -490,9 +637,38 @@ document.addEventListener('click',e=>{
              document.getElementById('live').scrollIntoView({behavior:'smooth',block:'start'}); }
     return;
   }
-  if(e.target.id==='allregions'){ $('reg').value='All regions';
-    draw(); drawGlance(); syncPanels(); }
+  const ob=e.target.closest('#gorder [data-order]');
+  if(ob){ gOrder=ob.dataset.order;
+    document.querySelectorAll('#gorder .seg').forEach(b=>
+      b.classList.toggle('on',b===ob));
+    drawGlance(); return; }
+  const vb=e.target.closest('#regpick [data-vig]');
+  if(vb){ vigPick=vb.dataset.vig;
+    // a picked vignette should not fight a region filter that says otherwise
+    if($('reg').value!=='All regions'&&$('reg').value!==vigPick){
+      $('reg').value='All regions'; draw(); drawGlance(); }
+    syncPanels(); return; }
+  const sb=e.target.closest('#slicetoggle');
+  if(sb){ barTouched=true;
+    setBar($('filterbar').classList.contains('shut')); return; }
+  if(e.target.id==='tblmore'){ tblOpen=!tblOpen; drawTable();
+    if(!tblOpen)document.getElementById('tblbox')
+      .scrollIntoView({behavior:'smooth',block:'start'}); return; }
 });
+
+/* A sticky element's offsetTop is its stuck position, not its resting one, so
+   asking the bar where it lives always returns "right here". A sentinel above
+   it does not move, and leaving the viewport is exactly the moment the bar
+   becomes a floating strip rather than part of the page. */
+(function(){
+  const sn=$('fbtop'), fb=$('filterbar');
+  if(!sn||!fb||!('IntersectionObserver' in window))return;
+  new IntersectionObserver(([e])=>{
+    const stuck=!e.isIntersecting;
+    fb.classList.toggle('stuck',stuck);
+    if(stuck&&!barTouched&&!fb.classList.contains('shut'))setBar(false);
+  },{rootMargin:'-56px 0px 0px 0px',threshold:0}).observe(sn);
+})();
 let rt; addEventListener('resize',()=>{clearTimeout(rt);
   rt=setTimeout(()=>{draw();drawGlance()},150)});
 document.addEventListener('ecs:theme',()=>{draw();drawGlance()});
@@ -511,7 +687,7 @@ Promise.all([
                   met:q.get('metric')||'ecs_fraction',
                   grp:q.get('grp')||'region_group',
                   tis:'All tissues',vox:'All'});
-  draw(); drawGlance(); syncFamPanels(); syncPanels();
+  draw(); drawGlance(); syncFamPanels(); syncPanels(); sliceSum();
   const keep=()=>{const s=sel();const u=new URLSearchParams(
       {run:s.run,fam:s.fam,metric:s.met,grp:s.grp});
     history.replaceState(null,'',location.pathname+'?'+u.toString())};
