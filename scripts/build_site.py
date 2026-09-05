@@ -132,13 +132,14 @@ def build_index(long_rows, wide_rows, mets):
     </div>
   </div>
   <div class="art">
-    <model-viewer src="assets/art/hero.glb" camera-controls auto-rotate
+    <model-viewer id="hero" camera-controls auto-rotate
       auto-rotate-delay="1200" rotation-per-second="14deg" interaction-prompt="none"
       touch-action="pan-y" exposure="1.15" shadow-intensity="0"
       camera-orbit="auto auto 88%" min-field-of-view="12deg"
-      alt="The extracellular space of a cortex crop as a solid object, coloured by how far it is
-      through the space. Drag to rotate."></model-viewer>
-    <span class="cap">crop1033 &middot; cortex, chemical &middot; thickness through the space</span>
+      alt="The extracellular space as a solid object. Drag to rotate."></model-viewer>
+    <span class="cap">loading&hellip;</span>
+    <script>document.addEventListener('DOMContentLoaded',function(){{
+      ECS.mountHero(document.getElementById('hero'),'');}});</script>
   </div>
 </div></div>
 

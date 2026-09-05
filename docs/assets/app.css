@@ -158,6 +158,13 @@ header.top nav a[aria-current]{color:var(--ink);border-bottom-color:var(--ink)}
 .pagehead .inner{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s5)}
 .pagehead.has-art .inner{display:grid;grid-template-columns:1fr 210px;gap:var(--s5);
   align-items:center}
+.ph-model{position:relative}
+.ph-model model-viewer{display:block;width:100%;max-width:210px;height:190px;
+  background:transparent;cursor:grab;--poster-color:transparent}
+.ph-model model-viewer:active{cursor:grabbing}
+.ph-model model-viewer::part(default-progress-bar){display:none}
+.ph-model .cap{position:absolute;bottom:-20px;right:0;font-size:10.5px;
+  color:var(--night-ink-2);letter-spacing:.03em;white-space:nowrap}
 .ph-art img{display:block;width:100%;max-width:210px;height:auto;
   filter:drop-shadow(0 14px 34px rgba(0,0,0,.5)) saturate(1.05)}
 @media(max-width:820px){.pagehead.has-art .inner{grid-template-columns:1fr}.ph-art{display:none}}

@@ -411,9 +411,11 @@ Promise.all([
 
 
 def main():
-    html = sh.head("Analysis — ECS preservation", 0, EXTRA + FIG_STYLE)
+    html = sh.head("Analysis — ECS preservation", 0,
+                   '<script type="module" src="assets/model-viewer.min.js"></script>'
+                   + EXTRA + FIG_STYLE)
     html += sh.nav("explore.html", 0)
-    html += sh.pagehead_art("Analysis",
+    html += sh.pagehead_model("Analysis",
         "Every per-crop measurement the pipeline has produced, live at the top and as standing "
         "panels below. Each dot is one crop, chemical above the line and HPF below, with groups "
         'sharing one scale so they can be read against each other. '

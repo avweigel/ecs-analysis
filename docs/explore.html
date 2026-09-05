@@ -4,9 +4,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=78b07864">
-<script src="assets/site.js?v=78b07864"></script>
-<style>
+<link rel="stylesheet" href="assets/app.css?v=b1d93f31">
+<script src="assets/site.js?v=b1d93f31"></script>
+<script type="module" src="assets/model-viewer.min.js"></script><style>
  .strip{padding:0}
  .row{display:grid;grid-template-columns:200px 1fr 96px;gap:var(--s4);align-items:center;
       padding:9px 0;border-bottom:1px solid var(--rule)}
@@ -64,7 +64,7 @@
  .figs.pair{grid-template-columns:repeat(2,minmax(0,1fr))}
  @media(max-width:1100px){.figs.pair{grid-template-columns:1fr}}
  @media(max-width:900px){.fam{grid-template-columns:1fr;gap:var(--s3)}}
-</style></head><body><header class="top"><div class="wrap"><a class="brand" href="index.html">ECS preservation</a><nav><a href="explore.html" aria-current="page">Analysis</a><a href="crops.html">Crops</a><a href="reference.html">Reference</a></nav><button id="themetog" type="button">Auto</button></div></header><div class="pagehead has-art"><div class="inner"><div><h1>Analysis</h1><p>Every per-crop measurement the pipeline has produced, live at the top and as standing panels below. Each dot is one crop, chemical above the line and HPF below, with groups sharing one scale so they can be read against each other. <a href="reference.html#reading">How to read this.</a></p></div><div class="ph-art"><img src="assets/art/hero-curv.png" alt="" loading="eager"></div></div></div><main class="after-head">
+</style></head><body><header class="top"><div class="wrap"><a class="brand" href="index.html">ECS preservation</a><nav><a href="explore.html" aria-current="page">Analysis</a><a href="crops.html">Crops</a><a href="reference.html">Reference</a></nav><button id="themetog" type="button">Auto</button></div></header><div class="pagehead has-art"><div class="inner"><div><h1>Analysis</h1><p>Every per-crop measurement the pipeline has produced, live at the top and as standing panels below. Each dot is one crop, chemical above the line and HPF below, with groups sharing one scale so they can be read against each other. <a href="reference.html#reading">How to read this.</a></p></div><div class="ph-art ph-model"><model-viewer id="hero" camera-controls auto-rotate auto-rotate-delay="900" rotation-per-second="16deg" interaction-prompt="none" touch-action="pan-y" exposure="1.15" shadow-intensity="0" camera-orbit="auto auto 92%" min-field-of-view="12deg" alt="The extracellular space as a solid object. Drag to rotate."></model-viewer><span class="cap">loading&hellip;</span><script>document.addEventListener('DOMContentLoaded',function(){ECS.mountHero(document.getElementById('hero'),'');});</script></div></div></div><main class="after-head">
 
 <nav class="onpage" aria-label="On this page">
   <span>On this page</span>

@@ -93,7 +93,7 @@ scripts/
   build_crops.py        -> docs/crops.html (+ the inspector pointer)
   build_figures_page.py the panel definitions, and docs/figures.html (the pointer)
   make_ecs_surfaces.py  -> docs/membranes/ecs/*.bin, the ECS surfaces
-  make_ecs_hero.py      -> docs/assets/art/hero.glb
+  make_ecs_hero.py      -> docs/assets/art/hero/*.glb, the hero objects
   build_views_page.py   -> docs/membranes/views.html
   retheme_legacy.py     puts the older membrane pages on the shared shell
 

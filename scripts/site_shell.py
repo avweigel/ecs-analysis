@@ -121,6 +121,27 @@ def pagehead_art(title: str, lede: str = "", wide: bool = False,
             f'</div></div>')
 
 
+def pagehead_model(title: str, lede: str = "", wide: bool = False,
+                   depth: int = 0) -> str:
+    """Title band with a hero object you can turn, dealt on load like the
+    front page's. Needs model-viewer in the page head."""
+    cls = "pagehead wide has-art" if wide else "pagehead has-art"
+    r = _rel(depth)
+    return (f'<div class="{cls}"><div class="inner">'
+            f'<div><h1>{title}</h1>' + (f'<p>{lede}</p>' if lede else "") + '</div>'
+            '<div class="ph-art ph-model">'
+            '<model-viewer id="hero" camera-controls auto-rotate '
+            'auto-rotate-delay="900" rotation-per-second="16deg" '
+            'interaction-prompt="none" touch-action="pan-y" exposure="1.15" '
+            'shadow-intensity="0" camera-orbit="auto auto 92%" '
+            'min-field-of-view="12deg" '
+            'alt="The extracellular space as a solid object. Drag to rotate."></model-viewer>'
+            '<span class="cap">loading&hellip;</span>'
+            "<script>document.addEventListener('DOMContentLoaded',function(){"
+            f"ECS.mountHero(document.getElementById('hero'),'{r}');}});</script>"
+            '</div></div></div>')
+
+
 PREP_LEGEND = (
     '<div class="legend">'
     '<span class="item"><i class="sw" style="background:var(--chem)"></i>Chemical fixation</span>'

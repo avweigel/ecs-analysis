@@ -1,13 +1,5 @@
 # ECS preservation — data to publish to S3
 
-For the crop links on <https://avweigel.github.io/ecs-analysis/crops.html> to work off-VPN.
-
-**Please put these in the bucket but don't make them live on OpenOrganelle** — we'd rather
-they weren't listed on the portal, just reachable at the object store.
-
-Same paths as NRS, `recon-1/em/<array>` and `recon-1/labels/groundtruth/<crop>`. The site
-only reads `all` from each crop.
-
 ## Needed
 
 | dataset | image | crops |
@@ -76,9 +68,3 @@ jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1125
 jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1126
 jrc_mus-liver-8/jrc_mus-liver-8.zarr/recon-1/labels/groundtruth/crop1127
 ```
-
-Bucket needs public read + CORS. Whatever bucket you use, tell me and I'll point the site at
-it — it's one constant (`PUBLIC_S3_BASE` in `scripts/build_neuroglancer.py`).
-
-`python scripts/build_neuroglancer.py --probe` re-checks the bucket and updates the site's
-per-dataset status, so run it after a batch and the links switch over on their own.

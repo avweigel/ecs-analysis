@@ -77,8 +77,33 @@
     };
   }
 
+  /* The hero object, dealt on load.
+
+     Eight crops, two per tissue and one of each preparation, so a refresh
+     shows a different tissue and quietly shows the comparison too. The caption
+     always says which crop you are looking at, because an unlabelled render is
+     decoration and a labelled one is data. */
+  function mountHero(el, base) {
+    if (!el) return;
+    var cap = el.parentNode.querySelector('.cap');
+    fetch((base || '') + 'assets/art/hero/index.json')
+      .then(function (r) { return r.json(); })
+      .then(function (list) {
+        if (!list || !list.length) return;
+        var h = list[Math.floor(Math.random() * list.length)];
+        el.src = (base || '') + 'assets/art/hero/' + h.file;
+        el.alt = 'The extracellular space of ' + h.crop + ', ' +
+                 h.tissue.toLowerCase() + ', ' + h.prep.toLowerCase() +
+                 ', as a solid coloured by how far it is through the space.';
+        if (cap) cap.textContent = h.crop + ' \u00b7 ' + h.tissue.toLowerCase() +
+          ', ' + h.prep.toLowerCase() + ' \u00b7 thickness through the space';
+      })
+      .catch(function () {});
+  }
+
   window.ECS = {
     filterMenu: filterMenu,
+    mountHero: mountHero,
     mountTheme: function (btn) {
       if (!btn) return;
       btn.textContent = label();

@@ -1,0 +1,82 @@
+[
+ {
+  "crop": "crop1035",
+  "file": "crop1035.glb",
+  "tissue": "Cortex",
+  "prep": "Chemical",
+  "region": "Neuronal cell processes",
+  "scalar": "thickness",
+  "faces": 26936,
+  "bytes": 539880
+ },
+ {
+  "crop": "crop1142",
+  "file": "crop1142.glb",
+  "tissue": "Cortex",
+  "prep": "Rapid HPF",
+  "region": "Unmyelinated nerve fibers",
+  "scalar": "thickness",
+  "faces": 133208,
+  "bytes": 2664168
+ },
+ {
+  "crop": "crop1147",
+  "file": "crop1147.glb",
+  "tissue": "Heart",
+  "prep": "Chemical",
+  "region": "Intercalated disc",
+  "scalar": "thickness",
+  "faces": 52432,
+  "bytes": 1049644
+ },
+ {
+  "crop": "crop1151",
+  "file": "crop1151.glb",
+  "tissue": "Heart",
+  "prep": "Rapid HPF",
+  "region": "Intercalated disc",
+  "scalar": "thickness",
+  "faces": 67422,
+  "bytes": 1349380
+ },
+ {
+  "crop": "crop1031",
+  "file": "crop1031.glb",
+  "tissue": "Kidney",
+  "prep": "Chemical",
+  "region": "PCT lateral",
+  "scalar": "thickness",
+  "faces": 19072,
+  "bytes": 382436
+ },
+ {
+  "crop": "crop1136",
+  "file": "crop1136.glb",
+  "tissue": "Kidney",
+  "prep": "Rapid HPF",
+  "region": "DCT base",
+  "scalar": "thickness",
+  "faces": 68592,
+  "bytes": 1372780
+ },
+ {
+  "crop": "crop1121",
+  "file": "crop1121.glb",
+  "tissue": "Liver",
+  "prep": "Chemical",
+  "region": "Hepatocyte lateral",
+  "scalar": "thickness",
+  "faces": 13902,
+  "bytes": 283416
+ },
+ {
+  "crop": "crop1072",
+  "file": "crop1072.glb",
+  "tissue": "Liver",
+  "prep": "Rapid HPF",
+  "region": "Bile canaliculus",
+  "scalar": "thickness",
+  "faces": 27182,
+  "bytes": 544480
+ }
+]
