@@ -233,6 +233,33 @@ p{margin:0 0 var(--s3)}
 .jump .d{color:var(--ink-3);font-size:var(--t4)}
 @media(max-width:640px){.jump a{flex-wrap:wrap;gap:var(--s3)}.jump .d{flex-basis:100%}}
 
+/* ── at a glance ─────────────────────────────────────────
+   Eleven small multiples, one per headline metric, all answering to the same
+   filter. The point is that a whole slice of the study fits on one screen:
+   where the two preparations separate, and by how much. */
+.glance{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));
+  gap:var(--s3);margin:var(--s4) 0 var(--s5)}
+.gcard{display:flex;flex-direction:column;gap:2px;text-align:left;cursor:pointer;
+  background:var(--raise);border:1px solid var(--rule);border-radius:var(--radius);
+  padding:var(--s3);font:inherit;color:var(--ink);transition:border-color .15s}
+.gcard:hover{border-color:var(--accent)}
+.gcard .gtop{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s2)}
+.gcard .glab{font-size:var(--t4);font-weight:600}
+.gcard .gd{font-size:var(--t5);color:var(--ink-3);font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+.gcard .gd.on{color:var(--ink);font-weight:600}
+.gcard .gfoot{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+.gcard svg{display:block;overflow:visible}
+.gaxis{stroke:var(--rule);stroke-width:1}
+.gdot.is-chem{fill:var(--chem);fill-opacity:.8}
+.gdot.is-hpf{fill:var(--hpf);fill-opacity:.8}
+.gmed{stroke-width:2;stroke-linecap:round}
+.gmed.is-chem{stroke:var(--chem)}
+.gmed.is-hpf{stroke:var(--hpf)}
+.btnlink{background:none;border:0;padding:0;font:inherit;color:var(--accent);cursor:pointer;
+  text-decoration:underline}
+.fig[hidden]{display:none!important}
+
 /* ── sortable, filterable tables ─────────────────────────
    The crop table and the explorer's table share this: a sort arrow on the
    active column, a filter button on every categorical one, and one popover

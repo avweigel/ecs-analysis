@@ -74,6 +74,7 @@ function fill(sel,vals,cur,labeller){
   if(cur!==undefined&&vals.includes(cur))sel.value=cur;
 }
 function sel(){return {run:$('run').value,fam:$('fam').value,met:$('met').value,
+  reg:$('reg').value,
   grp:$('grp').value,tis:$('tis').value,vox:$('vox').value};}
 
 function refreshOptions(pre){
@@ -86,6 +87,10 @@ function refreshOptions(pre){
   fill($('met'),uniq(inFam.map(r=>r.metric)).sort((a,b)=>label(a).localeCompare(label(b))),
        s.met,label);
   fill($('tis'),['All tissues',...uniq(ROWS.map(r=>r.tissue)).sort()],s.tis);
+  // regions follow the tissue, so the two filters cannot contradict each other
+  const inTis=(s.tis&&s.tis!=='All tissues')?ROWS.filter(r=>r.tissue===s.tis):ROWS;
+  fill($('reg'),['All regions',...uniq(inTis.map(r=>r.region_group)).filter(Boolean).sort()],
+       s.reg);
   fill($('vox'),['All',...uniq(inFam.map(r=>r.analysis_voxel_nm)).sort((a,b)=>a-b).map(String)],s.vox);
 }
 
@@ -102,12 +107,109 @@ function describe(){
           <div class="cavbody">${cav}</div></details>`:'');
 }
 
+/* One slice, applied everywhere: the live plot, the at-a-glance grid, the
+   table and the standing panels all answer to these. */
+function slice(rows,s){
+  let d=rows;
+  if(s.tis&&s.tis!=='All tissues')d=d.filter(r=>r.tissue===s.tis);
+  if(s.reg&&s.reg!=='All regions')d=d.filter(r=>(r.region_group||'')===s.reg);
+  if(s.vox&&s.vox!=='All')d=d.filter(r=>String(r.analysis_voxel_nm)===s.vox);
+  return d;
+}
+
+/* Cliff's delta: the chance a chemical crop reads higher than an HPF one,
+   minus the chance it reads lower. Non-parametric, and it survives the tiny
+   group sizes here better than a difference of means would. */
+function cliff(a,b){
+  if(!a.length||!b.length)return NaN;
+  let gt=0,lt=0;
+  for(const x of a)for(const y of b){ if(x>y)gt++; else if(x<y)lt++; }
+  return (gt-lt)/(a.length*b.length);
+}
+
+/* The eleven metrics the effect matrix uses, so the live summary and the
+   published panel are answering with the same numbers. */
+const GLANCE=[['ecs_fraction','ECS fraction'],
+  ['narrow_percentiles_nm_p50','ECS width p50'],
+  ['percentiles_nm_p50','Cell-to-cell gap p50'],
+  ['contact_fractions_p40','Contact under 40 nm'],
+  ['sa_v_ecs_per_nm','SA:V (ECS)'],
+  ['cell_density_per_um3','Cell density'],
+  ['roughness_rms_nm_p60','Roughness 60 nm'],
+  ['curvature_std_per_nm','Curvature spread'],
+  ['fraction_concave','Fraction concave'],
+  ['protrusion_density_per_um2','Protrusion density'],
+  ['indentation_density_per_um2','Indentation density']];
+
+function drawGlance(){
+  const s=sel(), host=$('glance'); if(!host)return;
+  const box=slice(ROWS.filter(r=>r.run===s.run&&Number.isFinite(r.value)),s);
+  const crops=new Set(box.map(r=>r.crop));
+  const nc=new Set(box.filter(r=>r.prep==='Chemical').map(r=>r.crop)).size;
+  const nh=new Set(box.filter(r=>r.prep==='Rapid HPF').map(r=>r.crop)).size;
+  $('glancecount').innerHTML=
+    `<b>${crops.size}</b> crop${crops.size===1?'':'s'} in this slice &mdash; `+
+    `<span class="tag chem">${nc} chemical</span> <span class="tag hpf">${nh} rapid HPF</span>`+
+    (Math.min(nc,nh)<2?' <span class="flag">an arm of one or none: no comparison</span>':'');
+  const W=232,H=74,PAD=10;
+  host.innerHTML=GLANCE.map(([met,lab])=>{
+    const d=box.filter(r=>r.metric===met);
+    if(!d.length)return '';
+    const C=d.filter(r=>r.prep==='Chemical'), H2=d.filter(r=>r.prep==='Rapid HPF');
+    const c=C.map(r=>r.value), h=H2.map(r=>r.value);
+    const all=c.concat(h);
+    const lo=Math.min(...all), hi=Math.max(...all), span=(hi-lo)||1;
+    const x=v=>PAD+(v-lo)/span*(W-2*PAD);
+    // every dot names its crop and value: at a glance first, then on inspection
+    const dot=(r,y,cl)=>`<circle cx="${x(r.value).toFixed(1)}" cy="${y}" r="3.1" class="gdot ${cl}"><title>${
+      r.crop} · ${r.prep} · ${fmt(r.value)}${unit(met)?' '+unit(met):''}</title></circle>`;
+    const tick=(vals,y,cl)=>{const m=med(vals);return Number.isFinite(m)
+      ?`<line x1="${x(m).toFixed(1)}" x2="${x(m).toFixed(1)}" y1="${y-8}" y2="${y+8}" class="gmed ${cl}"/>`:''};
+    const dl=cliff(c,h);
+    const dtxt=Number.isFinite(dl)?(dl>0?'+':'')+dl.toFixed(2):'&mdash;';
+    const strength=Math.abs(dl)>=0.474?'large':Math.abs(dl)>=0.33?'medium'
+      :Math.abs(dl)>=0.147?'small':'negligible';
+    return `<button type="button" class="gcard" data-met="${met}"
+      title="Open ${lab} in the plot below">
+      <span class="gtop"><span class="glab">${lab}</span>
+        <span class="gd ${Math.abs(dl)>=0.33?'on':''}">&delta; ${dtxt}</span></span>
+      <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" aria-hidden="true">
+        <line x1="${PAD}" x2="${W-PAD}" y1="${H/2}" y2="${H/2}" class="gaxis"/>
+        ${C.map(r=>dot(r,H/2-13,'is-chem')).join('')}
+        ${H2.map(r=>dot(r,H/2+13,'is-hpf')).join('')}
+        ${tick(c,H/2-13,'is-chem')}${tick(h,H/2+13,'is-hpf')}
+      </svg>
+      <span class="gfoot">${strength}${Number.isFinite(dl)&&dl!==0?
+        (dl>0?' &middot; chemical higher':' &middot; HPF higher'):''}</span>
+    </button>`;
+  }).join('')||'<p class="muted">No headline metric has values in this slice.</p>';
+}
+
+/* Standing panels answer to the slice too: with a region chosen, only that
+   region's vignette is worth looking at. */
+function syncPanels(){
+  const s=sel();
+  const reg=(s.reg&&s.reg!=='All regions')?s.reg:null;
+  let shown=0, total=0;
+  document.querySelectorAll('.fig[data-region]').forEach(f=>{
+    total++;
+    const hit=!reg||f.dataset.region===reg;
+    f.hidden=!hit; if(hit)shown++;
+  });
+  const note=document.getElementById('vignote');
+  if(note)note.innerHTML=reg
+    ? `Showing <b>${shown}</b> of ${total}, for ${reg}. `+
+      '<button type="button" class="btnlink" id="allregions">Show every region</button>'
+    : `All ${total} regions with an arm on both sides.`;
+  const sec=document.getElementById('vigsection');
+  if(sec)sec.hidden=shown===0;
+}
+
 function draw(){
   const s=sel();
   let d=ROWS.filter(r=>r.run===s.run&&r.metric_family===s.fam&&r.metric===s.met
         &&Number.isFinite(r.value));
-  if(s.tis&&s.tis!=='All tissues')d=d.filter(r=>r.tissue===s.tis);
-  if(s.vox&&s.vox!=='All')d=d.filter(r=>String(r.analysis_voxel_nm)===s.vox);
+  d=slice(d,s);
   describe();
   // the headline comparison: both medians and the gap between them
   const RO=$('readout');
@@ -262,10 +364,27 @@ function syncFamPanels(){
   const box=document.getElementById('fampanels');
   if(box) box.hidden = !box.querySelector('.fam:not([hidden])');
 }
-['run','fam'].forEach(i=>$(i).addEventListener('change',()=>{refreshOptions();draw();syncFamPanels()}));
-['met','grp','tis','vox'].forEach(i=>$(i).addEventListener('change',draw));
-let rt; addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(draw,150)});
-document.addEventListener('ecs:theme',()=>draw());
+['run','fam','tis'].forEach(i=>$(i).addEventListener('change',
+  ()=>{refreshOptions();draw();drawGlance();syncFamPanels();syncPanels()}));
+['met','grp','vox','reg'].forEach(i=>$(i).addEventListener('change',
+  ()=>{draw();drawGlance();syncPanels()}));
+
+// a glance card promotes its metric into the plot below
+document.addEventListener('click',e=>{
+  const g=e.target.closest('.gcard'); if(g){
+    const met=g.dataset.met;
+    const row=ROWS.find(r=>r.metric===met);
+    if(row){ $('fam').value=row.metric_family; refreshOptions();
+             $('met').value=met; draw(); syncFamPanels();
+             document.getElementById('live').scrollIntoView({behavior:'smooth',block:'start'}); }
+    return;
+  }
+  if(e.target.id==='allregions'){ $('reg').value='All regions';
+    draw(); drawGlance(); syncPanels(); }
+});
+let rt; addEventListener('resize',()=>{clearTimeout(rt);
+  rt=setTimeout(()=>{draw();drawGlance()},150)});
+document.addEventListener('ecs:theme',()=>{draw();drawGlance()});
 
 Promise.all([
   fetch('data/all_metrics_long.csv').then(r=>r.text()),
@@ -281,7 +400,7 @@ Promise.all([
                   met:q.get('metric')||'ecs_fraction',
                   grp:q.get('grp')||'region_group',
                   tis:'All tissues',vox:'All'});
-  draw(); syncFamPanels();
+  draw(); drawGlance(); syncFamPanels(); syncPanels();
   const keep=()=>{const s=sel();const u=new URLSearchParams(
       {run:s.run,fam:s.fam,metric:s.met,grp:s.grp});
     history.replaceState(null,'',location.pathname+'?'+u.toString())};
@@ -305,13 +424,13 @@ def main():
 
 <nav class="onpage" aria-label="On this page">
   <span>On this page</span>
+  <a href="#glancesec">At a glance</a>
   <a href="#live">One metric, live</a>
   <a href="#matrix">Every metric at once</a>
   <a href="#vignettes">One region, every metric</a>
   <a href="#renders">Pictures of the geometry</a>
 </nav>
 
-<h2 id="live" class="sec-first">One metric, live</h2>
 <div class="controls">
   <div class="ctl"><label for="run">Run</label><select id="run"></select></div>
   <div class="ctl"><label for="fam">Metric family</label><select id="fam"></select></div>
@@ -320,9 +439,19 @@ def main():
     <option value="region_group">Region</option><option value="tissue">Tissue</option>
     <option value="anatomy">Anatomy</option></select></div>
   <div class="ctl"><label for="tis">Tissue</label><select id="tis"></select></div>
+  <div class="ctl"><label for="reg">Region</label><select id="reg"></select></div>
   <div class="ctl"><label for="vox">Analysis voxel</label><select id="vox"></select></div>
 </div>
 
+<h2 id="glancesec" class="sec-first">At a glance</h2>
+<p class="lede" id="glancecount"></p>
+<p class="note">Eleven headline metrics for the crops the filters above leave in, chemical over
+rapid HPF, with Cliff's &delta; for each &mdash; the chance a chemical crop reads higher than an
+HPF one, minus the chance it reads lower. Click any card to open that metric in the plot below.
+Every number here is computed in the page from the same CSV the table reads.</p>
+<div class="glance" id="glance"></div>
+
+<h2 id="live">One metric, live</h2>
 <div id="about"></div>
 <div class="readout" id="readout"></div>
 

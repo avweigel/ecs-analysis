@@ -155,6 +155,16 @@ FIG_STYLE = """<style>
 </style>"""
 
 
+VIGNETTE_REGION = {
+    "vignette_bile_canaliculus.png": "Bile canaliculus",
+    "vignette_hepatocyte_lateral.png": "Hepatocyte lateral",
+    "vignette_glomerular.png": "Glomerular",
+    "vignette_tubule_basal.png": "Tubule basal",
+    "vignette_cardiac_interstitial.png": "Cardiac interstitial",
+    "vignette_intercalated_disc.png": "Intercalated disc",
+}
+
+
 def fig_cards(figs, missing=None):
     cards, n = "", 0
     for fn, label, blurb in figs:
@@ -163,7 +173,9 @@ def fig_cards(figs, missing=None):
                 missing.append(fn)
             continue
         n += 1
-        cards += (f'<figure class="fig"><a href="figures/{fn}" target="_blank" rel="noopener">'
+        reg = VIGNETTE_REGION.get(fn)
+        attr = f' data-region="{reg}"' if reg else ""
+        cards += (f'<figure class="fig"{attr}><a href="figures/{fn}" target="_blank" rel="noopener">'
                   f'<img src="figures/{fn}" loading="lazy" alt="{label}"></a>'
                   f'<figcaption><b>{label}</b><span>{blurb}</span></figcaption></figure>')
     return cards, n
@@ -179,6 +191,12 @@ def sections_html(missing=None):
             continue
         slug = SLUGS.get(title, "")
         head = f'<h2 id="{slug}">{title}</h2>' if slug else f'<h2>{title}</h2>'
+        if slug == "vignettes":
+            body += ('<section id="vigsection">' + head +
+                     '<p class="note" id="vignote"></p>' +
+                     EXTRA_LINE.get(title, "") +
+                     f'<div class="figs">{cards}</div></section>')
+            continue
         body += head + EXTRA_LINE.get(title, "") + f'<div class="figs">{cards}</div>'
     return body, n
 

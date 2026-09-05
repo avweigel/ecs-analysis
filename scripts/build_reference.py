@@ -199,6 +199,19 @@ one you should look at depends on what you are asking.</p>
   row, and the <a href="index.html#coverage">coverage table</a> lists them.</div>
 </div>
 
+<h2 id="delta">Cliff's &delta;, which the summary cards use</h2>
+<div class="card">
+  <p style="color:var(--ink-2);margin-top:0">For a metric and a slice of crops, &delta; is the
+  chance that a chemical crop reads higher than a rapid-HPF one, minus the chance it reads lower.
+  It runs from &minus;1 to +1; zero means the two are indistinguishable. It is non-parametric,
+  which matters here because most groups have a handful of crops and no reason to be normal.</p>
+  <p class="note" style="margin:0">The words on the cards follow the usual thresholds:
+  |&delta;| under 0.147 is <b>negligible</b>, under 0.33 <b>small</b>, under 0.474
+  <b>medium</b>, and above that <b>large</b>. They describe the size of the separation, not
+  whether it would survive a significance test &mdash; with two crops against three, nothing
+  would.</p>
+</div>
+
 <h2 id="surfaces">The two surfaces in the viewer</h2>
 <p class="lede">The <a href="crops.html">crop page</a> can show either side of the same
 boundary. They are built differently, and the difference matters when you compare them.</p>
