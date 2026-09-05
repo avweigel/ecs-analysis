@@ -34,7 +34,7 @@ REGION_ALIASES: dict[str, set[str]] = {
 }
 
 PREP_ORDER = ["Chemical", "Rapid HPF"]
-PREP_COLOR = {"Chemical": "#d62728", "Rapid HPF": "#1f77b4"}
+from palette import PREP_COLOR
 
 # (metric_file, column, short label) — one representative per analysis family.
 PANELS = [

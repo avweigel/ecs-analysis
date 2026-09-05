@@ -57,7 +57,10 @@ COLUMNS = {
 }
 
 TISSUE_ORDER = ["Kidney", "Heart", "Liver", "Cortex"]
-PREP_COLORS = {"Chemical": "#d62728", "Rapid HPF": "#1f77b4"}
+try:                                   # `python -m scripts.make_figures`
+    from scripts.palette import PREP_COLORS
+except ImportError:                     # `python scripts/make_figures.py`
+    from palette import PREP_COLORS
 
 
 def safe_float(v):

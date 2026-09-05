@@ -25,7 +25,7 @@ EM_ARRAY = {
     "jrc_mus-liver-8": "fibsem-uint16",
 }
 
-PREP_COLOR = {"Chemical": "#f97316", "Rapid HPF": "#0ea5e9"}
+from palette import PREP_COLOR
 
 
 def ng_url(dataset: str, crop: str) -> str:

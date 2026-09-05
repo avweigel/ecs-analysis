@@ -90,7 +90,7 @@ GROUPS = [
     },
 ]
 
-PREP_COLOR = {"Chemical": "#f97316", "Rapid HPF": "#0ea5e9"}
+from palette import PREP_COLOR
 PREP_LIGHT = {"Chemical": "#fed7aa", "Rapid HPF": "#bae6fd"}
 
 # Headline metrics to show in the summary + per-crop card.

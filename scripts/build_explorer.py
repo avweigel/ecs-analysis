@@ -74,7 +74,7 @@ function fill(sel,vals,cur,labeller){
   if(cur!==undefined&&vals.includes(cur))sel.value=cur;
 }
 function sel(){return {run:$('run').value,fam:$('fam').value,met:$('met').value,
-  reg:$('reg').value,
+  reg:$('reg').value,scale:$('scale').value,
   grp:$('grp').value,tis:$('tis').value,vox:$('vox').value};}
 
 function refreshOptions(pre){
@@ -240,21 +240,39 @@ function draw(){
   const groups=uniq(d.map(key)).sort();
   const vals=d.map(r=>r.value);
   const dmin=Math.min(...vals), dmax=Math.max(...vals);
+  /* A log axis needs positive values, and several of these metrics are
+     fractions that legitimately reach zero; offering log where it cannot be
+     drawn would be a lie, so the control says so and falls back. */
+  const canLog=dmin>0;
+  const logOn=s.scale==='log'&&canLog;
+  $('scale').title=canLog?'':'This metric reaches zero, so a log axis is not available';
+  $('scale').classList.toggle('muted',!canLog);
   let lo=dmin,hi=dmax;
   if(lo===hi){const e=Math.abs(lo||1)*.05;lo-=e;hi+=e;}
-  const pad=(hi-lo)*.06; lo-=pad; hi+=pad;
-  if(dmin>=0&&lo<0)lo=0;
-  if(dmax<=0&&hi>0)hi=0;
-  const M=11, X=v=>M+((v-lo)/(hi-lo))*(W-2*M), H=36, R=5.5;
+  if(logOn){ lo=dmin/1.15; hi=dmax*1.15; }
+  else{
+    const pad=(hi-lo)*.06; lo-=pad; hi+=pad;
+    if(dmin>=0&&lo<0)lo=0;
+    if(dmax<=0&&hi>0)hi=0;
+  }
+  // an explicit range wins over anything computed
+  const ulo=parseFloat($('axlo').value), uhi=parseFloat($('axhi').value);
+  if(Number.isFinite(ulo))lo=ulo;
+  if(Number.isFinite(uhi))hi=uhi;
+  if(logOn&&lo<=0)lo=dmin/1.15;
+  const T=v=>logOn?Math.log10(Math.max(v,1e-12)):v;
+  const M=11, X=v=>M+((T(v)-T(lo))/((T(hi)-T(lo))||1))*(W-2*M), H=36, R=5.5;
 
   let html='';
-  const ticks=[lo,(lo+hi)/2,hi];
+  const ticks=logOn
+    ? [lo,Math.sqrt(lo*hi),hi]
+    : [lo,(lo+hi)/2,hi];
   html+=`<div class="row" style="border-bottom:1px solid var(--rule);padding-bottom:6px">
     <div></div><div><svg width="${W}" height="15" viewBox="0 0 ${W} 15" class="axis">
     ${ticks.map((t,i)=>{const a=i===0?'start':(i===2?'end':'middle');
       return `<text x="${X(t).toFixed(1)}" y="11" text-anchor="${a}">${fmt(t)}</text>`}).join('')}
     </svg><div style="font-size:11px;color:var(--ink-3);text-align:center;margin-top:-2px">
-    ${unit($('met').value)||''}</div></div>
+    ${(unit($('met').value)||'')+(logOn?' &middot; log scale':'')}</div></div>
     <div class="ns">n chem / hpf</div></div>`;
 
   for(const g of groups){
@@ -366,8 +384,12 @@ function syncFamPanels(){
 }
 ['run','fam','tis'].forEach(i=>$(i).addEventListener('change',
   ()=>{refreshOptions();draw();drawGlance();syncFamPanels();syncPanels()}));
-['met','grp','vox','reg'].forEach(i=>$(i).addEventListener('change',
+['met','grp','vox','reg','scale'].forEach(i=>$(i).addEventListener('change',
   ()=>{draw();drawGlance();syncPanels()}));
+['axlo','axhi'].forEach(i=>$(i).addEventListener('input',draw));
+$('axauto').addEventListener('click',()=>{$('axlo').value='';$('axhi').value='';draw()});
+// a new metric has a new range: an old one held over would be meaningless
+$('met').addEventListener('change',()=>{$('axlo').value='';$('axhi').value=''});
 
 // a glance card promotes its metric into the plot below
 document.addEventListener('click',e=>{
@@ -443,6 +465,13 @@ def main():
   <div class="ctl"><label for="tis">Tissue</label><select id="tis"></select></div>
   <div class="ctl"><label for="reg">Region</label><select id="reg"></select></div>
   <div class="ctl"><label for="vox">Analysis voxel</label><select id="vox"></select></div>
+  <div class="ctl"><label for="scale">Axis</label><select id="scale">
+    <option value="linear">Linear</option><option value="log">Logarithmic</option>
+    </select></div>
+  <div class="ctl"><label for="axlo">Axis range</label>
+    <span class="rng"><input type="number" id="axlo" step="any" placeholder="auto">
+    <input type="number" id="axhi" step="any" placeholder="auto">
+    <button class="btn" id="axauto" type="button">Auto</button></span></div>
 </div>
 
 <h2 id="glancesec" class="sec-first">At a glance</h2>

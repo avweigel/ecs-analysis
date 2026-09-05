@@ -28,8 +28,8 @@
 
   /* one accent, plus the two data colours */
   --accent:#1f6feb;
-  --chem:#d0561f;
-  --hpf:#1f6feb;
+  --chem:#eb6834;
+  --hpf:#2a78d6;
   --flag:#b4470f;
 
   /* type: five sizes, nothing else */
@@ -46,14 +46,14 @@
     --bg:#12110f; --raise:#1a1815; --sunk:#221f1a;
     --rule:#2e2b25; --rule-strong:#433f36;
     --ink:#f5f2ea; --ink-2:#b5afa1; --ink-3:#8a8478;
-    --accent:#6fa8ff; --chem:#e87f4d; --hpf:#6fa8ff; --flag:#e08a52;
+    --accent:#6fa8ff; --chem:#d95926; --hpf:#3987e5; --flag:#e08a52;
   }
 }
 :root[data-theme="dark"]{
   --bg:#12110f; --raise:#1a1815; --sunk:#221f1a;
   --rule:#2e2b25; --rule-strong:#433f36;
   --ink:#f5f2ea; --ink-2:#b5afa1; --ink-3:#8a8478;
-  --accent:#6fa8ff; --chem:#e87f4d; --hpf:#6fa8ff; --flag:#e08a52;
+  --accent:#6fa8ff; --chem:#d95926; --hpf:#3987e5; --flag:#e08a52;
 }
 
 
