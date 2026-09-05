@@ -448,7 +448,8 @@ def main():
 <p class="note">Eleven headline metrics for the crops the filters above leave in, chemical over
 rapid HPF, with Cliff's &delta; for each &mdash; the chance a chemical crop reads higher than an
 HPF one, minus the chance it reads lower. Click any card to open that metric in the plot below.
-Every number here is computed in the page from the same CSV the table reads.</p>
+Every number here is computed in the page from the same CSV the table reads.
+<a href="reference.html#delta">What &delta; means.</a></p>
 <div class="glance" id="glance"></div>
 
 <h2 id="live">One metric, live</h2>
