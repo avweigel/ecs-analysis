@@ -75,10 +75,10 @@ ecs/
 
 docs/                   the published site (GitHub Pages serves this folder)
   index.html            overview, scope, and where the comparison is supported
-  explore.html          metric explorer over all 94 metrics
+  explore.html          Analysis: the live explorer plus every standing panel
   crops.html            per-crop table and the viewer, both surfaces
   reference.html        study design, how to read the charts, metric dictionary
-  figures.html          quantification: the effect matrix, region vignettes, renders
+  figures.html          a pointer into the Analysis page's sections
   membranes/            all 55 patches, paired 3D views, the methods in full
   data/                 the CSVs and metrics.json the pages read
   README.md             what is published, what is deliberately left out
@@ -88,10 +88,10 @@ scripts/
   build_metric_dictionary.py  names, units and caveats for all 94 metrics
   site_shell.py         shared header, nav and footer for every page
   build_site.py         -> docs/index.html
-  build_explorer.py     -> docs/explore.html
+  build_explorer.py     -> docs/explore.html (imports the panels from below)
   build_reference.py    -> docs/reference.html
   build_crops.py        -> docs/crops.html (+ the inspector pointer)
-  build_figures_page.py -> docs/figures.html
+  build_figures_page.py the panel definitions, and docs/figures.html (the pointer)
   make_ecs_surfaces.py  -> docs/membranes/ecs/*.bin, the ECS surfaces
   make_ecs_hero.py      -> docs/assets/art/hero.glb
   build_views_page.py   -> docs/membranes/views.html

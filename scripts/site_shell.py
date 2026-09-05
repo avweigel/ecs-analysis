@@ -9,11 +9,13 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
+# Three destinations. Explore and Quantification were the same data with and
+# without the controls on, which is a distinction for whoever built the site
+# and not for anyone reading it: they are one Analysis page now, and
+# figures.html is a pointer into its sections.
 NAV = [
-    ("explore.html",   "Explore"),
+    ("explore.html",   "Analysis"),
     ("crops.html",     "Crops"),
-    # "Figures" implied assembled manuscript figures. Nothing here is one.
-    ("figures.html",   "Quantification"),
     ("reference.html", "Reference"),
 ]
 
@@ -22,9 +24,10 @@ NAV = [
 # the membrane pages now live under Crops, which owns the viewer
 PARENT = {
     "membranes/index.html":     "crops.html",     # the contact sheet of all 55
-    "membranes/views.html":     "figures.html",   # paired 3D views per region
+    "membranes/views.html":     "explore.html",   # paired 3D views per region
     "membranes/methods.html":   "reference.html", # the methods in full
     "membranes/inspector.html": "crops.html",     # superseded; kept as a redirect
+    "figures.html":             "explore.html",   # merged in; kept as a pointer
     "index.html":               None,
 }
 

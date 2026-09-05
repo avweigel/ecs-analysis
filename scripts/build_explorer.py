@@ -8,6 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import site_shell as sh
+from build_figures_page import FIG_STYLE, family_block, sections_html
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -187,17 +188,61 @@ function draw(){
       (${thin.join(', ')}) ${thin.length>1?'have':'has'} an arm at n&nbsp;&le;&nbsp;1 and cannot
       support a comparison.`:'');
 
+  TROWS=d.slice();
+  drawTable();
+}
+
+/* ---- the table: same sorting and column filters as the crop page ---- */
+let TROWS=[], tsort={k:'crop',dir:1};
+const TCOLS=[['crop','Crop',0],['tissue','Tissue',1],['region_group','Region',1],
+             ['anatomy','Anatomy',1],['prep','Prep',1],
+             ['analysis_voxel_nm','Voxel nm',0],['value',null,0]];
+const TFILT={tissue:new Set(),region_group:new Set(),anatomy:new Set(),prep:new Set()};
+const TLABEL={tissue:'Tissue',region_group:'Region',anatomy:'Anatomy',prep:'Preparation'};
+const tvals=k=>[...new Set(TROWS.map(r=>r[k]||''))].filter(Boolean).sort()
+  .map(v=>({value:v,n:TROWS.filter(r=>(r[k]||'')===v).length}));
+const tmenu=ECS.filterMenu({label:k=>TLABEL[k],values:tvals,state:k=>TFILT[k],
+                            onchange:()=>drawTable()});
+
+function drawTable(){
+  const met=$('met').value;
+  const keep=TROWS.filter(r=>Object.keys(TFILT).every(k=>
+    !TFILT[k].size||TFILT[k].has(r[k]||'')));
+  keep.sort((a,b)=>{const x=a[tsort.k],y=b[tsort.k];
+    if(x===''||x==null)return 1; if(y===''||y==null)return -1;
+    return (typeof x==='number'&&typeof y==='number'?x-y:
+            (isFinite(x)&&isFinite(y)?parseFloat(x)-parseFloat(y):
+             String(x).localeCompare(String(y))))*tsort.dir});
+  const arrow=k=>tsort.k===k?`<i class="srt">${tsort.dir>0?'▲':'▼'}</i>`:'';
   const thd=$('tbl').querySelector('thead'), tb=$('tbl').querySelector('tbody');
-  thd.innerHTML='<tr><th>Crop</th><th>Tissue</th><th>Region</th><th class="wrap">Anatomy</th>'
-    +'<th>Prep</th><th class="num">Voxel nm</th><th class="num">'+label(s.met)
-    +(unit(s.met)?' <span style="font-weight:400;text-transform:none">('+unit(s.met)+')</span>':'')
-    +'</th></tr>';
-  tb.innerHTML=d.slice().sort((a,b)=>a.crop.localeCompare(b.crop)).map(r=>
-    `<tr><td><a href="crops.html?crop=${r.crop}" title="Open ${r.crop} in the viewer">${r.crop}</a></td><td>${r.tissue}</td><td>${r.region_group||''}</td>
+  thd.innerHTML='<tr>'+TCOLS.map(([k,lab,cat])=>{
+    const head=lab!==null?lab:label(met)+(unit(met)
+      ?' <span style="font-weight:400;text-transform:none">('+unit(met)+')</span>':'');
+    const num=(k==='analysis_voxel_nm'||k==='value')?' num':'';
+    const wrap=k==='anatomy'?' wrap':'';
+    const filt=cat?`<button class="fbtn${TFILT[k].size?' on':''}" data-f="${k}"
+        title="Filter by ${TLABEL[k].toLowerCase()}">▾</button>`:'';
+    return `<th class="sortable${num}${wrap}" data-k="${k}" title="Sort">${head}${arrow(k)}${filt}</th>`;
+  }).join('')+'</tr>';
+  tb.innerHTML=keep.map(r=>
+    `<tr><td><a href="crops.html?crop=${r.crop}" title="Open ${r.crop} in the viewer">${r.crop}</a></td>
+     <td>${r.tissue}</td><td>${r.region_group||''}</td>
      <td class="wrap">${r.anatomy||''}</td>
      <td><span class="tag ${PREP[r.prep]}">${r.prep}</span></td>
      <td class="num">${r.analysis_voxel_nm||''}</td><td class="num">${fmt(r.value)}</td></tr>`).join('');
+  const n=keep.length, all=TROWS.length;
+  const cap=document.getElementById('tblcount');
+  if(cap)cap.textContent=n===all?`${all} crops`:`${n} of ${all} crops`;
 }
+
+document.addEventListener('click',e=>{
+  const fb=e.target.closest('#tbl .fbtn');
+  if(fb){e.stopPropagation();tmenu.open(fb.dataset.f,fb);return}
+  const th=e.target.closest('#tbl thead th[data-k]');
+  if(!th)return;
+  const k=th.dataset.k;
+  tsort.dir=(tsort.k===k)?-tsort.dir:1; tsort.k=k; drawTable();
+});
 
 document.addEventListener('mouseover',e=>{
   const c=e.target.closest('circle[data-c]'); if(!c)return;
@@ -207,7 +252,17 @@ document.addEventListener('mouseover',e=>{
     +(c.dataset.x?`<div class="muted">${c.dataset.x} nm voxel</div>`:''), e);
 });
 document.addEventListener('mouseout',e=>{if(e.target.closest('circle[data-c]'))ECS.tip(null)});
-['run','fam'].forEach(i=>$(i).addEventListener('change',()=>{refreshOptions();draw()}));
+function syncFamPanels(){
+  const f=$('fam').value;
+  document.querySelectorAll('#fampanels .fam').forEach(el=>{
+    el.hidden = el.dataset.fam !== f;
+  });
+  // families the pipeline draws no standing panel for (the mesh-based topology
+  // and the bm sensitivity) simply have nothing here
+  const box=document.getElementById('fampanels');
+  if(box) box.hidden = !box.querySelector('.fam:not([hidden])');
+}
+['run','fam'].forEach(i=>$(i).addEventListener('change',()=>{refreshOptions();draw();syncFamPanels()}));
 ['met','grp','tis','vox'].forEach(i=>$(i).addEventListener('change',draw));
 let rt; addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(draw,150)});
 document.addEventListener('ecs:theme',()=>draw());
@@ -226,7 +281,7 @@ Promise.all([
                   met:q.get('metric')||'ecs_fraction',
                   grp:q.get('grp')||'region_group',
                   tis:'All tissues',vox:'All'});
-  draw();
+  draw(); syncFamPanels();
   const keep=()=>{const s=sel();const u=new URLSearchParams(
       {run:s.run,fam:s.fam,metric:s.met,grp:s.grp});
     history.replaceState(null,'',location.pathname+'?'+u.toString())};
@@ -237,14 +292,26 @@ Promise.all([
 
 
 def main():
-    html = sh.head("Metric explorer — ECS preservation", 0, EXTRA)
+    html = sh.head("Analysis — ECS preservation", 0, EXTRA + FIG_STYLE)
     html += sh.nav("explore.html", 0)
-    html += sh.pagehead_art("Metric explorer",
-        "Every per-crop measurement the pipeline has produced. Each dot is one crop, chemical "
-        "above the line and HPF below, with groups sharing one scale so they can be read against "
-        'each other. <a href="reference.html#reading">How to read this.</a>')
+    html += sh.pagehead_art("Analysis",
+        "Every per-crop measurement the pipeline has produced, live at the top and as standing "
+        "panels below. Each dot is one crop, chemical above the line and HPF below, with groups "
+        'sharing one scale so they can be read against each other. '
+        '<a href="reference.html#reading">How to read this.</a>')
+    family_html, _ = family_block()
+    standing, n_panels = sections_html()
     html += f"""<main class="after-head">
 
+<nav class="onpage" aria-label="On this page">
+  <span>On this page</span>
+  <a href="#live">One metric, live</a>
+  <a href="#matrix">Every metric at once</a>
+  <a href="#vignettes">One region, every metric</a>
+  <a href="#renders">Pictures of the geometry</a>
+</nav>
+
+<h2 id="live" class="sec-first">One metric, live</h2>
 <div class="controls">
   <div class="ctl"><label for="run">Run</label><select id="run"></select></div>
   <div class="ctl"><label for="fam">Metric family</label><select id="fam"></select></div>
@@ -269,9 +336,21 @@ def main():
 <div class="strip" id="plot"><p class="muted" style="padding:22px 0">Loading&hellip;</p></div>
 <p class="note" id="note"></p>
 
+<div class="fampanels" id="fampanels">
+  <h3>The standing panels for this family</h3>
+  <p class="note">Pre-rendered by the pipeline, one for each resolution. The matched panel exists
+  to be read against the native one: a difference that survives downsampling to 8&nbsp;nm is not
+  explained by voxel size. These change with the family above.</p>
+  {family_html}
+</div>
+
 <h2>Table view</h2>
+<p class="note" style="margin-top:calc(var(--s3) * -1)">The same crops as the plot above, for the
+metric you have selected. Click a heading to sort; the &#9662; on a column filters it;
+a crop name opens it in the viewer. <span id="tblcount"></span></p>
 <div class="card scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
 """
+    html += standing
     html += sh.footer(0) + "</main><div id=\"tip\"></div>" + JS + "</body></html>"
     (ROOT / "docs" / "explore.html").write_text(html)
     print("built docs/explore.html")

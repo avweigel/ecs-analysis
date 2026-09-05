@@ -114,60 +114,13 @@
      except the column it applies to. Both drive the same state. */
   const FACETS = { tissue: 'Tissue', region: 'Region',
                    anatomy: 'Anatomy', prep: 'Preparation' };
-  let menuKey = null;
-  function menuEl() {
-    let e = document.getElementById('fmenu');
-    if (!e) {
-      e = document.createElement('div');
-      e.id = 'fmenu'; e.className = 'fmenu'; e.hidden = true;
-      document.body.appendChild(e);
-      e.addEventListener('click', ev => {
-        const k = menuKey; if (!k) return;
-        if (ev.target.closest('[data-all]')) { uniq(k).forEach(v => facet[k].add(v)); }
-        else if (ev.target.closest('[data-none]')) { facet[k].clear(); }
-        else {
-          const box = ev.target.closest('input[type=checkbox]');
-          if (!box) return;
-          const v = box.dataset.v;
-          box.checked ? facet[k].add(v) : facet[k].delete(v);
-        }
-        buildFacets(); render(); paintMenu();
-      });
-    }
-    return e;
-  }
-  function paintMenu() {
-    const e = menuEl(), k = menuKey; if (!k) return;
-    const vals = uniq(k);
-    e.innerHTML = `<div class="fhead"><b>${FACETS[k]}</b>` +
-      `<button type="button" data-all="1">All</button>` +
-      `<button type="button" data-none="1">Clear</button></div>` +
-      vals.map(v => {
-        const n = rows.filter(r => (r[k] || '') === v).length;
-        return `<label><input type="checkbox" data-v="${v.replace(/"/g, '&quot;')}"${
-          facet[k].has(v) ? ' checked' : ''}><span>${v}</span><span class="c">${n}</span></label>`;
-      }).join('');
-  }
-  function openMenu(k, btn) {
-    menuKey = k;
-    const e = menuEl();
-    paintMenu();
-    e.hidden = false;
-    const r = btn.getBoundingClientRect();
-    e.style.left = Math.max(8, Math.min(r.left - 6, innerWidth - 268)) + 'px';
-    e.style.top = (r.bottom + 5) + 'px';
-  }
-  function closeMenu() {
-    const e = document.getElementById('fmenu');
-    if (e) e.hidden = true;
-    menuKey = null;
-  }
-  document.addEventListener('click', ev => {
-    if (ev.target.closest('#fmenu') || ev.target.closest('.fbtn')) return;
-    closeMenu();
+  // the popover itself is shared with the explorer's table (site.js)
+  const menu = ECS.filterMenu({
+    label: k => FACETS[k],
+    values: k => uniq(k).map(v => ({ value: v, n: rows.filter(r => (r[k] || '') === v).length })),
+    state: k => facet[k],
+    onchange: () => { buildFacets(); render(); },
   });
-  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeMenu(); });
-  addEventListener('scroll', closeMenu, true);
 
   /* ---------- table ---------- */
   let sortCol = 'crop', sortDir = 1;
@@ -235,11 +188,7 @@
   });
   $('t').querySelector('thead').addEventListener('click', e => {
     const fb = e.target.closest('.fbtn');
-    if (fb) {
-      e.stopPropagation();
-      (menuKey === fb.dataset.f) ? closeMenu() : openMenu(fb.dataset.f, fb);
-      return;
-    }
+    if (fb) { e.stopPropagation(); menu.open(fb.dataset.f, fb); return; }
     const th = e.target.closest('th[data-k]'); if (!th) return;
     const k = th.dataset.k;
     sortDir = (sortCol === k) ? -sortDir : 1; sortCol = k; render();

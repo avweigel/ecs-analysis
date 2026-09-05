@@ -188,7 +188,7 @@ one you should look at depends on what you are asking.</p>
     <span class="item"><b class="flag">1</b>&nbsp;an arm with one crop or none</span>
   </div>
   <p style="color:var(--ink-2);margin:10px 0 0">In the
-  <a href="explore.html">explorer</a>, every dot is one crop and every row is a group of
+  <a href="explore.html">analysis page</a>, every dot is one crop and every row is a group of
   crops sharing a tissue, region or anatomy. Chemical sits above the line, HPF below.
   Groups share one horizontal scale so they can be compared against each other, not just
   within themselves. A vertical rule marks the median, and is omitted where a group has

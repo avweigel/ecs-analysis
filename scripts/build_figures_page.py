@@ -39,15 +39,16 @@ FAMILIES = [
      "Curvature, roughness and protrusion density on the ECS-facing membrane. The 30 nm "
      "roughness scale is not honestly resolvable in the matched panel.",
      "native_topology.png", "matched_topology.png"),
-    (None, "Anatomy-matched summary",
-     "The same metrics restricted to the region groups where both preparations have crops. "
-     "The matched-resolution version is the most conservative view on the site: same regions, "
-     "same voxel size.",
-     "native_anatomy_matched.png", "matched_anatomy_matched.png"),
 ]
 
 SECTIONS = [
     ("Every metric at once", [
+        ("native_anatomy_matched.png", "Anatomy-matched summary",
+         "Every metric, restricted to the region groups where both preparations have crops. "
+         "Native resolution."),
+        ("matched_anatomy_matched.png", "Anatomy-matched, at 8 nm",
+         "The same again with every crop downsampled to 8 nm first &mdash; the most "
+         "conservative view on the site: same regions, same voxel size."),
         ("effect_matrix.png", "Effect-size matrix",
          "Cliff's delta for every metric family across the region-matched comparison. "
          "Delta runs from -1 to 1; zero means the two preparations are indistinguishable. "
@@ -113,44 +114,14 @@ def family_block():
         only = ("" if matched else
                 '<span class="note"> Native only: the matched run reads zarr metadata that is '
                 'valid at native resolution alone.</span>')
-        out += (f'<section class="fam"><div class="famhead"><h3>{label}</h3>'
+        out += (f'<section class="fam" data-fam="{fam or ""}"><div class="famhead">'
+                f'<h3>{label}</h3>'
                 f'<p>{blurb}{only}</p><p class="note">{live}</p></div>'
                 f'<div class="figs pair">{pair}</div></section>')
     return out, n
 
 
-def main():
-    body, missing, n = "", [], 0
-    for title, figs in SECTIONS:
-        cards = ""
-        for fn, label, blurb in figs:
-            if not (FIGDIR / fn).exists():
-                missing.append(fn)
-                continue
-            n += 1
-            cards += (f'<figure class="fig"><a href="figures/{fn}" target="_blank" rel="noopener">'
-                      f'<img src="figures/{fn}" loading="lazy" alt="{label}"></a>'
-                      f'<figcaption><b>{label}</b><span>{blurb}</span></figcaption></figure>')
-        if cards:
-            slug = SLUGS.get(title, "")
-            head = f'<h2 id="{slug}">{title}</h2>' if slug else f'<h2>{title}</h2>'
-            body += head + EXTRA_LINE.get(title, "") + f'<div class="figs">{cards}</div>'
-
-    fam_html, fam_n = family_block()
-    n += fam_n
-    # the per-metric families sit between the two cross-cutting views: after
-    # "every metric at once", before "one region, every metric"
-    marker = '<h2 id="vignettes">One region, every metric</h2>'
-    block = ('<h2 id="families">One metric, every crop</h2>'
-             '<p class="lede">Each family at both resolutions, side by side. The matched panel '
-             'exists to be read against the native one: a difference that survives downsampling '
-             'to 8 nm is not explained by voxel size. The '
-             '<a href="explore.html">explorer</a> draws any of these live, for any metric in '
-             'the family &mdash; these are the standing version, so a link keeps working and a '
-             'panel can be pointed at.</p>' + fam_html)
-    body = body.replace(marker, block + marker) if marker in body else body + block
-
-    extra = """<style>
+FIG_STYLE = """<style>
  .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
  .fig{margin:0;background:var(--raise);border:1px solid var(--rule);border-radius:10px;
       overflow:hidden;display:flex;flex-direction:column}
@@ -158,6 +129,17 @@ def main():
  .fig figcaption{padding:11px 14px;font-size:13px;color:var(--ink-2);
                  border-top:1px solid var(--rule)}
  .fig figcaption b{display:block;color:var(--ink);margin-bottom:2px;font-size:13.5px}
+ /* the standing panels for the family you are looking at, under the live plot */
+ .fampanels{border-top:1px solid var(--rule);margin-top:var(--s5);padding-top:var(--s4)}
+ .fampanels > h3{margin:0 0 var(--s2);font-size:var(--t3)}
+ .fampanels .note{margin:0 0 var(--s4)}
+ .fam[hidden]{display:none!important}
+ .onpage{display:flex;gap:var(--s4);align-items:baseline;flex-wrap:wrap;
+   padding:0 0 var(--s4);margin-bottom:var(--s5);border-bottom:1px solid var(--rule);
+   font-size:var(--t4)}
+ .onpage span{font-size:var(--t5);text-transform:uppercase;letter-spacing:.07em;
+   color:var(--ink-3)}
+ h2.sec-first{margin-top:0}
  /* a family is one row: the words on the left, the two resolutions on the right */
  .fam{display:grid;grid-template-columns:300px 1fr;gap:var(--s5);align-items:start;
    padding:var(--s5) 0;border-top:1px solid var(--rule)}
@@ -171,24 +153,65 @@ def main():
  @media(max-width:1100px){.figs.pair{grid-template-columns:1fr}}
  @media(max-width:900px){.fam{grid-template-columns:1fr;gap:var(--s3)}}
 </style>"""
-    html = sh.head("Quantification — ECS preservation", 0, extra)
+
+
+def fig_cards(figs, missing=None):
+    cards, n = "", 0
+    for fn, label, blurb in figs:
+        if not (FIGDIR / fn).exists():
+            if missing is not None:
+                missing.append(fn)
+            continue
+        n += 1
+        cards += (f'<figure class="fig"><a href="figures/{fn}" target="_blank" rel="noopener">'
+                  f'<img src="figures/{fn}" loading="lazy" alt="{label}"></a>'
+                  f'<figcaption><b>{label}</b><span>{blurb}</span></figcaption></figure>')
+    return cards, n
+
+
+def sections_html(missing=None):
+    """The standing panels, in order, as the analysis page shows them."""
+    body, n = "", 0
+    for title, figs in SECTIONS:
+        cards, k = fig_cards(figs, missing)
+        n += k
+        if not cards:
+            continue
+        slug = SLUGS.get(title, "")
+        head = f'<h2 id="{slug}">{title}</h2>' if slug else f'<h2>{title}</h2>'
+        body += head + EXTRA_LINE.get(title, "") + f'<div class="figs">{cards}</div>'
+    return body, n
+
+
+def main():
+    """figures.html is a pointer now: its content lives on the analysis page.
+
+    The URL is in notes and links, so it should not 404 -- and someone who
+    lands here should be told where each part went rather than redirected
+    somewhere they did not ask for.
+    """
+    html = sh.head("Quantification — moved into Analysis", 0)
     html += sh.nav("figures.html", 0)
-    html += sh.pagehead("Quantification",
-        "Every plot the pipeline draws, with what it shows and the caveat that goes with it. "
-        "Click any panel for the full-resolution version. These are pipeline output, not "
-        "assembled figures &mdash; nothing here is numbered and nothing is final. Arranged by "
-        "the question each panel answers: every metric at once, one metric across every crop "
-        "at both resolutions, one region across every metric, and the geometry itself. The "
-        '<a href="explore.html">explorer</a> draws the per-metric ones live if you want to '
-        "turn them over; these are the standing version.", wide=True)
-    html += f"""<main class="wide after-head">
-{sh.PREP_LEGEND}
-{body}
+    html += sh.pagehead("Quantification moved",
+        "It is part of <a href=\"explore.html\">Analysis</a> now. The explorer and these panels "
+        "were the same data with and without the controls on, which is a distinction for whoever "
+        "built the site and not for anyone reading it.", wide=False)
+    html += """<main class="after-head">
+<ul class="jump">
+  <li><a href="explore.html#live"><span class="t">One metric, live</span>
+    <span class="d">Any metric, any grouping, one dot per crop &mdash; with the standing panels
+    for that family underneath it.</span></a></li>
+  <li><a href="explore.html#matrix"><span class="t">Every metric at once</span>
+    <span class="d">The effect-size matrix.</span></a></li>
+  <li><a href="explore.html#vignettes"><span class="t">One region, every metric</span>
+    <span class="d">The six region vignettes.</span></a></li>
+  <li><a href="explore.html#renders"><span class="t">Pictures of the geometry</span>
+    <span class="d">Renders, and the paired 3D views.</span></a></li>
+</ul>
 """
     html += sh.tail(0)
     (ROOT / "docs" / "figures.html").write_text(html)
-    print(f"built docs/figures.html ({n} panels)"
-          + (f", {len(missing)} missing: {missing}" if missing else ""))
+    print("built docs/figures.html (pointer into Analysis)")
 
 
 if __name__ == "__main__":
