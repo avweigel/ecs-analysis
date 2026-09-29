@@ -542,7 +542,10 @@
     const n = document.getElementById('ngnote'); if (!n) return;
     const per = Object.entries(NG.datasets);
     const pub = per.filter(([, d]) => d.s3_ready).map(([k]) => k);
-    n.innerHTML = pub.length
+    n.innerHTML = pub.length && pub.length === per.length
+      ? `All ${per.length} datasets are on the public bucket, so no link needs the Janelia VPN. ` +
+        `<a href="reference.html#datasets">Per-dataset status.</a>`
+      : pub.length
       ? `Public copy for <code>${pub.join('</code>, <code>')}</code>; the other ` +
         `${per.length - pub.length} still need the Janelia VPN. ` +
         `<a href="reference.html#datasets">Per-dataset status.</a>`

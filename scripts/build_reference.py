@@ -78,7 +78,8 @@ DATASET_JS = """<script>
 
   function ngURLLocal(NG, crop) {
     const dsName = NG.crop_dataset[crop], d = NG.datasets[dsName];
-    const base = `zarr://${NG.sources.nrs.base}/${dsName}/${dsName}.zarr/recon-1`;
+    const src = NG.sources[d.s3_ready ? 's3' : 'nrs'];   // same rule as crops.js
+    const base = `zarr://${src.base}/${dsName}/${dsName}.zarr/recon-1`;
     const em = { type: 'image', source: `${base}/em/${d.em}`, name: 'em' };
     if (d.shader) { em.shaderControls = d.shader; em.tab = 'rendering'; }
     const layers = [em].concat(d.crops.map(c => ({ type: 'segmentation',
