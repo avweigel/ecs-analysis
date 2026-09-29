@@ -70,7 +70,7 @@ DATASET_JS = """<script>
     document.getElementById('dsnote').innerHTML =
       'Links open the whole volume with every annotated crop in it as a layer. ' +
       'Each link carries only the crops used in this analysis, not every crop in the volume. ' +
-      'Where the public OpenOrganelle copy holds the image <em>and</em> all of those crops, ' +
+      'Where the public S3 copy holds the image <em>and</em> all of those crops, ' +
       'links use it and need no VPN; otherwise they fall back to Janelia. That is ' +
       Object.values(NG.datasets).filter(d => d.s3_ready).length +
       ' of ' + names.length + ' volumes today.';
@@ -254,7 +254,7 @@ inside one of these; the volume itself is the raw electron microscopy it was cut
 <div class="scroll"><table id="dstable">
   <thead><tr><th>Dataset</th><th>Tissue</th><th>Preparation</th>
     <th class="num">Voxel<span class="u">nm</span></th><th class="num">Crops</th>
-    <th>EM array</th><th>OpenOrganelle</th><th>Open</th></tr></thead>
+    <th>EM array</th><th>Public S3</th><th>Open</th></tr></thead>
   <tbody></tbody></table></div>
 <p class="note" id="dsnote"></p>
 
