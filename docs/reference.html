@@ -166,6 +166,7 @@ mq.addEventListener('input',()=>{
    crop page uses, so the two can never disagree about what exists where. */
 (function () {
   const TISSUE = { cortex: 'Cortex', heart: 'Heart', kidney: 'Kidney', liver: 'Liver' };
+  const PREP = { Chemical: 'chem', 'Rapid HPF': 'hpf' };   // as on the crop page
   fetch('data/neuroglancer.json').then(r => r.json()).then(NG => {
     const tb = document.querySelector('#dstable tbody'); if (!tb) return;
     const rowsFor = ds => NG.datasets[ds];
@@ -173,11 +174,11 @@ mq.addEventListener('input',()=>{
     tb.innerHTML = names.map(ds => {
       const d = rowsFor(ds);
       const tissue = TISSUE[Object.keys(TISSUE).find(k => ds.includes(k))] || '';
-      const ready = d.s3_ready ? '<span class="tag hpf">public</span>'
+      const ready = d.s3_ready ? '<span class="tag">public</span>'
         : `<span class="muted">${d.s3_note || 'not yet'}</span>`;
       const first = d.crops[0];
       return `<tr><td><code>${ds}</code></td><td>${tissue}</td>
-        <td>${/-(2|4|6|8)$/.test(ds) && !/kidney$|liver$/.test(ds) ? '' : ''}</td>
+        <td>${d.prep ? `<span class="tag ${PREP[d.prep] || ''}">${d.prep}</span>` : ''}</td>
         <td class="num">${d.voxel_nm ?? ''}</td><td class="num">${d.crops.length}</td>
         <td><code>${d.em || ''}</code></td><td>${ready}</td>
         <td><a class="nglink" href="#" data-ds="${first}">NG</a></td></tr>`;

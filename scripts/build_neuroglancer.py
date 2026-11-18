@@ -159,7 +159,8 @@ def main():
             continue
         d = ds.setdefault(c.dataset, {"crops": [], "em": EM_ARRAY.get(c.dataset),
                                       "voxel_nm": DATASET_VOXEL_NM.get(c.dataset),
-                                      "shader": EM_SHADER.get(c.dataset)})
+                                      "shader": EM_SHADER.get(c.dataset),
+                                      "prep": c.prep})
         d["crops"].append(c.crop)
     for d in ds.values():
         d["crops"].sort()
