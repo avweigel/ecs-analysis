@@ -500,13 +500,35 @@
 
 /* ---------- Neuroglancer links ----------------------------------------
    A crop's link opens its whole dataset: the EM image plus every annotated
-   crop in that dataset as its own layer, centred on the crop you clicked. */
+   crop in that dataset as its own layer, centred on the crop you clicked.
+   Where the bucket has a crop's meshes, its ECS shows in the 3D panel, and
+   the clicked crop's cells come as a layer that is one click from showing. */
 (function () {
   const $ = id => document.getElementById(id);
   // 'auto' takes the public copy wherever it is genuinely servable and falls
   // back to Janelia for the rest, so a link is public whenever it can be
   let NG = null;
   const baseFor = d => NG.sources[d.s3_ready ? 's3' : 'nrs'].base;
+  const meshURL = (dsName, c, kind) => 'precomputed://' +
+    NG.mesh_root.replace('{dataset}', dsName).replace('{crop}', c) + '/' + kind;
+  // the 3D camera: tilted about 25 degrees on x then 35 on y, so a flat sheet
+  // of ECS reads as a solid instead of a face-on slab
+  const VIEW_3D = [0.2064, 0.2936, -0.0651, 0.9311];
+
+  // One crop's label layer. With meshes, segment 1 of `all` (the ECS) is
+  // selected so its surface draws in 3D. Selecting it would otherwise fade
+  // every other label out of the 2D panels, so unselected labels keep the
+  // 0.5 opacity they have when nothing is selected.
+  function cropLayer(dsName, d, base, c) {
+    const vol = `${base}/labels/groundtruth/${c}/all`;
+    const L = { type: 'segmentation', source: vol, name: c, visible: true };
+    if (d.meshes && d.meshes[c]) {
+      L.source = [vol, meshURL(dsName, c, 'all')];
+      L.segments = ['1'];
+      L.notSelectedAlpha = 0.5;
+    }
+    return L;
+  }
 
   function state(crop) {
     const dsName = NG.crop_dataset[crop]; if (!dsName) return null;
@@ -516,9 +538,16 @@
     if (d.shader) { em.shaderControls = d.shader; em.tab = 'rendering'; }
     const layers = [em];
     for (const c of d.crops) {
-      layers.push({ type: 'segmentation',
-        source: `${base}/labels/groundtruth/${c}/all`,
-        name: c, visible: true, ...(c === crop ? { tab: 'segments' } : {}) });
+      const L = cropLayer(dsName, d, base, c);
+      if (c === crop) L.tab = 'segments';
+      layers.push(L);
+    }
+    const cells = d.meshes && d.meshes[crop];
+    if (cells) {
+      // mesh only, no label volume, so turning it on adds surfaces in 3D and
+      // leaves the 2D panels alone
+      layers.push({ type: 'segmentation', source: meshURL(dsName, crop, 'cell'),
+        name: `${crop} cells`, segments: cells.map(String), visible: false });
     }
     const s = { layers, selectedLayer: { layer: crop }, layout: '4panel' };
     const c = NG.centre_nm[crop];
@@ -526,7 +555,14 @@
       const v = d.voxel_nm || 8;
       s.dimensions = { x: [v * 1e-9, 'm'], y: [v * 1e-9, 'm'], z: [v * 1e-9, 'm'] };
       s.position = c.map(x => +(x / v).toFixed(1));   // nm -> dataset voxels
+      // the 3D panel is twice the crop's longest side, so every crop fills it
+      // alike; left to itself Neuroglancer zooms by the whole volume
+      const size = NG.size_nm && NG.size_nm[crop];
+      if (size) s.projectionScale = +(2 * Math.max(...size) / v).toFixed(1);
+      s.projectionOrientation = VIEW_3D;
     }
+    // the 2D slices drawn into the 3D panel would hide the meshes
+    if (cells) s.showSlices = false;
     return s;
   }
 
@@ -542,14 +578,24 @@
     const n = document.getElementById('ngnote'); if (!n) return;
     const per = Object.entries(NG.datasets);
     const pub = per.filter(([, d]) => d.s3_ready).map(([k]) => k);
-    n.innerHTML = pub.length && pub.length === per.length
-      ? `All ${per.length} datasets are on the public bucket, so no link needs the Janelia VPN. ` +
-        `<a href="reference.html#datasets">Per-dataset status.</a>`
+    const where = pub.length && pub.length === per.length
+      ? `All ${per.length} datasets are on the public bucket, so no link needs the Janelia VPN. `
       : pub.length
       ? `Public copy for <code>${pub.join('</code>, <code>')}</code>; the other ` +
-        `${per.length - pub.length} still need the Janelia VPN. ` +
-        `<a href="reference.html#datasets">Per-dataset status.</a>`
-      : 'None of these datasets are on the public bucket yet, so every link needs the Janelia VPN.';
+        `${per.length - pub.length} still need the Janelia VPN. `
+      : 'None of these datasets are on the public bucket yet, so every link needs the Janelia VPN. ';
+    n.innerHTML = where + meshNote(NG) +
+      ' <a href="reference.html#datasets">Per-dataset status.</a>';
+  }
+  function meshNote(NG) {
+    const per = Object.entries(NG.datasets);
+    const total = per.reduce((t, [, d]) => t + d.crops.length, 0);
+    const meshed = per.reduce((t, [, d]) => t + Object.keys(d.meshes || {}).length, 0);
+    const none = per.filter(([, d]) => !Object.keys(d.meshes || {}).length).map(([k]) => k);
+    if (!meshed) return 'No crop has 3D meshes on the bucket yet.';
+    return (meshed === total ? 'Every crop opens' : `${meshed} of ${total} crops open`) +
+      ' with the ECS as a 3D surface and the crop’s cells as a layer you can turn on' +
+      (none.length ? `; <code>${none.join('</code> and <code>')}</code> have no meshes on the bucket yet.` : '.');
   }
 
   fetch('data/neuroglancer.json').then(r => r.json()).then(j => {

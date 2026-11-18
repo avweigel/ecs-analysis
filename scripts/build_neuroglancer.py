@@ -14,6 +14,11 @@ else. `s3_ready` records, per dataset, whether the EM array and the
 groundtruth crops are actually there, so a link only points at the bucket when
 it will load.
 
+Meshes come from the same bucket, in CellMap's per-crop layout (MESH_PATH):
+precomputed multi-resolution meshes for `all` (segment 1 is ECS), `ecs` and
+`cell`. Neuroglancer cannot mesh a zarr label volume itself, so a crop only
+gets a 3D surface where these exist; `meshes` lists those crops.
+
     python scripts/build_neuroglancer.py
 """
 from __future__ import annotations
@@ -47,6 +52,11 @@ SOURCES = {
         "note": "Public, no VPN. Only the datasets already uploaded will load.",
     },
 }
+
+# Where a crop's precomputed meshes sit, below the bucket. Vertices are in
+# nanometres, x/y/z, with the crop's offset already applied -- checked against
+# the crop boxes in manifest_inspect.json -- so they need no transform.
+MESH_PATH = "{dataset}/neuroglancer/mesh/groundtruth/{crop}"
 
 EM_ARRAY = {
     "jrc_mus-kidney": "fibsem-uint8",   "jrc_mus-kidney-4": "fibsem-uint16",
@@ -113,6 +123,17 @@ def probe_s3(ds_crops: dict) -> dict:
                     raise
         return None
 
+    def segment_ids(node: str) -> list[int] | None:
+        """The segments a precomputed mesh directory holds, or None if it is absent."""
+        try:
+            with urllib.request.urlopen(
+                    f"{base}/{node}/segment_properties/info", timeout=25) as r:
+                return sorted(int(i) for i in json.load(r)["inline"]["ids"])
+        except urllib.error.HTTPError as e:
+            if e.code not in (403, 404):
+                raise
+            return None
+
     out = {}
     for ds, info in sorted(ds_crops.items()):
         root = f"{ds}/{ds}.zarr/recon-1"
@@ -121,16 +142,30 @@ def probe_s3(ds_crops: dict) -> dict:
         crops = {c: zarr_format(f"{root}/labels/groundtruth/{c}/all")
                  for c in info["crops"]}
         missing = [c for c, f in crops.items() if f is None]
+        # A crop counts as meshed when both meshes a link uses are there: `all`,
+        # whose segment 1 is the ECS shown in 3D, and `cell`, one mesh per cell.
+        meshes = {}
+        for c in info["crops"]:
+            mroot = MESH_PATH.format(dataset=ds, crop=c)
+            every, cells = segment_ids(f"{mroot}/all"), segment_ids(f"{mroot}/cell")
+            if every is None or cells is None:
+                continue
+            if 1 not in every:
+                print(f"  ! {c}: `all` mesh has no segment 1, so no ECS to show")
+            meshes[c] = cells
         out[ds] = {"em": em is not None, "missing_crops": missing,
                    "zarr_format": {"em": em,
                                    "crops": sorted({f for f in crops.values() if f})},
-                   "ready": bool(em and not missing)}
+                   "ready": bool(em and not missing),
+                   "meshes": meshes,
+                   "missing_meshes": [c for c in info["crops"] if c not in meshes]}
         found = sorted({f for f in (em, *crops.values()) if f})
         state = "ready" if out[ds]["ready"] else (
             "em only" if em else "absent")
         print(f"  {ds:20s} {state}"
               + (f", {len(missing)} crop(s) missing" if em and missing else "")
-              + (f"  (zarr v{'+v'.join(map(str, found))})" if found else ""))
+              + (f"  (zarr v{'+v'.join(map(str, found))})" if found else "")
+              + f"  meshes {len(meshes)}/{len(info['crops'])}")
     return out
 
 
@@ -169,7 +204,9 @@ def main():
         print("probing the public bucket…")
         avail = probe_s3(ds)
         S3_READY_CACHE.parent.mkdir(parents=True, exist_ok=True)
-        S3_READY_CACHE.write_text(json.dumps(avail, indent=1))
+        # one line per dataset: the cell-id lists would otherwise run to a line each
+        S3_READY_CACHE.write_text("{\n" + ",\n".join(
+            f" {json.dumps(k)}: {json.dumps(v)}" for k, v in avail.items()) + "\n}\n")
     else:
         avail = load_s3_cache()
     for name, d in ds.items():
@@ -178,26 +215,35 @@ def main():
         d["s3_note"] = ("public" if a.get("ready")
                         else "image only, crops not migrated" if a.get("em")
                         else "not on the public bucket yet")
+        # crop -> its cell ids; a link selects every one in the crop's cells layer
+        d["meshes"] = {c: ids for c, ids in a.get("meshes", {}).items()
+                       if c in d["crops"]}
 
-    pos = {}
+    pos, size = {}, {}
     for crop, e in geo.items():
         t, shp, pv = e.get("translation_nm"), e.get("crop_shape_vox"), e.get("voxel_nm")
         if not (t and shp and pv):
             continue
         centre_nm = [t[i] + shp[i] * pv / 2.0 for i in range(3)]
+        size_nm = [shp[i] * pv for i in range(3)]
         if MANIFEST_AXIS_ORDER == "zyx":
             centre_nm = list(reversed(centre_nm))          # -> x, y, z
+            size_nm = list(reversed(size_nm))
         pos[crop] = [round(v, 1) for v in centre_nm]
+        size[crop] = [round(v, 1) for v in size_nm]
 
-    doc = {"sources": SOURCES, "datasets": ds, "centre_nm": pos,
+    doc = {"sources": SOURCES, "datasets": ds, "centre_nm": pos, "size_nm": size,
+           "mesh_root": f"{PUBLIC_S3_BASE}/{MESH_PATH}",
            "crop_dataset": {c.crop: c.dataset for c in CROPS if getattr(c, "active", True)},
-           "axis_note": "centre_nm is x, y, z in nanometres"}
+           "axis_note": "centre_nm and size_nm are x, y, z in nanometres"}
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(doc, separators=(",", ":")))
     ready = sum(1 for d in ds.values() if d["s3_ready"])
     layered = sum(len(d["crops"]) for d in ds.values())
+    meshed = sum(len(d["meshes"]) for d in ds.values())
     print(f"wrote {OUT.relative_to(ROOT)}: {len(ds)} datasets, {layered} study crops, "
-          f"{len(pos)} centres, {ready}/{len(ds)} datasets servable from S3")
+          f"{len(pos)} centres, {ready}/{len(ds)} datasets servable from S3, "
+          f"{meshed}/{layered} crops with meshes")
 
 
 if __name__ == "__main__":

@@ -61,6 +61,7 @@ DATASET_JS = """<script>
         <td>${d.prep ? `<span class="tag ${PREP[d.prep] || ''}">${d.prep}</span>` : ''}</td>
         <td class="num">${d.voxel_nm ?? ''}</td><td class="num">${d.crops.length}</td>
         <td><code>${d.em || ''}</code></td><td>${ready}</td>
+        <td class="num">${Object.keys(d.meshes || {}).length} / ${d.crops.length}</td>
         <td><a class="nglink" href="#" data-ds="${first}">NG</a></td></tr>`;
     }).join('');
     // reuse the crop page's URL builder if it is present; otherwise build here
@@ -74,7 +75,10 @@ DATASET_JS = """<script>
       'Where the public S3 copy holds the image <em>and</em> all of those crops, ' +
       'links use it and need no VPN; otherwise they fall back to Janelia. That is ' +
       Object.values(NG.datasets).filter(d => d.s3_ready).length +
-      ' of ' + names.length + ' volumes today.';
+      ' of ' + names.length + ' volumes today. ' +
+      'Neuroglancer cannot build a surface from a label volume, so a crop shows in 3D only ' +
+      'where the bucket also holds its precomputed meshes (<em>Meshes</em>); there its ECS ' +
+      'is drawn as a surface.';
   }).catch(() => {});
 
   function ngURLLocal(NG, crop) {
@@ -83,12 +87,24 @@ DATASET_JS = """<script>
     const base = `zarr://${src.base}/${dsName}/${dsName}.zarr/recon-1`;
     const em = { type: 'image', source: `${base}/em/${d.em}`, name: 'em' };
     if (d.shader) { em.shaderControls = d.shader; em.tab = 'rendering'; }
-    const layers = [em].concat(d.crops.map(c => ({ type: 'segmentation',
-      source: `${base}/labels/groundtruth/${c}/all`, name: c, visible: true })));
+    const M = d.meshes || {};
+    const mesh = c => 'precomputed://' +
+      NG.mesh_root.replace('{dataset}', dsName).replace('{crop}', c) + '/all';
+    // as on the crop page: segment 1 (ECS) selected so it draws in 3D, other
+    // labels kept at their unselected-default opacity in 2D
+    const layers = [em].concat(d.crops.map(c => {
+      const vol = `${base}/labels/groundtruth/${c}/all`;
+      return M[c] ? { type: 'segmentation', source: [vol, mesh(c)], name: c, visible: true,
+                      segments: ['1'], notSelectedAlpha: 0.5 }
+                  : { type: 'segmentation', source: vol, name: c, visible: true };
+    }));
     const s = { layers, layout: '4panel' };
-    const c = NG.centre_nm[crop], v = d.voxel_nm || 8;
+    const c = NG.centre_nm[crop], v = d.voxel_nm || 8, size = (NG.size_nm || {})[crop];
     if (c) { s.dimensions = { x: [v*1e-9,'m'], y: [v*1e-9,'m'], z: [v*1e-9,'m'] };
-             s.position = c.map(x => +(x / v).toFixed(1)); }
+             s.position = c.map(x => +(x / v).toFixed(1));
+             if (size) s.projectionScale = +(2 * Math.max(...size) / v).toFixed(1);
+             s.projectionOrientation = [0.2064, 0.2936, -0.0651, 0.9311]; }
+    if (M[crop]) s.showSlices = false;
     return 'https://neuroglancer-demo.appspot.com/#!' + encodeURIComponent(JSON.stringify(s));
   }
 })();
@@ -255,7 +271,7 @@ inside one of these; the volume itself is the raw electron microscopy it was cut
 <div class="scroll"><table id="dstable">
   <thead><tr><th>Dataset</th><th>Tissue</th><th>Preparation</th>
     <th class="num">Voxel<span class="u">nm</span></th><th class="num">Crops</th>
-    <th>EM array</th><th>Public S3</th><th>Open</th></tr></thead>
+    <th>EM array</th><th>Public S3</th><th class="num">Meshes</th><th>Open</th></tr></thead>
   <tbody></tbody></table></div>
 <p class="note" id="dsnote"></p>
 
