@@ -102,6 +102,14 @@ header.top nav a[aria-current]{color:var(--ink);border-bottom-color:var(--ink)}
 #themetog{background:none;border:0;color:var(--ink-3);font:inherit;font-size:var(--t5);
   cursor:pointer;padding:4px 6px;letter-spacing:.05em;text-transform:uppercase}
 #themetog:hover{color:var(--ink)}
+/* phones: the name and the theme switch share the first row and the nav gets a
+   row of its own, instead of wrapping into a stack squeezed beside the name */
+@media(max-width:640px){
+  header.top .wrap{flex-wrap:wrap;column-gap:var(--s4);row-gap:0;min-height:0;padding-top:8px}
+  header.top nav{order:3;flex:1 0 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  header.top nav::-webkit-scrollbar{display:none}
+  #themetog{margin-left:auto}
+}
 
 
 /* ── hero ───────────────────────────────────────────────────
@@ -398,6 +406,8 @@ footer.site a:hover{color:var(--ink)}
 .filterbar::before{content:"";position:absolute;left:50%;top:0;width:100vw;height:100%;
   transform:translateX(-50%);background:var(--bg);z-index:-1;
   border-bottom:1px solid var(--rule)}
+/* the two-row phone header is 67px tall, not 56 */
+@media(max-width:640px){.filterbar{top:67px}}
 .fbline{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap;
   padding-bottom:var(--s3)}
 .slicebtn{display:inline-flex;align-items:center;gap:var(--s3);max-width:100%;

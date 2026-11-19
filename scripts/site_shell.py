@@ -17,6 +17,9 @@ NAV = [
     ("explore.html",   "Analysis"),
     ("crops.html",     "Crops"),
     ("reference.html", "Reference"),
+    # a tool, not a section of the analysis, but the one thing people come to
+    # the site to use rather than read, so it sits where it can be seen
+    ("ng-lines.html",  "Line exporter"),
 ]
 
 # pages that live under a nav entry rather than beside it: visiting one of these
@@ -25,9 +28,7 @@ NAV = [
 PARENT = {
     "membranes/index.html":     "crops.html",     # the contact sheet of all 55
     "membranes/views.html":     "explore.html",   # paired 3D views per region
-    "membranes/methods.html":   "reference.html", # the methods in full
-    "ng-lines.html":            "reference.html", # line-annotation exporter
-    "membranes/inspector.html": "crops.html",     # superseded; kept as a redirect
+    "membranes/methods.html":   "reference.html", # the methods in full    "membranes/inspector.html": "crops.html",     # superseded; kept as a redirect
     "figures.html":             "explore.html",   # merged in; kept as a pointer
     "index.html":               None,
 }
@@ -95,8 +96,7 @@ def footer(depth: int = 0) -> str:
             f'<span>Chemical fixation vs rapid high-pressure freezing &middot; 55 crops</span>'
             f'<a href="{r}index.html">Overview</a>'
             f'<a href="{r}reference.html">How to read this</a>'
-            f'<a href="{r}data/all_metrics_long.csv">Download the data</a>'
-            f'<a href="https://github.com/avweigel/ecs-analysis">Source</a>'
+            f'<a href="{r}data/all_metrics_long.csv">Download the data</a>'            f'<a href="https://github.com/avweigel/ecs-analysis">Source</a>'
             f'</footer>')
 
 

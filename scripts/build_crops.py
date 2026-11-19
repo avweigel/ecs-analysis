@@ -320,6 +320,8 @@ def main():
   </div>
 </div>
 <p class="note" id="ngnote"></p>
+<p class="note">Measured something in Neuroglancer? Paste the link into the
+<a href="ng-lines.html">line exporter</a> to get the lines as a spreadsheet.</p>
 <p class="note"><a href="membranes/index.html">All 55 membrane patches on one page</a>
 &mdash; three maps each, no waiting for a mesh to load &mdash; and
 <a href="membranes/methods.html">how the membrane measurements are made</a>.</p>

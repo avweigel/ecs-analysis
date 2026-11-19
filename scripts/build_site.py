@@ -67,6 +67,16 @@ ICO_RENDERS = _ICO % (
     '<g stroke="var(--accent)" stroke-width="1.6"><path d="M9 15c5 5 8-2 13 2s7-3 13 1"/>'
     '<path d="M9 24c5 5 8-2 13 2s7-3 13 1"/></g>')
 
+# a measuring line drawn on an image slice, and the table it becomes
+ICO_EXPORT = _ICO % (
+    '<g stroke="currentColor" stroke-width="1.6"><rect x="5" y="6" width="20" height="20" rx="2"/></g>'
+    '<g stroke="var(--accent)" stroke-width="1.7"><path d="M10 21L20 11"/></g>'
+    '<g fill="var(--accent)"><circle cx="10" cy="21" r="2.2"/><circle cx="20" cy="11" r="2.2"/></g>'
+    '<rect x="19" y="20" width="20" height="18" rx="2" fill="var(--bg)"/>'
+    '<g stroke="currentColor" stroke-width="1.5"><rect x="19" y="20" width="20" height="18" rx="2"/>'
+    '<path d="M19 25.5h20M26 20v18"/></g>'
+    '<g stroke="var(--rule-strong)" stroke-width="1.3"><path d="M19 30.5h20M19 34.5h20"/></g>')
+
 ICO_REFERENCE = _ICO % (
     '<g stroke="currentColor" stroke-width="1.6"><path d="M8 7h17a4 4 0 014 4v26H12a4 4 0 01-4-4z"/>'
     '<path d="M12 37a4 4 0 010-8h17"/></g>'
@@ -158,6 +168,9 @@ caveats that go with them.</p>
   <li><a href="reference.html">{ICO_REFERENCE}
     <span class="t">Reference</span>
     <span class="d">What a crop is, how to read the charts, and what all {n_metrics} metrics mean.</span></a></li>
+  <li><a href="ng-lines.html">{ICO_EXPORT}
+    <span class="t">Line exporter</span>
+    <span class="d">Paste a Neuroglancer link and download its line annotations as a spreadsheet.</span></a></li>
 </ul>
 
 <div class="sec">
