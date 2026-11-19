@@ -8,12 +8,19 @@ The CSV uses the column names that annotation-processing-utils
 "length (nm)" and the linked segment IDs.
 
 Standard library only: the link's state is decoded directly, so the
-neuroglancer package is not needed.
+neuroglancer package is not needed. The same export runs in the browser on
+the site's ng-lines.html page (built by scripts/build_ng_lines_page.py); keep
+the two in step.
 
-Usage:
-    python scripts/ng_lines_to_csv.py "<neuroglancer link>" out.csv
-    python scripts/ng_lines_to_csv.py link.txt out.csv     # link saved in a file
-    python scripts/ng_lines_to_csv.py state.json out.csv   # JSON state (Neuroglancer's {} button)
+Usage (from the repo root):
+    pbpaste | python3 scripts/ng_lines_to_csv.py - out.csv      # link copied to the clipboard (macOS)
+    python3 scripts/ng_lines_to_csv.py '<neuroglancer link>' out.csv
+    python3 scripts/ng_lines_to_csv.py link.txt out.csv     # link saved in a file
+    python3 scripts/ng_lines_to_csv.py state.json out.csv   # JSON state (Neuroglancer's {} button)
+
+Put a pasted link in single quotes. Links contain "#!", and zsh and bash
+treat "!" inside double quotes (or no quotes) as history expansion, so the
+command fails with "no such event" before the script runs.
 
 Only local annotation layers (annotations stored in the link) are read.
 Points and other annotation types are skipped and counted.
@@ -30,16 +37,29 @@ UNIT_TO_NM = {"m": 1e9, "mm": 1e6, "um": 1e3, "µm": 1e3, "nm": 1.0}
 
 
 def load_state(src: str) -> tuple[dict, str]:
-    """Return (state dict, link) from a link, a file holding a link, or a JSON file."""
+    """Return (state dict, link) from a link, a file holding a link, a JSON file,
+    or "-" for standard input."""
     text = src
-    if not src.startswith("http") and Path(src).exists():
+    if src == "-":
+        text = sys.stdin.read().strip()
+    elif not src.startswith("http") and Path(src).exists():
         text = Path(src).read_text().strip()
     if text.startswith("{"):
-        return json.loads(text), ""
+        return _parse(text), ""
     if "#!" not in text:
         sys.exit("No '#!' state in that link. Copy the full address from Neuroglancer.")
-    frag = text.split("#!", 1)[1]
-    return json.loads(unquote(frag)), text
+    frag = unquote(text.split("#!", 1)[1])
+    if frag.startswith(("http://", "https://", "gs://", "s3://")):
+        sys.exit(f"This link points at a saved state ({frag[:80]}) instead of carrying it. "
+                 "Open it in Neuroglancer and copy the JSON with the { } button.")
+    return _parse(frag), text
+
+
+def _parse(text: str) -> dict:
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        sys.exit("The link's state is not valid JSON. Was the whole address copied?")
 
 
 def nm_per_unit(dims: dict) -> list[tuple[str, float]]:
@@ -78,7 +98,10 @@ def extract(state: dict, link: str = "") -> tuple[list[dict], int]:
             row.update({f"start {ax} (nm)": round(a[ax], 3) for ax in AXES})
             row.update({f"end {ax} (nm)": round(b[ax], 3) for ax in AXES})
             row["length (nm)"] = round(math.dist([a[k] for k in AXES], [b[k] for k in AXES]), 3)
-            segs = [s for group in ann.get("segments", []) for s in group]
+            segs = []
+            for group in ann.get("segments", []):
+                # current Neuroglancer writes one list per linked layer; older links a flat list
+                segs.extend([group] if isinstance(group, str) else group)
             row["segments"] = ";".join(map(str, segs))
             row["neuroglancer url"] = link
             rows.append(row)

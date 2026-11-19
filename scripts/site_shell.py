@@ -26,6 +26,7 @@ PARENT = {
     "membranes/index.html":     "crops.html",     # the contact sheet of all 55
     "membranes/views.html":     "explore.html",   # paired 3D views per region
     "membranes/methods.html":   "reference.html", # the methods in full
+    "ng-lines.html":            "reference.html", # line-annotation exporter
     "membranes/inspector.html": "crops.html",     # superseded; kept as a redirect
     "figures.html":             "explore.html",   # merged in; kept as a pointer
     "index.html":               None,
