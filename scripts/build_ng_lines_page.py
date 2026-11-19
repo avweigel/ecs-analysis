@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Build docs/ng-lines.html: paste a Neuroglancer link, get its line
-annotations as a spreadsheet.
+"""Build docs/ng-lines.html, the Annotations page. Two directions:
 
-It is scripts/ng_lines_to_csv.py in the browser. Both read the same fields
-and write the same columns, so the CSV from either is the same file. Nothing
-leaves the page: the link is decoded in JavaScript and the CSV is built
-there.
+  link -> spreadsheets   paste a Neuroglancer link, get its annotations as
+                         CSV, one file per type. This is scripts/ng_lines_to_csv.py
+                         in the browser, and writes the same files.
+  spreadsheets -> link   drop those CSVs back in, get a Neuroglancer link that
+                         opens with them. This is scripts/ng_csv_to_link.py in
+                         the browser, and builds the same view.
+
+Nothing leaves the page: links and files are read in JavaScript. (The file
+keeps its ng-lines name so links to it keep working.)
 
     python3 scripts/build_ng_lines_page.py
 """
@@ -26,54 +30,177 @@ EXTRA = """<style>
    border-radius:6px;padding:9px 11px;font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;
    word-break:break-all}
  .exporter textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
- .exporter .actions{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;
-   margin-top:var(--s3)}
+ #status{font-size:var(--t4);color:var(--ink-2);margin:var(--s3) 0 0}
+ #status:empty{display:none}
+ #status.err{color:var(--flag)}
  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
  .btn.primary:hover{color:#fff;filter:brightness(1.08)}
- .btn:disabled,.btn:disabled:hover{opacity:.45;cursor:default;filter:none;
-   border-color:var(--rule-strong)}
- #status{font-size:var(--t4);color:var(--ink-2)}
- #status.err{color:var(--flag)}
- #preview{margin-top:var(--s5)}
- #preview[hidden]{display:none}
+ .atype{margin-top:var(--s6)}
+ .atype .bar{display:flex;gap:var(--s3);align-items:baseline;flex-wrap:wrap;
+   margin:0 0 var(--s3)}
+ .atype h2{margin:0;margin-right:auto}
+ .atype h2 .n{color:var(--ink-3);font-weight:400}
+ .atype .scroll{max-height:440px;overflow:auto}
+ .shapes td:first-child{white-space:nowrap;font-weight:600}
+ .jumpto{display:flex;gap:var(--s4);flex-wrap:wrap;margin:0 0 var(--s5);font-size:var(--t4)}
+ h2.dir{margin-top:var(--s7)}
+ h2.dir:first-of-type{margin-top:0}
+ .drop{position:relative;border:1.5px dashed var(--rule-strong);border-radius:8px;
+   padding:var(--s5) var(--s4);text-align:center;color:var(--ink-2);font-size:var(--t4);
+   background:var(--raise);transition:border-color .14s,background .14s;cursor:pointer}
+ .drop:hover,.drop.over{border-color:var(--accent);
+   background:color-mix(in srgb,var(--accent) 6%,var(--raise))}
+ .drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+ .drop u{color:var(--accent);text-decoration:none;font-weight:600}
+ .filelist{font-size:var(--t4);color:var(--ink-2);margin:var(--s3) 0 0}
+ .filelist:empty{display:none}
+ .loader .row{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;margin-top:var(--s4)}
+ .loader .row label{margin:0}
+ .loader select{min-width:16em}
+ .loader textarea{margin-top:var(--s3);min-height:4.5em}
+ .loader .actions{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;margin-top:var(--s4)}
+ a.btn{display:inline-block;text-decoration:none}
+ a.btn[aria-disabled=true]{opacity:.45;pointer-events:none}
+ #loadstatus{font-size:var(--t4);color:var(--ink-2);margin:var(--s3) 0 0}
+ #loadstatus:empty{display:none}
+ #loadstatus.err{color:var(--flag)}
+ #loadstatus ul{margin:4px 0 0;padding-left:1.2em}
+ .steps{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4)}
+ @media(max-width:760px){.steps{grid-template-columns:1fr}}
+ .steps h3{margin:0 0 var(--s2)}
+ .steps ol{margin:0;padding-left:1.25em;color:var(--ink-2);font-size:var(--t4)}
+ .steps li{margin:0 0 6px}
 </style>"""
 
 BODY = """<main class="after-head">
 
+<p class="jumpto"><a href="#export">A link to spreadsheets</a><a href="#load">Spreadsheets back
+to a link</a><a href="#howto">Step by step</a><a href="#saving">Saving annotations in
+Neuroglancer</a></p>
+
+<h2 class="dir" id="export">A link to spreadsheets</h2>
 <div class="card exporter">
   <label for="ngin">Neuroglancer link</label>
   <textarea id="ngin" spellcheck="false" autocomplete="off"
     placeholder="https://neuroglancer-demo.appspot.com/#!%7B%22dimensions%22…   or the JSON from Neuroglancer’s { } button"></textarea>
+  <p id="status" role="status" aria-live="polite"></p>
+</div>
+<div id="results"></div>
+
+<h2 class="dir" id="load">Spreadsheets back to a link</h2>
+<div class="card exporter loader">
+  <label for="csvfiles">Spreadsheets exported from this page</label>
+  <div class="drop" id="drop">
+    <input type="file" id="csvfiles" accept=".csv,text/csv" multiple>
+    Drop CSV files here, or <u>choose files</u>. Lines, points, boxes, ellipsoids and
+    polylines can go in together.
+  </div>
+  <p class="filelist" id="filelist"></p>
+  <div class="row">
+    <label for="onto">Show them on</label>
+    <select id="onto"></select>
+  </div>
+  <textarea id="baselink" hidden spellcheck="false" autocomplete="off"
+    placeholder="The Neuroglancer link to add them to (or its JSON from the { } button)"></textarea>
   <div class="actions">
-    <button class="btn primary" id="dl" type="button" disabled>Download CSV</button>
-    <button class="btn" id="copy" type="button" disabled>Copy for a spreadsheet</button>
-    <span id="status" role="status" aria-live="polite"></span>
+    <a class="btn primary" id="openng" target="_blank" rel="noopener" aria-disabled="true">Open in Neuroglancer</a>
+    <button class="btn" id="copylink" type="button" disabled>Copy link</button>
+  </div>
+  <div id="loadstatus" role="status" aria-live="polite"></div>
+</div>
+
+<h2 class="dir" id="howto">Step by step</h2>
+<div class="steps">
+  <div class="card">
+    <h3>Annotations out of Neuroglancer</h3>
+    <ol>
+      <li>Draw the annotations in Neuroglancer with an annotation layer’s tools: point, line,
+        bounding box, ellipsoid or polyline.</li>
+      <li>Copy the whole address from the browser’s address bar. The annotations are stored in
+        the address itself, so copy it again after any change.</li>
+      <li>Paste it into <a href="#export">the first box</a>. Each kind of annotation gets a
+        table: <em>Download CSV</em> saves it, <em>Copy</em> puts it on the clipboard for Google
+        Sheets or Excel.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3>Spreadsheets back into Neuroglancer</h3>
+    <ol>
+      <li>Edit the CSV files if you want to: change coordinates, delete rows, add rows. Keep the
+        column names and nanometres, and save as CSV. An id is optional; the rows of one
+        polyline share an id, or start again at vertex 1.</li>
+      <li>Drop the files into <a href="#load">the second box</a>, all at once.</li>
+      <li>Choose what to show them on: the view saved in the spreadsheet (its <em>neuroglancer
+        url</em> column), a link you paste, one of this study’s datasets, or nothing else.</li>
+      <li><em>Open in Neuroglancer</em>, or <em>Copy link</em>. That link holds the annotations;
+        keep it to open them again.</li>
+    </ol>
   </div>
 </div>
+<p class="note">When the view already has an annotation layer with the name in the
+<em>layer</em> column, the files replace that layer’s annotations of the same kinds, and
+everything else about the layer stays: its other annotations, its linked segmentation layer,
+its properties and colours. Otherwise a new annotation layer is added. Segments come back as
+linked segments, and property columns come back as property values when the layer defines
+those properties; any other extra column is listed and left out.</p>
 
-<div id="preview" hidden>
-  <div class="scroll"><table id="out"><thead></thead><tbody></tbody></table></div>
-</div>
+<h3 id="saving">Saving annotations in Neuroglancer</h3>
+<p class="note" style="margin-top:0">Annotations drawn in Neuroglancer are stored in the link,
+in everything after <code>#!</code>, so copying the address when you finish is how you save
+them, and opening that address brings them back. Long links are fine in a document or a
+notebook, but some chat apps cut them short; the JSON from Neuroglancer’s <code>{ }</code>
+button holds the same thing and can be pasted here instead. A link that points at a saved
+state file (<code>#!gs://…</code>, <code>#!https://…</code>) does not carry the annotations
+itself: open it in Neuroglancer and copy the JSON.</p>
 
-<p class="note">The CSV has, for each line: where it starts and ends (z, y, x in
-nanometres), its length in nanometres, the segments Neuroglancer linked to it (several
-are joined with <code>;</code>), the annotation id and layer, and the full link. The
-column names are the ones
+<h2 class="dir">What each spreadsheet holds</h2>
+<p class="note" style="margin-top:0">One file per type of annotation in the link, with
+coordinates in nanometres from the layer’s coordinate space.</p>
+<div class="scroll"><table class="shapes">
+  <thead><tr><th>Type</th><th>Columns</th></tr></thead>
+  <tbody>
+    <tr><td>Lines</td><td class="wrap">start z, y, x · end z, y, x · length</td></tr>
+    <tr><td>Points</td><td class="wrap">z, y, x</td></tr>
+    <tr><td>Boxes</td><td class="wrap">min z, y, x · max z, y, x · size along z, y, x</td></tr>
+    <tr><td>Ellipsoids</td><td class="wrap">center z, y, x · radius along z, y, x</td></tr>
+    <tr><td>Polylines</td><td class="wrap">one row per vertex: vertex number, z, y, x, and the
+      distance along the polyline to that vertex</td></tr>
+  </tbody></table></div>
+<p class="note">Every file starts with the layer and the annotation id, and ends with the
+segments Neuroglancer linked to the annotation (several are joined with <code>;</code>),
+the full link, the description typed on the annotation, and one column for each property
+the layer defines. The lines file uses the column names
 <a href="https://github.com/davidackerman/annotation-processing-utils">annotation-processing-utils</a>
-reads. <em>Copy for a spreadsheet</em> puts the same table on the clipboard, ready to
-paste into Google Sheets or Excel.</p>
+reads. <em>Copy</em> puts the same table on the clipboard, ready to paste into Google
+Sheets or Excel.</p>
 <p class="note">Only annotations stored in the link itself (local annotation layers) are
-read; points and other shapes are skipped and counted. The same export runs from the
-command line with <code>scripts/ng_lines_to_csv.py</code> in the
-<a href="https://github.com/avweigel/ecs-analysis">repository</a>.</p>
+read, not ones served from a separate annotation source. Both directions also run from the
+command line, in the <a href="https://github.com/avweigel/ecs-analysis">repository</a>:
+<code>scripts/ng_lines_to_csv.py</code> writes the same files as this page, and
+<code>scripts/ng_csv_to_link.py</code> builds the same link.</p>
 """
 
-# Kept line for line with extract() in scripts/ng_lines_to_csv.py: same fields,
-# same column order, same number formatting, same CSV quoting and line ends.
+# Kept in step with extract() in scripts/ng_lines_to_csv.py: same types, same
+# columns in the same order, every value turned into the same text, same CSV
+# quoting and line ends.
 JS = r"""<script>
 (function () {
   const AXES = ['z', 'y', 'x'];
   const UNIT_TO_NM = { m: 1e9, mm: 1e6, um: 1e3, 'µm': 1e3, nm: 1 };
+  const nmCols = pre => AXES.map(a => `${pre}${a} (nm)`);
+  // Neuroglancer type -> file word (plural), singular, heading, and the columns between id and segments
+  const TYPES = {
+    line: { word: 'lines', one: 'line', title: 'Lines',
+      cols: [...nmCols('start '), ...nmCols('end '), 'length (nm)'] },
+    point: { word: 'points', one: 'point', title: 'Points', cols: nmCols('') },
+    axis_aligned_bounding_box: { word: 'boxes', one: 'box', title: 'Boxes',
+      cols: [...nmCols('min '), ...nmCols('max '), ...nmCols('size ')] },
+    ellipsoid: { word: 'ellipsoids', one: 'ellipsoid', title: 'Ellipsoids',
+      cols: [...nmCols('center '), ...nmCols('radius ')] },
+    polyline: { word: 'polylines', one: 'polyline', title: 'Polylines',
+      cols: ['vertex', ...nmCols(''), 'distance along (nm)'] },
+  };
+  const HEAD = ['layer', 'id'], TAIL = ['segments', 'neuroglancer url', 'description'];
   class InputError extends Error {}
 
   // Python's unquote: decode %XX as UTF-8 and leave anything malformed alone,
@@ -83,7 +210,10 @@ JS = r"""<script>
       try { return decodeURIComponent(m); } catch (e) { return m; }
     });
   }
-
+  function parseJSON(t) {
+    try { return JSON.parse(t); }
+    catch (e) { throw new InputError('The link’s state is not valid JSON. Was the whole address copied?'); }
+  }
   function loadState(text) {
     text = text.trim();
     if (text.startsWith('{')) return { state: parseJSON(text), link: '' };
@@ -95,10 +225,6 @@ JS = r"""<script>
         ') instead of carrying it. Open it in Neuroglancer and copy the JSON with the { } button.');
     return { state: parseJSON(frag), link: text };
   }
-  function parseJSON(t) {
-    try { return JSON.parse(t); }
-    catch (e) { throw new InputError('The link’s state is not valid JSON. Was the whole address copied?'); }
-  }
 
   function nmPerUnit(dims) {
     return Object.entries(dims).map(([name, [scale, unit]]) => {
@@ -107,154 +233,510 @@ JS = r"""<script>
     });
   }
 
-  // Python's round(v, 3), then str(): the nearest thousandth, with exact ties
-  // going to the even digit; whole numbers keep their ".0"
+  // Python's round(v, 3): the nearest thousandth of the exact value, exact
+  // ties to the even digit. A tie at 3 decimals is an odd multiple of 1/16.
   function round3(v) {
-    let r;
-    const k = v * 16;              // an exact tie at 3 decimals is an odd multiple of 1/16
+    const k = v * 16;
     if (Number.isInteger(k) && Math.abs(k) % 2 === 1) {
-      const lo = Math.floor(v * 1000);   // exact here
-      r = (lo % 2 === 0 ? lo : lo + 1) / 1000;
-    } else {
-      r = Number(v.toFixed(3));
-      if (v < 0 && r === 0) r = -0;
+      const lo = Math.floor(v * 1000);
+      return (lo % 2 === 0 ? lo : lo + 1) / 1000;
     }
-    return r;
+    const r = Number(v.toFixed(3));
+    return v < 0 && r === 0 ? -0 : r;
   }
-  function pyFloat(r) {
-    if (Object.is(r, -0)) return '-0.0';
-    const s = String(r);
+  // Python's repr() of a float
+  function pyRepr(x) {
+    if (Object.is(x, -0)) return '-0.0';
+    if (!isFinite(x)) return isNaN(x) ? 'nan' : (x > 0 ? 'inf' : '-inf');
+    const [m, e] = x.toExponential().split('e'), ex = Number(e);
+    if (ex < -4 || ex >= 16) return m + 'e' + (ex < 0 ? '-' : '+') + String(Math.abs(ex)).padStart(2, '0');
+    const s = String(x);
     return /^-?\d+$/.test(s) ? s + '.0' : s;
+  }
+  const nm = v => pyRepr(round3(v));
+  function propText(v) {
+    if (typeof v === 'boolean') return v ? 'True' : 'False';
+    if (typeof v === 'number') return pyRepr(v);
+    return v == null ? '' : String(v);
+  }
+  function dist(a, b) {
+    const dz = b.z - a.z, dy = b.y - a.y, dx = b.x - a.x;
+    return Math.sqrt(dz * dz + dy * dy + dx * dx);
   }
 
   function extract(state, link) {
-    const rows = []; let skipped = 0;
+    const tables = Object.fromEntries(Object.keys(TYPES).map(t => [t, { rows: [], props: [] }]));
+    let skipped = 0;
     const globalDims = state.dimensions;
     for (const layer of state.layers || []) {
       if (layer.type !== 'annotation' || !('annotations' in layer)) continue;
+      const name = layer.name ?? '';
       const src = layer.source;
       let dims = globalDims;
       if (src && typeof src === 'object' && !Array.isArray(src))
         dims = ((src.transform || {}).outputDimensions) || dims;
-      if (!dims) throw new InputError(`Layer '${layer.name}': no coordinate space found`);
+      if (!dims) throw new InputError(`Layer '${name}': no coordinate space found`);
       const axes = nmPerUnit(dims);
       const missing = AXES.filter(a => !axes.some(([n]) => n === a));
-      if (missing.length) throw new InputError(`Layer '${layer.name}': missing axes ${JSON.stringify(missing.sort())}`);
+      if (missing.length) throw new InputError(`Layer '${name}': missing axes ${JSON.stringify(missing.sort())}`);
+      const props = layer.annotationProperties || [];
+      const field = (ann, key) => {
+        if (!(key in ann)) throw new InputError(`Layer '${name}': annotation '${ann.id ?? '?'}' has no '${key}'`);
+        return ann[key];
+      };
+      const point = p => Object.fromEntries(axes.map(([ax, s], i) => [ax, Number(p[i]) * s]));
+
       for (const ann of layer.annotations) {
-        if (ann.type !== 'line') { skipped++; continue; }
-        const pt = p => Object.fromEntries(axes.map(([ax, s], i) => [ax, Number(p[i]) * s]));
-        const a = pt(ann.pointA), b = pt(ann.pointB);
-        const row = { layer: layer.name || '', id: ann.id || '' };
-        for (const ax of AXES) row[`start ${ax} (nm)`] = round3(a[ax]);
-        for (const ax of AXES) row[`end ${ax} (nm)`] = round3(b[ax]);
-        row['length (nm)'] = round3(Math.hypot(...AXES.map(k => b[k] - a[k])));
+        const kind = ann.type;
+        if (!(kind in TYPES)) { skipped++; continue; }
         const segs = [];
         // current Neuroglancer writes one list per linked layer; older links a flat list
         for (const g of ann.segments || []) segs.push(...(typeof g === 'string' ? [g] : g));
-        row.segments = segs.map(String).join(';');
-        row['neuroglancer url'] = link;
-        rows.push(row);
+        const tail = { segments: segs.map(String).join(';'), 'neuroglancer url': link,
+                       description: String(ann.description || '') };
+        // one column per property; an id that repeats a column name gets
+        // " (property)" added so it cannot overwrite that column
+        const base = [...HEAD, ...TYPES[kind].cols, ...TAIL];
+        const values = ann.props || [], extra = {};
+        props.forEach((p, i) => {
+          const pid = String(p.id ?? `property ${i + 1}`);
+          extra[base.includes(pid) ? `${pid} (property)` : pid] =
+            propText(i < values.length ? values[i] : p.default);
+        });
+        const head = { layer: name, id: String(ann.id ?? '') };
+
+        const shapes = [];
+        if (kind === 'line') {
+          const a = point(field(ann, 'pointA')), b = point(field(ann, 'pointB')), s = {};
+          AXES.forEach(k => { s[`start ${k} (nm)`] = nm(a[k]); });
+          AXES.forEach(k => { s[`end ${k} (nm)`] = nm(b[k]); });
+          s['length (nm)'] = nm(dist(a, b));
+          shapes.push(s);
+        } else if (kind === 'point') {
+          const p = point(field(ann, 'point'));
+          shapes.push(Object.fromEntries(AXES.map(k => [`${k} (nm)`, nm(p[k])])));
+        } else if (kind === 'axis_aligned_bounding_box') {
+          const a = point(field(ann, 'pointA')), b = point(field(ann, 'pointB')), s = {};
+          AXES.forEach(k => { s[`min ${k} (nm)`] = nm(Math.min(a[k], b[k])); });
+          AXES.forEach(k => { s[`max ${k} (nm)`] = nm(Math.max(a[k], b[k])); });
+          AXES.forEach(k => { s[`size ${k} (nm)`] = nm(Math.abs(b[k] - a[k])); });
+          shapes.push(s);
+        } else if (kind === 'ellipsoid') {
+          const c = point(field(ann, 'center')), r = point(field(ann, 'radii')), s = {};
+          AXES.forEach(k => { s[`center ${k} (nm)`] = nm(c[k]); });
+          AXES.forEach(k => { s[`radius ${k} (nm)`] = nm(Math.abs(r[k])); });
+          shapes.push(s);
+        } else if (kind === 'polyline') {
+          let along = 0, prev = null;
+          field(ann, 'points').forEach((raw, i) => {
+            const p = point(raw);
+            if (prev) along += dist(prev, p);
+            prev = p;
+            shapes.push({ vertex: String(i + 1), ...Object.fromEntries(AXES.map(k => [`${k} (nm)`, nm(p[k])])),
+                          'distance along (nm)': nm(along) });
+          });
+        }
+        const t = tables[kind];
+        for (const k of Object.keys(extra)) if (!t.props.includes(k)) t.props.push(k);
+        for (const s of shapes) t.rows.push({ ...head, ...s, ...tail, ...extra });
       }
     }
-    return { rows, skipped };
+    const out = {};
+    for (const [kind, t] of Object.entries(tables))
+      if (t.rows.length) out[kind] = { columns: [...HEAD, ...TYPES[kind].cols, ...TAIL, ...t.props], rows: t.rows };
+    return { tables: out, skipped };
   }
 
-  const cell = v => typeof v === 'number' ? pyFloat(v) : String(v);
   // Python's csv module: quote only fields holding a comma, quote or line
   // break, double any quote inside, end every row with \r\n
-  function toCSV(rows) {
-    const cols = Object.keys(rows[0]);
+  function toCSV(table) {
     const q = s => /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-    return [cols, ...rows.map(r => cols.map(c => cell(r[c])))]
+    return [table.columns, ...table.rows.map(r => table.columns.map(c => r[c] ?? ''))]
       .map(line => line.map(q).join(',')).join('\r\n') + '\r\n';
   }
-  function toTSV(rows) {
-    const cols = Object.keys(rows[0]);
+  function toTSV(table) {
     const t = s => s.replace(/[\t\r\n]+/g, ' ');
-    return [cols, ...rows.map(r => cols.map(c => cell(r[c])))]
+    return [table.columns, ...table.rows.map(r => table.columns.map(c => r[c] ?? ''))]
       .map(line => line.map(t).join('\t')).join('\n') + '\n';
   }
-  // ng_lines_<dataset>[_<crop>].csv, from the layer sources and linked layer names
-  function fileName(state) {
+  // ng_<type>_<dataset>[_<crop>].csv, from the layer sources and linked layer names
+  function fileName(state, kind) {
     const blob = JSON.stringify(state.layers || []);
     const ds = (blob.match(/\/(jrc_[A-Za-z0-9_-]+?)(?:\.zarr|\.n5|\/)/) || [])[1];
     const crops = [...new Set(blob.match(/crop\d+/g) || [])];
-    return ['ng_lines', ds, crops.length === 1 ? crops[0] : null].filter(Boolean).join('_') + '.csv';
+    return ['ng', TYPES[kind].word, ds, crops.length === 1 ? crops[0] : null].filter(Boolean).join('_') + '.csv';
   }
+  const count = (kind, table) => kind === 'polyline'
+    ? new Set(table.rows.map(r => r.layer + '\u0000' + r.id)).size : table.rows.length;
 
-  window.NGLines = { loadState, extract, toCSV, toTSV, fileName, InputError };
+  window.NGAnnotations = { TYPES, HEAD, TAIL, loadState, nmPerUnit, extract, toCSV, toTSV, fileName, InputError };
 
   const $ = id => document.getElementById(id);
-  const input = $('ngin'), status = $('status'), dl = $('dl'), copy = $('copy');
-  let current = null;
-
+  const input = $('ngin'), status = $('status'), results = $('results');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   function say(msg, err) { status.textContent = msg; status.className = err ? 'err' : ''; }
 
-  function render(rows) {
-    const multi = new Set(rows.map(r => r.layer)).size > 1;
-    const head = ['#', ...(multi ? ['layer'] : []), 'start z', 'start y', 'start x',
-                  'end z', 'end y', 'end x', 'length', 'segments'];
-    const units = ['', ...(multi ? [''] : []), 'nm', 'nm', 'nm', 'nm', 'nm', 'nm', 'nm', ''];
-    const num = h => /start|end|length|#/.test(h);
-    $('out').tHead.innerHTML = '<tr>' + head.map((h, i) =>
-      `<th class="${num(h) ? 'num' : ''}">${h}${units[i] ? `<span class="u">${units[i]}</span>` : ''}</th>`).join('') + '</tr>';
-    const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-    $('out').tBodies[0].innerHTML = rows.map((r, i) => '<tr>' +
-      [i + 1, ...(multi ? [r.layer] : []),
-       ...['start z', 'start y', 'start x', 'end z', 'end y', 'end x', 'length']
-         .map(k => pyFloat(r[k + ' (nm)'])), r.segments]
-      .map((v, j) => `<td class="${num(head[j]) ? 'num' : ''}">${esc(v)}</td>`).join('') + '</tr>').join('');
-    $('preview').hidden = false;
+  function section(kind, table, state) {
+    const T = TYPES[kind], n = count(kind, table);
+    const shown = ['#', ...T.cols, 'segments',
+                   ...(table.rows.some(r => r.description) ? ['description'] : [])];
+    const isNum = c => c === '#' || c === 'vertex' || / \(nm\)$/.test(c);
+    const label = c => c.replace(/ \(nm\)$/, '');
+    const head = '<tr>' + shown.map(c => `<th class="${isNum(c) ? 'num' : ''}">${esc(label(c))}` +
+      (/ \(nm\)$/.test(c) ? '<span class="u">nm</span>' : '') + '</th>').join('') + '</tr>';
+    const body = table.rows.map((r, i) => '<tr>' + shown.map(c =>
+      `<td class="${isNum(c) ? 'num' : (c === 'description' ? 'wrap' : '')}">${esc(c === '#' ? i + 1 : r[c])}</td>`).join('') + '</tr>').join('');
+    const el = document.createElement('section');
+    el.className = 'atype';
+    el.innerHTML = `<div class="bar"><h2>${T.title} <span class="n">${n}</span></h2>
+      <button class="btn primary" type="button" data-act="dl">Download CSV</button>
+      <button class="btn" type="button" data-act="copy">Copy for a spreadsheet</button></div>
+      <div class="scroll"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+    el.querySelector('[data-act=dl]').addEventListener('click', () => {
+      const url = URL.createObjectURL(new Blob([toCSV(table)], { type: 'text/csv' }));
+      const a = Object.assign(document.createElement('a'), { href: url, download: fileName(state, kind) });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+    const copy = el.querySelector('[data-act=copy]');
+    copy.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(toTSV(table));
+        copy.textContent = 'Copied';
+        setTimeout(() => { copy.textContent = 'Copy for a spreadsheet'; }, 1400);
+      } catch (e) { say('The browser blocked the clipboard; use Download CSV instead.', true); }
+    });
+    return el;
   }
 
   function run() {
-    current = null; dl.disabled = copy.disabled = true; $('preview').hidden = true;
+    results.innerHTML = '';
     const text = input.value;
     if (!text.trim()) { say(''); return; }
     try {
       const { state, link } = loadState(text);
-      const { rows, skipped } = extract(state, link);
-      if (!rows.length) throw new InputError('No line annotations found in local annotation layers.');
-      current = { rows, name: fileName(state) };
-      const layers = [...new Set(rows.map(r => r.layer))];
-      say(`${rows.length} line${rows.length === 1 ? '' : 's'} from ${layers.length === 1 ? 'layer “' + layers[0] + '”' : layers.length + ' layers'}` +
-          (skipped ? ` · ${skipped} other annotation${skipped === 1 ? '' : 's'} skipped` : ''));
-      dl.disabled = copy.disabled = false;
-      render(rows);
+      const { tables, skipped } = extract(state, link);
+      const kinds = Object.keys(tables);
+      if (!kinds.length) throw new InputError('No annotations found in local annotation layers.');
+      const layers = new Set(kinds.flatMap(k => tables[k].rows.map(r => r.layer)));
+      say(kinds.map(k => { const n = count(k, tables[k]); return `${n} ${n === 1 ? TYPES[k].one : TYPES[k].word}`; }).join(', ') +
+          ` from ${layers.size === 1 ? 'layer “' + [...layers][0] + '”' : layers.size + ' layers'}` +
+          (skipped ? ` · ${skipped} of an unknown type skipped` : ''));
+      for (const k of kinds) results.appendChild(section(k, tables[k], state));
     } catch (e) {
       say(e instanceof InputError ? e.message : 'Could not read that link: ' + e.message, true);
     }
   }
 
   input.addEventListener('input', run);
-  dl.addEventListener('click', () => {
-    if (!current) return;
-    const url = URL.createObjectURL(new Blob([toCSV(current.rows)], { type: 'text/csv' }));
-    const a = Object.assign(document.createElement('a'), { href: url, download: current.name });
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  });
-  copy.addEventListener('click', async () => {
-    if (!current) return;
-    try {
-      await navigator.clipboard.writeText(toTSV(current.rows));
-      const was = copy.textContent; copy.textContent = 'Copied';
-      setTimeout(() => { copy.textContent = was; }, 1400);
-    } catch (e) { say('The browser blocked the clipboard; use Download CSV instead.', true); }
-  });
   run();   // a link restored by the browser on reload
 })();
 </script>"""
 
 
+# Spreadsheets back to a link. Kept in step with scripts/ng_csv_to_link.py:
+# same type detection, same layer merging, same ids, same view.
+LOAD_JS = r"""<script>
+(function () {
+  const { TYPES, HEAD, TAIL, loadState, nmPerUnit, InputError } = window.NGAnnotations;
+  const AXES = ['z', 'y', 'x'];
+  const NG_HOST = 'https://neuroglancer-demo.appspot.com/';
+  const nmSpace = () => ({ z: [1e-9, 'm'], y: [1e-9, 'm'], x: [1e-9, 'm'] });
+  const nmCols = pre => AXES.map(a => `${pre}${a} (nm)`);
+  // the columns a file must have to be read as each type, checked in this order
+  // (a polyline file also has the point columns, so it is tried first)
+  const REQUIRED = {
+    line: [...nmCols('start '), ...nmCols('end ')],
+    axis_aligned_bounding_box: [...nmCols('min '), ...nmCols('max ')],
+    ellipsoid: [...nmCols('center '), ...nmCols('radius ')],
+    polyline: ['vertex', ...nmCols('')],
+    point: nmCols(''),
+  };
+  const FIELDS = {
+    line: [['pointA', 'start '], ['pointB', 'end ']],
+    point: [['point', '']],
+    axis_aligned_bounding_box: [['pointA', 'min '], ['pointB', 'max ']],
+    ellipsoid: [['center', 'center '], ['radii', 'radius ']],
+  };
+  const NUMERIC = new Set(['uint8', 'int8', 'uint16', 'int16', 'uint32', 'int32', 'float32']);
+
+  // CSV as Python's csv module reads it: quoted fields, doubled quotes, line
+  // breaks inside quotes, \r\n or \n; Excel's byte-order mark is dropped
+  function parseCSV(text) {
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    const rows = []; let row = [], field = '', quoted = false, i = 0;
+    while (i < text.length) {
+      const c = text[i];
+      if (quoted) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+          quoted = false; i++; continue;
+        }
+        field += c; i++; continue;
+      }
+      if (c === '"' && field === '') { quoted = true; i++; continue; }
+      if (c === ',') { row.push(field); field = ''; i++; continue; }
+      if (c === '\r' || c === '\n') {
+        row.push(field); rows.push(row); row = []; field = '';
+        i += (c === '\r' && text[i + 1] === '\n') ? 2 : 1; continue;
+      }
+      field += c; i++;
+    }
+    if (field !== '' || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function number(row, col, where) {
+    const v = (row[col] ?? '').trim(), x = Number(v);
+    if (v === '' || !Number.isFinite(x)) throw new InputError(`${where}: '${col}' is '${v}', which is not a number`);
+    return x;
+  }
+
+  // files: [{name, text}] -> { records, links, unread }
+  function readFiles(files) {
+    const records = [], links = [], unread = [];
+    for (const { name: path, text } of files) {
+      const [cols = [], ...data] = parseCSV(text);
+      const kind = Object.keys(REQUIRED).find(k => REQUIRED[k].every(c => cols.includes(c)));
+      if (!kind) throw new InputError(`${path}: these columns are not an exported annotation file: ${cols.join(', ')}`);
+      const known = new Set([...HEAD, ...TYPES[kind].cols, ...TAIL]);
+      const extraCols = cols.filter(c => !known.has(c));
+      const polylines = new Map();
+      let openKey = null, unnamed = 0;
+      data.forEach((vals, i) => {
+        if (!vals.some(v => v.trim())) return;          // a blank row left by a spreadsheet
+        const row = Object.fromEntries(cols.map((c, j) => [c, vals[j] ?? '']));
+        const where = `${path}, row ${i + 2}`;
+        if ((row['neuroglancer url'] || '').trim()) links.push(row['neuroglancer url'].trim());
+        const rec = { kind, layer: (row.layer || '').trim() || 'annotations', id: (row.id || '').trim(),
+          description: row.description || '',
+          segments: (row.segments || '').split(';').map(s => s.trim()).filter(Boolean),
+          extra: Object.fromEntries(extraCols.map(c => [c, row[c] || ''])) };
+        if (kind === 'polyline') {
+          const p = AXES.map(a => number(row, `${a} (nm)`, where));
+          const v = number(row, 'vertex', where);
+          // rows of one polyline share an id; without ids, vertex 1 starts a new one
+          let key;
+          if (rec.id) key = rec.layer + '\u0000' + rec.id;
+          else {
+            if (v === 1 || openKey === null) { unnamed++; openKey = rec.layer + '\u0000\u0000' + unnamed; }
+            key = openKey;
+          }
+          if (!polylines.has(key)) { rec.coords = { points: [] }; polylines.set(key, rec); records.push(rec); }
+          polylines.get(key).coords.points.push([v, p]);
+        } else {
+          rec.coords = Object.fromEntries(FIELDS[kind].map(([fld, pre]) =>
+            [fld, AXES.map(a => number(row, `${pre}${a} (nm)`, where))]));
+          records.push(rec);
+        }
+      });
+      for (const c of extraCols) if (!unread.includes(c)) unread.push(c);
+    }
+    for (const r of records)        // vertices in order of their number, then drop the number
+      if (r.kind === 'polyline') r.coords.points = r.coords.points.slice().sort((a, b) => a[0] - b[0]).map(t => t[1]);
+    return { records, links, unread };
+  }
+
+  function datasetState(NG, name) {
+    const d = NG.datasets[name];
+    const base = NG.sources[d.s3_ready ? 's3' : 'nrs'].base;
+    const root = `zarr://${base}/${name}/${name}.zarr/recon-1`;
+    const em = { type: 'image', source: `${root}/em/${d.em}`, name: 'em' };
+    if (d.shader) em.shaderControls = d.shader;
+    const layers = [em, ...d.crops.map(c => ({ type: 'segmentation',
+      source: `${root}/labels/groundtruth/${c}/all`, name: c, visible: true }))];
+    const v = d.voxel_nm || 8;
+    return { dimensions: { x: [v * 1e-9, 'm'], y: [v * 1e-9, 'm'], z: [v * 1e-9, 'm'] }, layers, layout: '4panel' };
+  }
+
+  function propValue(text, prop) {
+    if (!text.trim()) return prop.default ?? (NUMERIC.has(prop.type) ? 0 : '');
+    if (NUMERIC.has(prop.type)) { const x = Number(text); return prop.type === 'float32' ? x : Math.floor(x + 0.5); }
+    return text;
+  }
+  // [z, y, x] in nm -> the layer's own axes and units; other axes get 0
+  function toLayerUnits(p, axes, radius) {
+    const nm = Object.fromEntries(AXES.map((a, i) => [a, p[i]]));
+    return axes.map(([a, s]) => { const v = a in nm ? nm[a] / s : 0; return radius ? Math.abs(v) : v; });
+  }
+  const plural = (n, k) => `${n} ${n === 1 ? TYPES[k].one : TYPES[k].word}`;
+
+  function build(records, state) {
+    const notes = [], usedCols = new Set();
+    state.layers = state.layers || [];
+    const order = [...new Set(records.map(r => r.layer))];
+    for (const name of order) {
+      const recs = records.filter(r => r.layer === name);
+      const kinds = new Set(recs.map(r => r.kind));
+      let layer = state.layers.find(l => l.type === 'annotation' && l.name === name && Array.isArray(l.annotations));
+      let dims, kept;
+      if (layer) {
+        const src = layer.source;
+        dims = (src && typeof src === 'object' && !Array.isArray(src) && (src.transform || {}).outputDimensions)
+          || state.dimensions || nmSpace();
+        kept = layer.annotations.filter(a => !kinds.has(a.type));
+        notes.push(`layer “${name}”: replaced its ${Object.keys(TYPES).filter(k => kinds.has(k)).map(k => TYPES[k].word).join(', ')}` +
+          (kept.length ? `, kept ${kept.length} other annotation${kept.length === 1 ? '' : 's'}` : ''));
+      } else {
+        layer = { type: 'annotation', name,
+          source: { url: 'local://annotations', transform: { outputDimensions: nmSpace() } },
+          tab: 'annotations', annotations: [] };
+        state.layers.push(layer);
+        dims = nmSpace(); kept = [];
+        notes.push(`layer “${name}”: new`);
+      }
+      const axes = nmPerUnit(dims);
+      const props = layer.annotationProperties || [];
+      const used = new Set(kept.map(a => String(a.id)));
+      const anns = recs.map((r, i) => {
+        const ann = { type: r.kind };
+        if (r.kind === 'polyline') ann.points = r.coords.points.map(p => toLayerUnits(p, axes, false));
+        else {
+          for (const [fld, val] of Object.entries(r.coords)) ann[fld] = toLayerUnits(val, axes, fld === 'radii');
+          if (r.kind === 'axis_aligned_bounding_box') {
+            const a = ann.pointA, b = ann.pointB;
+            ann.pointA = a.map((x, j) => Math.min(x, b[j])); ann.pointB = a.map((x, j) => Math.max(x, b[j]));
+          }
+        }
+        // ids must be unique in a layer; a missing or repeated one gets a numbered id
+        let aid = r.id || `${r.kind}-${i + 1}`;
+        while (used.has(aid)) aid += '+';
+        used.add(aid); ann.id = aid;
+        if (r.description) ann.description = r.description;
+        if (r.segments.length) ann.segments = [r.segments];
+        if (props.length) {
+          const base = [...HEAD, ...TYPES[r.kind].cols, ...TAIL];
+          ann.props = props.map((p, j) => {
+            const pid = String(p.id ?? `property ${j + 1}`);
+            const col = base.includes(pid) ? `${pid} (property)` : pid;
+            if (col in r.extra) usedCols.add(col);
+            return propValue(r.extra[col] ?? '', p);
+          });
+        }
+        return ann;
+      });
+      layer.annotations = [...kept, ...anns];
+    }
+    return { state, notes, usedCols };
+  }
+
+  function centre(records) {
+    const pts = [];
+    for (const r of records)
+      for (const [fld, val] of Object.entries(r.coords)) {
+        if (fld === 'points') pts.push(...val); else if (fld !== 'radii') pts.push(val);
+      }
+    return Object.fromEntries(AXES.map((a, i) => [a,
+      (Math.min(...pts.map(p => p[i])) + Math.max(...pts.map(p => p[i]))) / 2]));
+  }
+
+  // mode: 'saved' | 'paste' | 'bare' | 'ds:<name>'
+  function toLink(files, mode, baseText, NG) {
+    const { records, links, unread } = readFiles(files);
+    if (!records.length) throw new InputError('Those files have no annotations in them.');
+    let state, link = '', keepView = true, on;
+    if (mode === 'paste') {
+      if (!baseText.trim()) throw new InputError('Paste the link to add the annotations to.');
+      ({ state, link } = loadState(baseText)); on = 'the link you pasted';
+    } else if (mode.startsWith('ds:')) {
+      state = datasetState(NG, mode.slice(3)); keepView = false; on = `dataset ${mode.slice(3)}`;
+    } else if (mode === 'saved' && links.length) {
+      ({ state, link } = loadState(links[0])); on = 'the view saved in the spreadsheet';
+      if (new Set(links).size > 1) on += ' (the first of several links in the files)';
+    } else {
+      state = { dimensions: nmSpace(), layers: [], layout: '4panel' }; keepView = false; on = 'nothing else';
+    }
+    const host = link.includes('#!') ? link.split('#!')[0] : NG_HOST;
+    const { notes, usedCols } = build(records, state);
+    if (!keepView) {
+      const c = centre(records);
+      state.position = nmPerUnit(state.dimensions).map(([a, s]) => a in c ? c[a] / s : 0);
+      state.selectedLayer = { layer: records[0].layer, visible: true };
+    }
+    const counts = Object.keys(TYPES).map(k => [k, records.filter(r => r.kind === k).length]).filter(([, n]) => n);
+    return { url: host + '#!' + encodeURIComponent(JSON.stringify(state)), state, on, notes,
+             loaded: counts.map(([k, n]) => plural(n, k)).join(', '),
+             unread: unread.filter(c => !usedCols.has(c)), links };
+  }
+  window.NGAnnotations.toLink = toLink;
+  window.NGAnnotations.readFiles = readFiles;
+
+  // ---- the page ----
+  const $ = id => document.getElementById(id);
+  const drop = $('drop'), input = $('csvfiles'), onto = $('onto'), baselink = $('baselink');
+  const open = $('openng'), copyBtn = $('copylink'), status = $('loadstatus'), list = $('filelist');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let files = [], NG = null, picked = false, current = '';
+
+  function options(hasLink, guess) {
+    const keep = picked ? onto.value : null;
+    const ds = NG ? Object.keys(NG.datasets).sort() : [];
+    onto.innerHTML =
+      `<option value="saved"${hasLink ? '' : ' disabled'}>The view saved in the spreadsheet${hasLink ? '' : ' (none in these files)'}</option>` +
+      '<option value="paste">A Neuroglancer link I paste…</option>' +
+      (ds.length ? '<optgroup label="A dataset from this study">' +
+        ds.map(d => `<option value="ds:${d}">${d}</option>`).join('') + '</optgroup>' : '') +
+      '<option value="bare">Nothing else, just the annotations</option>';
+    const want = keep && [...onto.options].some(o => o.value === keep && !o.disabled) ? keep
+      : hasLink ? 'saved' : guess ? `ds:${guess}` : 'bare';
+    onto.value = want;
+    baselink.hidden = onto.value !== 'paste';
+  }
+
+  function refresh() {
+    current = ''; open.removeAttribute('href'); open.setAttribute('aria-disabled', 'true'); copyBtn.disabled = true;
+    status.className = ''; status.innerHTML = '';
+    if (!files.length) { list.textContent = ''; options(false, null); return; }
+    list.textContent = files.map(f => f.name).join(' · ');
+    try {
+      const pre = readFiles(files);
+      const blob = files.map(f => f.name).join(' ');
+      const guess = NG && Object.keys(NG.datasets).sort((a, b) => b.length - a.length).find(d => blob.includes(d));
+      options(pre.links.length > 0, guess);
+      const r = toLink(files, onto.value, baselink.value, NG);
+      current = r.url;
+      open.href = r.url; open.setAttribute('aria-disabled', 'false'); copyBtn.disabled = false;
+      status.innerHTML = `${esc(r.loaded)}, shown on ${esc(r.on)}.` +
+        '<ul>' + r.notes.map(n => `<li>${esc(n)}</li>`).join('') +
+        (r.unread.length ? `<li>not loaded (no matching property in the layer): ${esc(r.unread.join(', '))}</li>` : '') +
+        `<li>the link is ${r.url.length.toLocaleString()} characters</li></ul>`;
+    } catch (e) {
+      status.className = 'err';
+      status.textContent = e instanceof InputError ? e.message : 'Could not read those files: ' + e.message;
+    }
+  }
+
+  async function take(fileList) {
+    files = await Promise.all([...fileList].map(async f => ({ name: f.name, text: await f.text() })));
+    picked = false; refresh();
+  }
+  input.addEventListener('change', () => take(input.files));
+  ['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, () => drop.classList.remove('over')));
+  drop.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer.files.length) take(e.dataTransfer.files); });
+  onto.addEventListener('change', () => { picked = true; refresh(); });
+  baselink.addEventListener('input', refresh);
+  copyBtn.addEventListener('click', async () => {
+    if (!current) return;
+    try { await navigator.clipboard.writeText(current); copyBtn.textContent = 'Copied';
+          setTimeout(() => { copyBtn.textContent = 'Copy link'; }, 1400); }
+    catch (e) { status.className = 'err'; status.textContent = 'The browser blocked the clipboard; use Open in Neuroglancer instead.'; }
+  });
+  window.NGAnnotations.loadFiles = f => { files = f; picked = false; refresh(); };   // for testing
+  options(false, null);
+  fetch('data/neuroglancer.json').then(r => r.json()).then(j => { NG = j; refresh(); }).catch(() => {});
+})();
+</script>"""
+
+
 def main():
-    html = sh.head("Line export — ECS preservation", 0, EXTRA)
+    html = sh.head("Annotations — ECS preservation", 0, EXTRA)
     html += sh.nav("ng-lines.html", 0)
-    html += sh.pagehead("Export line annotations",
-        "Paste a Neuroglancer link and get its line annotations as a spreadsheet: where "
-        "each line starts and ends, how long it is, and which segments it touches. "
-        "Everything happens in this page; the link is not sent anywhere.")
-    html += BODY + JS + sh.tail(0)
+    html += sh.pagehead("Neuroglancer annotations",
+        "Turn the annotations in a Neuroglancer link into spreadsheets (lines, points, boxes, "
+        "ellipsoids and polylines, one file each, in nanometres), and turn those spreadsheets "
+        "back into a link. Everything happens in this page; nothing is uploaded.")
+    html += BODY + JS + LOAD_JS + sh.tail(0)
     out = ROOT / "docs" / "ng-lines.html"
     out.write_text(html)
     print(f"built {out.relative_to(ROOT)}")

@@ -18,8 +18,9 @@ NAV = [
     ("crops.html",     "Crops"),
     ("reference.html", "Reference"),
     # a tool, not a section of the analysis, but the one thing people come to
-    # the site to use rather than read, so it sits where it can be seen
-    ("ng-lines.html",  "Line exporter"),
+    # the site to use rather than read, so it sits where it can be seen:
+    # Neuroglancer annotations to spreadsheets and back
+    ("ng-lines.html",  "Annotations"),
 ]
 
 # pages that live under a nav entry rather than beside it: visiting one of these

@@ -67,7 +67,7 @@ ICO_RENDERS = _ICO % (
     '<g stroke="var(--accent)" stroke-width="1.6"><path d="M9 15c5 5 8-2 13 2s7-3 13 1"/>'
     '<path d="M9 24c5 5 8-2 13 2s7-3 13 1"/></g>')
 
-# a measuring line drawn on an image slice, and the table it becomes
+# a measuring line drawn on an image slice, and the table it becomes (and back)
 ICO_EXPORT = _ICO % (
     '<g stroke="currentColor" stroke-width="1.6"><rect x="5" y="6" width="20" height="20" rx="2"/></g>'
     '<g stroke="var(--accent)" stroke-width="1.7"><path d="M10 21L20 11"/></g>'
@@ -169,8 +169,8 @@ caveats that go with them.</p>
     <span class="t">Reference</span>
     <span class="d">What a crop is, how to read the charts, and what all {n_metrics} metrics mean.</span></a></li>
   <li><a href="ng-lines.html">{ICO_EXPORT}
-    <span class="t">Line exporter</span>
-    <span class="d">Paste a Neuroglancer link and download its line annotations as a spreadsheet.</span></a></li>
+    <span class="t">Annotations</span>
+    <span class="d">Turn the annotations in a Neuroglancer link into spreadsheets, and load spreadsheets back into a link.</span></a></li>
 </ul>
 
 <div class="sec">

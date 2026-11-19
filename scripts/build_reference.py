@@ -274,7 +274,7 @@ inside one of these; the volume itself is the raw electron microscopy it was cut
     <th>EM array</th><th>Public S3</th><th class="num">Meshes</th><th>Open</th></tr></thead>
   <tbody></tbody></table></div>
 <p class="note" id="dsnote"></p>
-<p class="note">To get the line annotations out of a Neuroglancer link as a spreadsheet, paste the link into the <a href="ng-lines.html">line exporter</a>.</p>
+<p class="note">To get the annotations out of a Neuroglancer link as spreadsheets, or load spreadsheets back into a link, use the <a href="ng-lines.html">annotations page</a>.</p>
 
 <h2 id="metrics">Metric dictionary</h2>
 <p class="lede">{len(mets)} metrics in {len(order)} families. The grey name under each entry is
